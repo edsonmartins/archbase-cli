@@ -11,11 +11,12 @@ Archbase CLI is a powerful, AI-friendly development tool that bridges the gap be
 ## Features
 
 - 🔍 **Component Query** - Search and get detailed information about Archbase components
-- 🏗️ **Code Generation** - Generate forms, views, pages, components and navigation from templates
+- 🏗️ **Code Generation** - Generate forms, views, pages, components, navigation and security components from templates
 - 🎯 **Domain-Driven Development** - Generate TypeScript DTOs from Java classes with full type safety
 - 🔄 **Java-to-TypeScript** - Automatic conversion with validation decorators and enum support
 - 📊 **DTO-Based Generation** - Create forms and views directly from existing DTOs
-- 🚀 **Project Scaffolding** - Create complete projects from boilerplates
+- 🔒 **Security Components** - Generate login views, user management, API tokens, and authentication infrastructure
+- 🚀 **Project Scaffolding** - Create complete projects from boilerplates (local and remote)
 - 🤖 **AI-Friendly** - Optimized outputs for AI consumption and integration
 - 📚 **Knowledge Base** - Automatic component analysis with manual curation support
 - 🎯 **Production Patterns** - Templates based on real powerview-admin patterns
@@ -77,6 +78,10 @@ archbase generate domain ProdutoDto --java-text /path/to/Produto.java --output .
 archbase generate form ProdutoForm --dto ./src/domain/ProdutoDto.ts --category=produtos
 archbase generate view ProdutoView --dto ./src/domain/ProdutoDto.ts --category=produtos
 
+# Generate security components
+archbase generate security AdminLogin --type=login --with-mobile --with-branding
+archbase generate security UserManager --type=user-management --features=user-activation,user-roles
+
 # Create a project from boilerplate
 archbase create project MyApp --boilerplate=admin-dashboard
 ```
@@ -128,6 +133,14 @@ archbase generate domain ProdutoDto --java-text ./Produto.java --with-audit-fiel
 # Generate from DTOs
 archbase generate form <name> --dto <dto-file> [--category <category>]
 archbase generate view <name> --dto <dto-file> [--category <category>]
+
+# Generate security components
+archbase generate security <name> --type <type> [--features <features>] [--with-mobile] [--with-branding]
+archbase generate security AdminLogin --type=login --with-mobile --with-branding --brand-name="MyApp"
+archbase generate security Security --type=security-management --features=custom-permissions,audit-log
+archbase generate security UserAdmin --type=user-management --features=user-activation,user-roles
+archbase generate security ApiTokens --type=api-tokens --features=token-regeneration
+archbase generate security CustomAuth --type=authenticator --features=password-reset,logout
 ```
 
 ### Create Commands
@@ -407,6 +420,71 @@ archbase generate navigation UserNavigation \
 - i18n integration with `mentors:` prefix
 - Support for grouped menu items
 
+### SecurityGenerator
+Generate complete security infrastructure including login views, user management, API tokens, and authentication components.
+
+**Login Views:**
+```bash
+# Desktop and mobile login views
+archbase generate security AdminLogin \
+  --type=login --with-mobile --with-branding \
+  --brand-name="MyApp" --logo-path="/assets/logo.png"
+
+# Features: password-remember, forgot-password, branding
+```
+
+**Security Management:**
+```bash
+# Complete security management interface
+archbase generate security Security \
+  --type=security-management \
+  --features=custom-permissions,audit-log,export-users
+```
+
+**User Management:**
+```bash
+# User CRUD with roles and permissions
+archbase generate security UserAdmin \
+  --type=user-management \
+  --features=user-activation,user-roles,bulk-operations
+```
+
+**API Token Management:**
+```bash
+# API token generation and management
+archbase generate security ApiTokens \
+  --type=api-tokens \
+  --features=token-regeneration,token-scopes
+```
+
+**Authentication Infrastructure:**
+```bash
+# Custom authenticator with IoC container
+archbase generate security CustomAuth \
+  --type=authenticator \
+  --features=password-reset,logout,change-password \
+  --authenticator-class=MyAuthenticator \
+  --user-class=MyUser
+```
+
+**Generated Files:**
+- **Login**: `LoginView.tsx`, `LoginMobileView.tsx`, `Login.module.css`
+- **Security**: `SecurityView.tsx`, `SecurityNavigation.tsx`, `SecurityRoutes.tsx`
+- **Users**: `UserManagementView.tsx` with full CRUD interface
+- **Tokens**: `ApiTokenManagementView.tsx` with secure token handling
+- **Auth**: `Authenticator.ts`, `SecurityContainer.tsx` with IoC setup
+
+**Features:**
+- **JWT Authentication**: Complete implementation with refresh tokens
+- **Role-based Security**: Permission checking throughout all views
+- **Mobile Support**: Dedicated responsive mobile login views
+- **Secure Token Display**: Visibility controls and copy-to-clipboard
+- **User Activation**: Enable/disable user accounts
+- **API Token Scopes**: Granular permission control for API access
+- **IoC Integration**: Proper dependency injection with Inversify
+- **Audit Support**: User action logging and export capabilities
+- **Modern UI**: Mantine components with consistent styling
+
 ## Production-Ready Templates
 
 All generators follow real patterns from powerview-admin:
@@ -432,6 +510,15 @@ All generators follow real patterns from powerview-admin:
 - **Icon Support**: Tabler icons with proper styling
 - **Sidebar/Hidden Items**: Forms hidden from sidebar, views shown
 
+#### SecurityGenerator
+- **JWT Authentication**: Complete ArchbaseAuthenticator implementation
+- **Login Views**: Desktop and mobile responsive designs with branding
+- **Security Management**: ArchbaseSecurityView integration with permissions
+- **User Management**: Full CRUD with ArchbaseDataGrid and role management
+- **API Token Management**: Secure token generation with scopes and regeneration
+- **IoC Container**: Proper dependency injection setup with Inversify
+- **Modern Styling**: Responsive design with Mantine components and CSS modules
+
 ### Usage Examples
 
 ```bash
@@ -440,6 +527,13 @@ archbase generate domain UserDto --java-text ./User.java --output ./src/domain
 archbase generate form UserForm --dto ./src/domain/UserDto.ts --category=usuarios
 archbase generate view UserView --dto ./src/domain/UserDto.ts --category=usuarios  
 archbase generate navigation UserNavigation --category=usuarios --with-view --with-form --icon=IconUser
+
+# Complete security infrastructure
+archbase generate security AdminLogin --type=login --with-mobile --with-branding --brand-name="MyApp"
+archbase generate security Security --type=security-management --features=custom-permissions,audit-log
+archbase generate security UserAdmin --type=user-management --features=user-activation,user-roles
+archbase generate security ApiTokens --type=api-tokens --features=token-regeneration
+archbase generate security CustomAuth --type=authenticator --authenticator-class=MyAuthenticator
 
 # Traditional field-based generation
 archbase generate form UserForm --fields=name:text,email:email --category=usuarios --datasource-version=v2
@@ -683,6 +777,43 @@ archbase knowledge update
 5. Submit a pull request
 
 ## Changelog
+
+### v0.1.2 - Security Infrastructure Generator
+
+**New Features:**
+- ✅ **SecurityGenerator**: Complete security infrastructure generation
+- ✅ **Login Views**: Desktop and mobile login views with branding support
+- ✅ **User Management**: Full CRUD interface with role-based permissions
+- ✅ **API Token Management**: Secure token generation, regeneration, and scoping
+- ✅ **Authentication Infrastructure**: Custom authenticator with JWT and refresh tokens
+- ✅ **Security Management**: ArchbaseSecurityView integration with audit logging
+- ✅ **IoC Container**: Dependency injection setup with Inversify
+- ✅ **Mobile Support**: Responsive design with dedicated mobile components
+- ✅ **Permission System**: Granular permission checking throughout all views
+
+**Security Components Added:**
+- `LoginView.tsx` - Desktop login with branding and validation
+- `LoginMobileView.tsx` - Mobile-optimized login interface
+- `SecurityView.tsx` - Main security management dashboard
+- `UserManagementView.tsx` - Complete user CRUD with roles
+- `ApiTokenManagementView.tsx` - API token lifecycle management
+- `Authenticator.ts` - JWT authentication with refresh token support
+- `SecurityContainer.tsx` - IoC container configuration
+- `SecurityNavigation.tsx` - Navigation components for security routes
+- `SecurityRoutes.tsx` - Route definitions and path constants
+- `Login.module.css` - Responsive styling with dark/light mode support
+
+**Security Features:**
+- JWT authentication with automatic refresh
+- Role-based access control (RBAC)
+- API token scoping and regeneration
+- User activation/deactivation
+- Audit logging and user export
+- Password remember functionality
+- Forgot password workflow
+- Multi-device support (desktop/mobile)
+- Secure token display with visibility controls
+- Bulk user operations
 
 ### v0.1.1 - Extended Editor Components
 

@@ -155,18 +155,16 @@ class SecurityGenerator {
     buildUserManagementContext(config) {
         return {
             componentName: config.name,
-            entityName: 'User',
-            features: config.features || ['create', 'edit', 'delete', 'list', 'permissions'],
-            serviceName: `${config.name}Service`,
+            userClass: config.userClass || 'User',
+            features: config.features || ['custom-permissions', 'user-activation', 'user-roles'],
             hasFeature: (feature) => config.features?.includes(feature) || false
         };
     }
     buildApiTokenContext(config) {
         return {
             componentName: config.name,
-            entityName: 'ApiToken',
-            features: config.features || ['create', 'edit', 'delete', 'list', 'regenerate'],
-            serviceName: `${config.name}Service`,
+            apiTokenClass: config.apiTokenClass || 'ApiToken',
+            features: config.features || ['custom-permissions', 'token-regeneration'],
             hasFeature: (feature) => config.features?.includes(feature) || false
         };
     }
