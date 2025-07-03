@@ -1,0 +1,58 @@
+/**
+ * {{capitalizeFirst feature}} Routes Constants
+ * 
+ * Following powerview-admin pattern for route definitions.
+ * These constants are used throughout the application for navigation.
+ */
+
+// Main routes
+export const {{featureConstant}}_ROUTE = '{{adminRoute}}';
+{{#if withForm}}
+export const {{featureConstant}}_FORM_ROUTE = '{{formRoute}}';
+{{/if}}
+
+// Category constant
+export const {{categoryConstant}} = '{{category}}';
+
+// Action constants
+export const ADD_ACTION = 'ADD';
+export const EDIT_ACTION = 'EDIT';
+export const VIEW_ACTION = 'VIEW';
+
+// Navigation helper functions
+export const {{feature}}Routes = {
+  // Get the main list route
+  getListRoute: () => {{featureConstant}}_ROUTE,
+  
+  {{#if withForm}}
+  // Get form route for specific action
+  getFormRoute: ({{feature}}Id?: string, action: string = ADD_ACTION) => {
+    if (action === ADD_ACTION) {
+      return {{featureConstant}}_ROUTE + '/novo-' + Date.now();
+    }
+    return {{featureConstant}}_ROUTE + '/' + {{feature}}Id;
+  },
+  
+  // Get edit route
+  getEditRoute: ({{feature}}Id: string) => 
+    {{feature}}Routes.getFormRoute({{feature}}Id, EDIT_ACTION),
+  
+  // Get view route  
+  getViewRoute: ({{feature}}Id: string) => 
+    {{feature}}Routes.getFormRoute({{feature}}Id, VIEW_ACTION),
+  {{/if}}
+  
+  // Check if current route matches this feature
+  isCurrentRoute: (pathname: string) => 
+    pathname.startsWith({{featureConstant}}_ROUTE),
+    
+  // Get category
+  getCategory: () => {{categoryConstant}}
+};
+
+// Export individual constants for convenience
+export {
+  {{featureConstant}}_ROUTE as {{toUpperCase feature}}_ROUTE{{#if withForm}},
+  {{featureConstant}}_FORM_ROUTE as {{toUpperCase feature}}_FORM_ROUTE{{/if}},
+  {{categoryConstant}} as {{toUpperCase category}}_CATEGORY
+};

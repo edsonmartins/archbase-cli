@@ -1,0 +1,420 @@
+# {{projectName}} - Marketplace E-commerce
+
+> {{projectDescription}}
+
+## 🚀 Características
+
+Este marketplace foi criado com o **Archbase CLI** e inclui:
+
+### 🛍️ Funcionalidades Core
+{{#if features.vendor-management}}
+- ✅ **Gerenciamento de Vendedores** - Sistema completo para multi-vendedores
+{{/if}}
+{{#if features.product-catalog}}
+- ✅ **Catálogo de Produtos** - Categorias, variações e estoque
+{{/if}}
+{{#if features.shopping-cart}}
+- ✅ **Carrinho de Compras** - Multi-vendedor com cálculo de frete
+{{/if}}
+{{#if features.checkout}}
+- ✅ **Checkout Completo** - Processo de pagamento otimizado
+{{/if}}
+{{#if features.order-management}}
+- ✅ **Gestão de Pedidos** - Tracking e status em tempo real
+{{/if}}
+{{#if features.review-rating}}
+- ✅ **Avaliações** - Sistema de reviews e ratings
+{{/if}}
+{{#if features.search-filters}}
+- ✅ **Busca Avançada** - Filtros e facetas inteligentes
+{{/if}}
+{{#if features.wishlist}}
+- ✅ **Lista de Desejos** - Favoritos para usuários
+{{/if}}
+
+### 💳 Integrações de Pagamento
+{{#if paymentGateways.stripe}}
+- 🔹 **Stripe** - Cartões de crédito e débito
+{{/if}}
+{{#if paymentGateways.pagseguro}}
+- 🔹 **PagSeguro** - Gateway brasileiro
+{{/if}}
+{{#if paymentGateways.paypal}}
+- 🔹 **PayPal** - Pagamentos internacionais
+{{/if}}
+{{#if paymentGateways.pix}}
+- 🔹 **PIX** - Pagamento instantâneo brasileiro
+{{/if}}
+
+### 🚚 Entrega e Logística
+{{#if shippingIntegration.correios}}
+- 📦 **Correios** - SEDEX, PAC e outros serviços
+{{/if}}
+{{#if shippingIntegration.fedex}}
+- 📦 **FedEx** - Entrega internacional
+{{/if}}
+{{#if shippingIntegration.custom}}
+- 📦 **Transportadoras Customizadas** - Integração flexível
+{{/if}}
+
+## 🛠️ Tecnologias
+
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI Library**: Mantine + Archbase React
+- **State Management**: Zustand + React Query
+- **Routing**: React Router v6
+- **Forms**: React Hook Form + Yup
+- **Database**: {{database}}
+{{#if useRedis}}
+- **Cache**: Redis
+{{/if}}
+{{#if useElasticsearch}}
+- **Search**: Elasticsearch
+{{/if}}
+- **Icons**: Tabler Icons
+- **Charts**: Recharts
+- **Currency**: Currency.js
+
+## 🚀 Começando
+
+### Pré-requisitos
+
+- Node.js 16+ 
+- npm 8+
+{{#if useDocker}}
+- Docker (opcional)
+{{/if}}
+
+### Instalação
+
+1. **Clone ou baixe o projeto**
+```bash
+# Se usando o Archbase CLI
+archbase create project {{projectName}} --boilerplate=marketplace-ecommerce
+
+# Ou clone diretamente
+git clone <repository-url>
+cd {{projectName}}
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Configure as variáveis de ambiente**
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas configurações:
+```env
+# API Configuration
+VITE_API_URL={{apiUrl}}
+VITE_API_TIMEOUT=30000
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/{{projectName}}_db
+
+{{#if useRedis}}
+# Redis
+REDIS_URL=redis://localhost:6379
+{{/if}}
+
+{{#if features.payment-integration}}
+# Payment Gateways
+{{#if paymentGateways.stripe}}
+VITE_STRIPE_PUBLIC_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+{{/if}}
+{{#if paymentGateways.pagseguro}}
+PAGSEGURO_EMAIL=your-email@example.com
+PAGSEGURO_TOKEN=your-token
+PAGSEGURO_SANDBOX=true
+{{/if}}
+{{/if}}
+
+# File Upload
+VITE_MAX_FILE_SIZE=5242880
+VITE_ALLOWED_FILE_TYPES=jpg,jpeg,png,webp
+
+# Marketplace Settings
+VITE_CURRENCY={{defaultCurrency}}
+VITE_LOCALE={{languages.[0]}}
+VITE_COMMISSION_RATE=0.05
+VITE_FREE_SHIPPING_THRESHOLD=100
+```
+
+4. **Configure o banco de dados**
+```bash
+# Execute as migrations
+npm run db:migrate
+
+# Popule com dados de exemplo
+npm run seed
+```
+
+{{#if useDocker}}
+5. **Ou use Docker**
+```bash
+docker-compose up -d
+```
+{{/if}}
+
+### Desenvolvimento
+
+```bash
+# Inicie o servidor de desenvolvimento
+npm run dev
+
+# Acesse: http://localhost:3000
+```
+
+### Build para Produção
+
+```bash
+# Build otimizado
+npm run build
+
+# Preview da build
+npm run preview
+```
+
+## 📁 Estrutura do Projeto
+
+```
+{{projectName}}/
+├── src/
+│   ├── components/           # Componentes reutilizáveis
+│   │   ├── common/          # Componentes gerais
+│   │   ├── product/         # Componentes de produtos
+│   │   ├── vendor/          # Componentes de vendedores
+│   │   ├── cart/            # Componentes do carrinho
+│   │   ├── checkout/        # Componentes do checkout
+│   │   ├── order/           # Componentes de pedidos
+│   │   ├── payment/         # Componentes de pagamento
+│   │   ├── review/          # Componentes de avaliação
+│   │   └── search/          # Componentes de busca
+│   ├── pages/               # Páginas da aplicação
+│   │   ├── home/            # Página inicial
+│   │   ├── product/         # Páginas de produtos
+│   │   ├── vendor/          # Páginas de vendedores
+│   │   ├── cart/            # Página do carrinho
+│   │   ├── checkout/        # Páginas de checkout
+│   │   ├── account/         # Páginas da conta
+│   │   └── admin/           # Páginas administrativas
+│   ├── layouts/             # Layouts das páginas
+│   ├── hooks/               # Custom hooks
+│   ├── services/            # Serviços de API
+│   ├── store/               # Estado global (Zustand)
+│   ├── utils/               # Utilitários
+│   ├── types/               # Tipos TypeScript
+│   └── styles/              # Estilos globais
+├── public/                  # Arquivos estáticos
+├── docs/                    # Documentação
+{{#if useTests}}
+├── tests/                   # Testes
+{{/if}}
+{{#if useDocker}}
+├── docker-compose.yml       # Docker Compose
+├── Dockerfile               # Docker config
+{{/if}}
+└── README.md               # Este arquivo
+```
+
+## 🎨 Personalização
+
+### Tema e Branding
+
+Edite `src/styles/theme.ts` para personalizar:
+
+```typescript
+export const theme = {
+  colors: {
+    primary: '{{theme.primary}}',
+    secondary: '{{theme.secondary}}',
+    // ...
+  },
+  branding: {
+    name: '{{branding.appName}}',
+    tagline: '{{branding.tagline}}',
+    // ...
+  }
+};
+```
+
+### Configurações do Marketplace
+
+Edite `src/config/marketplace.ts`:
+
+```typescript
+export const marketplaceConfig = {
+  currency: '{{customization.ecommerce.currency}}',
+  locale: '{{customization.ecommerce.locale}}',
+  commissionRate: {{customization.ecommerce.commissionRate}},
+  freeShippingThreshold: {{customization.ecommerce.shippingFree}},
+  itemsPerPage: {{customization.ecommerce.itemsPerPage}},
+  // ...
+};
+```
+
+## 🔧 Configuração Avançada
+
+### Modelo de Negócio: {{businessModel}}
+
+{{#eq businessModel "commission"}}
+- **Comissão por Venda**: O marketplace cobra uma porcentagem de cada venda
+- Taxa configurável em `COMMISSION_RATE`
+- Pagamento automático aos vendedores após confirmação
+{{/eq}}
+
+{{#eq businessModel "subscription"}}
+- **Assinatura**: Vendedores pagam mensalidade para vender
+- Planos configuráveis com diferentes limites
+- Sem comissão por venda
+{{/eq}}
+
+{{#eq businessModel "hybrid"}}
+- **Híbrido**: Combina assinatura + comissão reduzida
+- Flexibilidade para diferentes tipos de vendedores
+- Planos premium com benefícios extras
+{{/eq}}
+
+### Integrações de Pagamento
+
+{{#if paymentGateways.stripe}}
+#### Stripe
+```bash
+# Configurar webhooks
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+{{/if}}
+
+{{#if paymentGateways.pagseguro}}
+#### PagSeguro
+- Configure as credenciais no arquivo `.env`
+- Ative o modo sandbox para testes
+- Configure webhooks para receber notificações
+{{/if}}
+
+### APIs e Endpoints
+
+Base URL: `{{apiUrl}}`
+
+#### Produtos
+- `GET /products` - Listar produtos
+- `GET /products/:id` - Detalhes do produto
+- `POST /products` - Criar produto (vendedor)
+- `PUT /products/:id` - Atualizar produto
+
+#### Carrinho
+- `GET /cart` - Obter carrinho
+- `POST /cart/items` - Adicionar item
+- `PUT /cart/items/:id` - Atualizar quantidade
+- `DELETE /cart/items/:id` - Remover item
+
+#### Pedidos
+- `POST /orders` - Criar pedido
+- `GET /orders` - Listar pedidos
+- `GET /orders/:id` - Detalhes do pedido
+- `PUT /orders/:id/status` - Atualizar status
+
+## 📱 Funcionalidades Detalhadas
+
+### Gestão de Produtos
+- Cadastro com múltiplas imagens
+- Variações (tamanho, cor, etc.)
+- Controle de estoque
+- Categorização hierárquica
+- SEO otimizado
+
+### Carrinho Multi-Vendedor
+- Agrupamento por vendedor
+- Cálculo de frete por vendedor
+- Cupons de desconto
+- Persistência entre sessões
+
+### Sistema de Avaliações
+- Reviews com fotos
+- Avaliação de produtos e vendedores
+- Moderação de conteúdo
+- Respostas dos vendedores
+
+### Busca e Filtros
+- Busca por texto
+- Filtros por categoria, preço, avaliação
+- Ordenação personalizada
+- Sugestões automáticas
+
+{{#if useTests}}
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm run test
+
+# Testes com interface
+npm run test:ui
+
+# Testes de cobertura
+npm run test:coverage
+
+# Testes E2E
+npm run e2e
+
+# Testes E2E com interface
+npm run e2e:ui
+```
+{{/if}}
+
+## 🚀 Deploy
+
+### Vercel (Recomendado)
+```bash
+npm install -g vercel
+vercel --prod
+```
+
+### Netlify
+```bash
+npm run build
+# Upload da pasta dist/
+```
+
+{{#if useDocker}}
+### Docker
+```bash
+docker build -t {{projectName}} .
+docker run -p 3000:3000 {{projectName}}
+```
+{{/if}}
+
+## 📚 Documentação
+
+- [Guia do Vendedor](./docs/vendor-guide.md)
+- [Guia do Administrador](./docs/admin-guide.md)
+- [API Documentation](./docs/api.md)
+- [Deployment Guide](./docs/deployment.md)
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 🆘 Suporte
+
+- 📖 [Documentação do Archbase](https://docs.archbase.com)
+- 🐛 [Issues](https://github.com/edsonmartins/archbase-cli/issues)
+- 💬 [Discussions](https://github.com/edsonmartins/archbase-cli/discussions)
+
+---
+
+**Criado com ❤️ usando [Archbase CLI](https://github.com/edsonmartins/archbase-cli)**

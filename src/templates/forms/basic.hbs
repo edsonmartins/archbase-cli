@@ -1,0 +1,54 @@
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+{{#if typescript}}
+interface {{componentName}}Props {
+  onSubmit: (values: {{entityName}}) => Promise<void>;
+  {{#if initialValues}}initialValues?: Partial<{{entityName}}>;{{/if}}
+}
+
+interface {{entityName}} {
+  {{#each fields}}
+  {{name}}: {{type}};
+  {{/each}}
+}
+{{/if}}
+
+{{#if useValidation}}
+const validationSchema = yup.object({
+  {{#each fields}}
+  {{#if validation}}
+  {{name}}: {{validation}},
+  {{/if}}
+  {{/each}}
+});
+{{/if}}
+
+const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if}} = ({
+  onSubmit,
+  {{#if initialValues}}initialValues{{/if}}
+}) => {
+  const fields{{#if typescript}}: FieldConfig[]{{/if}} = [
+    {{#each fields}}
+    {
+      name: '{{name}}',
+      label: '{{label}}',
+      type: '{{type}}',
+      {{#if required}}required: true,{{/if}}
+      {{#if placeholder}}placeholder: '{{placeholder}}',{{/if}}
+    },
+    {{/each}}
+  ];
+
+  return (
+    <FormBuilder
+      fields={fields}
+      {{#if useValidation}}validation={validationSchema}{{/if}}
+      onSubmit={onSubmit}
+      {{#if initialValues}}initialValues={initialValues}{{/if}}
+    />
+  );
+};
+
+export default {{componentName}};

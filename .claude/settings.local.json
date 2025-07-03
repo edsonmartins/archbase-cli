@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm run dev:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(node:*)",
+      "Bash(pnpm test:*)",
+      "Bash(ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(rg:*)",
+      "Bash(./dist/archbase:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": []
+  }
+}

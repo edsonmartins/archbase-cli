@@ -1,0 +1,54 @@
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from 'react-query'
+import { ReactQueryDevtools } from 'react-query/devtools'
+{{#if (includes features "notifications")}}
+import { Toaster } from 'react-hot-toast'
+{{/if}}
+{{#if (includes features "authentication")}}
+import { AuthProvider } from './contexts/AuthContext'
+{{/if}}
+import { ThemeProvider } from './contexts/ThemeContext'
+import Router from './Router'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+})
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ThemeProvider>
+          {{#if (includes features "authentication")}}
+          <AuthProvider>
+          {{/if}}
+            <Router />
+            {{#if (includes features "notifications")}}
+            <Toaster
+              position="top-right"
+              toastOptions=\{{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+              \}}
+            />
+            {{/if}}
+          {{#if (includes features "authentication")}}
+          </AuthProvider>
+          {{/if}}
+        </ThemeProvider>
+      </BrowserRouter>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  )
+}
+
+export default App

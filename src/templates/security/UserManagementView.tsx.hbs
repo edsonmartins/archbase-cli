@@ -1,0 +1,452 @@
+import React, { useCallback, useRef, useState } from 'react';
+import {
+  ArchbaseDataGrid,
+  ArchbaseRemoteDataSource,
+  ArchbaseFormTemplate,
+  ArchbaseNavigationView,
+  useArchbaseStore,
+  useArchbaseNavigationListener,
+  ArchbaseQueryFilter,
+  ArchbaseQueryFilterDelegator,
+  ArchbaseQueryBuilder,
+  ArchbaseDialog,
+  ArchbaseNotifications
+} from '@archbase/react';
+import { Button, Group, ActionIcon, Menu, Text, Badge } from '@mantine/core';
+import { IconPlus, IconPencil, IconTrash, IconDotsVertical, IconEye, IconUserCheck, IconUserX } from '@tabler/icons-react';
+import { {{userClass}} } from '../domain/{{userClass}}';
+import { {{toUpperCase componentName}}_USERS_ROUTE } from './{{componentName}}Routes';
+
+export interface {{componentName}}UserManagementViewProps {
+  store: any;
+  baseURL: string;
+  onUserSelect?: (user: {{userClass}}) => void;
+  onUserEdit?: (user: {{userClass}}) => void;
+  onUserDelete?: (user: {{userClass}}) => void;
+  {{#if hasFeature "custom-permissions"}}
+  permissions?: {
+    canCreateUsers?: boolean;
+    canEditUsers?: boolean;
+    canDeleteUsers?: boolean;
+    canViewUsers?: boolean;
+    canManageUserRoles?: boolean;
+  };
+  {{/if}}
+}
+
+export function {{componentName}}UserManagementView({ 
+  store, 
+  baseURL, 
+  onUserSelect, 
+  onUserEdit, 
+  onUserDelete,
+  {{#if hasFeature "custom-permissions"}}
+  permissions = {
+    canCreateUsers: true,
+    canEditUsers: true,
+    canDeleteUsers: true,
+    canViewUsers: true,
+    canManageUserRoles: true
+  }
+  {{/if}}
+}: {{componentName}}UserManagementViewProps) {
+  const [selectedUser, setSelectedUser] = useState<{{userClass}} | null>(null);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const queryFilterRef = useRef<ArchbaseQueryFilterDelegator>();
+  const dataSourceRef = useRef<ArchbaseRemoteDataSource<{{userClass}}, string>>();
+
+  useArchbaseNavigationListener({
+    navigationId: '{{toLowerCase componentName}}-users',
+    routePath: {{toUpperCase componentName}}_USERS_ROUTE
+  });
+
+  const createDataSource = useCallback(() => {
+    const dataSource = new ArchbaseRemoteDataSource<{{userClass}}, string>({
+      url: `${baseURL}/api/v1/users`,
+      name: '{{toLowerCase componentName}}-users-datasource',
+      store
+    });
+    dataSourceRef.current = dataSource;
+    return dataSource;
+  }, [baseURL, store]);
+
+  const handleNewUser = useCallback(() => {
+    if (dataSourceRef.current) {
+      dataSourceRef.current.insert();
+      setSelectedUser(null);
+      setShowUserForm(true);
+    }
+  }, []);
+
+  const handleEditUser = useCallback((user: {{userClass}}) => {
+    if (dataSourceRef.current) {
+      dataSourceRef.current.locateByKey(user.id);
+      setSelectedUser(user);
+      setShowUserForm(true);
+      onUserEdit?.(user);
+    }
+  }, [onUserEdit]);
+
+  const handleDeleteUser = useCallback((user: {{userClass}}) => {
+    setSelectedUser(user);
+    setShowDeleteDialog(true);
+  }, []);
+
+  const confirmDeleteUser = useCallback(async () => {
+    if (selectedUser && dataSourceRef.current) {
+      try {
+        await dataSourceRef.current.remove();
+        ArchbaseNotifications.showSuccess('Usuário removido com sucesso!');
+        onUserDelete?.(selectedUser);
+      } catch (error) {
+        ArchbaseNotifications.showError('Erro ao remover usuário');
+      }
+    }
+    setShowDeleteDialog(false);
+    setSelectedUser(null);
+  }, [selectedUser, onUserDelete]);
+
+  const handleUserSelect = useCallback((user: {{userClass}}) => {
+    setSelectedUser(user);
+    onUserSelect?.(user);
+  }, [onUserSelect]);
+
+  {{#if hasFeature "user-activation"}}
+  const handleToggleUserStatus = useCallback(async (user: {{userClass}}) => {
+    if (dataSourceRef.current) {
+      try {
+        await dataSourceRef.current.request({
+          url: `/api/v1/users/${user.id}/toggle-status`,
+          method: 'POST'
+        });
+        await dataSourceRef.current.refresh();
+        ArchbaseNotifications.showSuccess(
+          `Usuário ${user.active ? 'desativado' : 'ativado'} com sucesso!`
+        );
+      } catch (error) {
+        ArchbaseNotifications.showError('Erro ao alterar status do usuário');
+      }
+    }
+  }, []);
+  {{/if}}
+
+  const renderUserActions = useCallback((user: {{userClass}}) => (
+    <Group gap="xs" justify="center">
+      {{#if hasFeature "custom-permissions"}}
+      {permissions.canViewUsers && (
+        <ActionIcon
+          variant="light"
+          color="blue"
+          size="sm"
+          onClick={() => handleUserSelect(user)}
+        >
+          <IconEye size={16} />
+        </ActionIcon>
+      )}
+      {permissions.canEditUsers && (
+        <ActionIcon
+          variant="light"
+          color="yellow"
+          size="sm"
+          onClick={() => handleEditUser(user)}
+        >
+          <IconPencil size={16} />
+        </ActionIcon>
+      )}
+      {permissions.canDeleteUsers && (
+        <ActionIcon
+          variant="light"
+          color="red"
+          size="sm"
+          onClick={() => handleDeleteUser(user)}
+        >
+          <IconTrash size={16} />
+        </ActionIcon>
+      )}
+      {{else}}
+      <ActionIcon
+        variant="light"
+        color="blue"
+        size="sm"
+        onClick={() => handleUserSelect(user)}
+      >
+        <IconEye size={16} />
+      </ActionIcon>
+      <ActionIcon
+        variant="light"
+        color="yellow"
+        size="sm"
+        onClick={() => handleEditUser(user)}
+      >
+        <IconPencil size={16} />
+      </ActionIcon>
+      <ActionIcon
+        variant="light"
+        color="red"
+        size="sm"
+        onClick={() => handleDeleteUser(user)}
+      >
+        <IconTrash size={16} />
+      </ActionIcon>
+      {{/if}}
+      
+      <Menu position="bottom-end">
+        <Menu.Target>
+          <ActionIcon variant="light" color="gray" size="sm">
+            <IconDotsVertical size={16} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {{#if hasFeature "user-activation"}}
+          <Menu.Item
+            leftSection={user.active ? <IconUserX size={16} /> : <IconUserCheck size={16} />}
+            onClick={() => handleToggleUserStatus(user)}
+          >
+            {user.active ? 'Desativar' : 'Ativar'}
+          </Menu.Item>
+          {{/if}}
+          {{#if hasFeature "user-roles"}}
+          {permissions?.canManageUserRoles && (
+            <Menu.Item
+              leftSection={<IconUserCheck size={16} />}
+              onClick={() => {/* Implementar gestão de roles */}}
+            >
+              Gerenciar Roles
+            </Menu.Item>
+          )}
+          {{/if}}
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
+  ), [handleUserSelect, handleEditUser, handleDeleteUser{{#if hasFeature "user-activation"}}, handleToggleUserStatus{{/if}}{{#if hasFeature "custom-permissions"}}, permissions{{/if}}]);
+
+  const renderUserStatus = useCallback((user: {{userClass}}) => (
+    <Badge
+      color={user.active ? 'green' : 'red'}
+      variant="light"
+      size="sm"
+    >
+      {user.active ? 'Ativo' : 'Inativo'}
+    </Badge>
+  ), []);
+
+  const renderUserRoles = useCallback((user: {{userClass}}) => (
+    <Group gap="xs">
+      {user.roles?.slice(0, 2).map((role, index) => (
+        <Badge key={index} variant="outline" size="xs">
+          {role}
+        </Badge>
+      ))}
+      {user.roles && user.roles.length > 2 && (
+        <Badge variant="outline" size="xs" color="gray">
+          +{user.roles.length - 2}
+        </Badge>
+      )}
+    </Group>
+  ), []);
+
+  return (
+    <ArchbaseNavigationView
+      navigationId="{{toLowerCase componentName}}-users"
+      dataSource={createDataSource()}
+      queryFilterRef={queryFilterRef}
+    >
+      <ArchbaseQueryFilter
+        ref={queryFilterRef}
+        dataSource={dataSourceRef.current}
+        initialFilter={ArchbaseQueryBuilder.create().build()}
+        {{#if hasFeature "advanced-filters"}}
+        advancedMode
+        {{/if}}
+      >
+        <Group justify="space-between" mb="md">
+          <Text size="lg" fw={600}>
+            Gerenciamento de Usuários
+          </Text>
+          {{#if hasFeature "custom-permissions"}}
+          {permissions.canCreateUsers && (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={handleNewUser}
+              variant="filled"
+            >
+              Novo Usuário
+            </Button>
+          )}
+          {{else}}
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={handleNewUser}
+            variant="filled"
+          >
+            Novo Usuário
+          </Button>
+          {{/if}}
+        </Group>
+
+        <ArchbaseDataGrid
+          dataSource={dataSourceRef.current}
+          columns={[
+            {
+              headerName: 'Nome',
+              field: 'name',
+              sortable: true,
+              filter: true,
+              flex: 1
+            },
+            {
+              headerName: 'Email',
+              field: 'email',
+              sortable: true,
+              filter: true,
+              flex: 1
+            },
+            {
+              headerName: 'Username',
+              field: 'username',
+              sortable: true,
+              filter: true,
+              flex: 1
+            },
+            {{#if hasFeature "user-roles"}}
+            {
+              headerName: 'Roles',
+              field: 'roles',
+              sortable: false,
+              filter: false,
+              width: 200,
+              cellRenderer: renderUserRoles
+            },
+            {{/if}}
+            {{#if hasFeature "user-activation"}}
+            {
+              headerName: 'Status',
+              field: 'active',
+              sortable: true,
+              filter: true,
+              width: 100,
+              cellRenderer: renderUserStatus
+            },
+            {{/if}}
+            {
+              headerName: 'Ações',
+              field: 'actions',
+              sortable: false,
+              filter: false,
+              width: 150,
+              cellRenderer: renderUserActions
+            }
+          ]}
+          {{#if hasFeature "pagination"}}
+          enablePagination
+          paginationPageSize={25}
+          {{/if}}
+          {{#if hasFeature "export"}}
+          enableExport
+          {{/if}}
+          {{#if hasFeature "selection"}}
+          enableSelection
+          {{/if}}
+          height="calc(100vh - 200px)"
+        />
+      </ArchbaseQueryFilter>
+
+      {showUserForm && (
+        <ArchbaseDialog
+          title={selectedUser ? 'Editar Usuário' : 'Novo Usuário'}
+          opened={showUserForm}
+          onClose={() => setShowUserForm(false)}
+          size="lg"
+        >
+          <ArchbaseFormTemplate
+            dataSource={dataSourceRef.current}
+            onSave={async () => {
+              setShowUserForm(false);
+              await dataSourceRef.current?.refresh();
+            }}
+            onCancel={() => setShowUserForm(false)}
+            fields={[
+              {
+                name: 'name',
+                label: 'Nome',
+                type: 'text',
+                required: true,
+                validation: {
+                  required: 'Nome é obrigatório'
+                }
+              },
+              {
+                name: 'email',
+                label: 'Email',
+                type: 'email',
+                required: true,
+                validation: {
+                  required: 'Email é obrigatório',
+                  email: 'Email inválido'
+                }
+              },
+              {
+                name: 'username',
+                label: 'Username',
+                type: 'text',
+                required: true,
+                validation: {
+                  required: 'Username é obrigatório'
+                }
+              },
+              {{#if hasFeature "user-roles"}}
+              {
+                name: 'roles',
+                label: 'Roles',
+                type: 'multiselect',
+                required: false,
+                options: [
+                  { value: 'admin', label: 'Administrador' },
+                  { value: 'user', label: 'Usuário' },
+                  { value: 'manager', label: 'Gerente' }
+                ]
+              },
+              {{/if}}
+              {{#if hasFeature "user-activation"}}
+              {
+                name: 'active',
+                label: 'Ativo',
+                type: 'checkbox',
+                required: false
+              }
+              {{/if}}
+            ]}
+          />
+        </ArchbaseDialog>
+      )}
+
+      {showDeleteDialog && selectedUser && (
+        <ArchbaseDialog
+          title="Confirmar Exclusão"
+          opened={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          size="sm"
+        >
+          <Text mb="md">
+            Tem certeza que deseja remover o usuário <strong>{selectedUser.name}</strong>?
+          </Text>
+          <Group justify="flex-end">
+            <Button
+              variant="light"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              color="red"
+              onClick={confirmDeleteUser}
+            >
+              Confirmar
+            </Button>
+          </Group>
+        </ArchbaseDialog>
+      )}
+    </ArchbaseNavigationView>
+  );
+}

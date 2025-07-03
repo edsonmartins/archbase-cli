@@ -1,0 +1,497 @@
+{
+  "name": "saas-starter",
+  "version": "1.0.0",
+  "description": "SaaS Starter completo com multitenancy, autenticação, planos de assinatura e billing",
+  "author": "Archbase Team",
+  "category": "saas",
+  "tags": ["saas", "multitenancy", "subscription", "billing", "auth", "dashboard"],
+  "license": "MIT",
+  
+  "requirements": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  
+  "features": {
+    "authentication": {
+      "description": "Sistema de autenticação completo com social login",
+      "components": ["LoginForm", "RegisterForm", "ForgotPassword", "AuthGuard", "SocialLogin"],
+      "enabled": true
+    },
+    "multitenancy": {
+      "description": "Arquitetura multi-tenant com isolamento de dados",
+      "components": ["TenantProvider", "TenantSwitch", "TenantSettings", "DataIsolation"],
+      "enabled": true
+    },
+    "subscription-billing": {
+      "description": "Sistema de assinaturas e cobrança automática",
+      "components": ["PricingTable", "SubscriptionManager", "BillingHistory", "PaymentMethods"],
+      "enabled": true
+    },
+    "user-management": {
+      "description": "Gerenciamento de usuários e permissões por tenant",
+      "components": ["UserList", "UserInvitation", "RoleManager", "PermissionMatrix"],
+      "enabled": true
+    },
+    "dashboard-analytics": {
+      "description": "Dashboard com métricas e analytics por tenant",
+      "components": ["DashboardLayout", "MetricsCard", "AnalyticsCharts", "ReportsEngine"],
+      "enabled": true
+    },
+    "api-management": {
+      "description": "Gerenciamento de API keys e rate limiting",
+      "components": ["ApiKeyManager", "RateLimitConfig", "ApiUsage", "WebhookManager"],
+      "enabled": false
+    },
+    "team-collaboration": {
+      "description": "Colaboração em equipe com workspaces",
+      "components": ["TeamManagement", "WorkspaceSwitch", "ActivityFeed", "Notifications"],
+      "enabled": true
+    },
+    "settings-configuration": {
+      "description": "Configurações globais e por tenant",
+      "components": ["GeneralSettings", "BrandingSettings", "SecuritySettings", "IntegrationSettings"],
+      "enabled": true
+    },
+    "support-system": {
+      "description": "Sistema de suporte e tickets",
+      "components": ["TicketSystem", "LiveChat", "KnowledgeBase", "ContactForm"],
+      "enabled": false
+    },
+    "email-campaigns": {
+      "description": "Email marketing e campanhas automáticas",
+      "components": ["EmailTemplates", "CampaignBuilder", "AutomationRules", "EmailAnalytics"],
+      "enabled": false
+    },
+    "audit-logs": {
+      "description": "Logs de auditoria e compliance",
+      "components": ["AuditLog", "ComplianceReports", "SecurityEvents", "DataExport"],
+      "enabled": false
+    },
+    "white-label": {
+      "description": "Customização white-label por tenant",
+      "components": ["CustomBranding", "DomainMapping", "CustomCSS", "ThemeBuilder"],
+      "enabled": false
+    }
+  },
+  
+  "prompts": [
+    {
+      "name": "projectName",
+      "message": "Nome do projeto SaaS:",
+      "type": "input",
+      "validate": "required|alphanumeric",
+      "default": "my-saas"
+    },
+    {
+      "name": "projectDescription",
+      "message": "Descrição do projeto:",
+      "type": "input",
+      "default": "Aplicação SaaS baseada em Archbase"
+    },
+    {
+      "name": "tenancyModel",
+      "message": "Modelo de multitenancy:",
+      "type": "select",
+      "choices": [
+        { "name": "single-db", "message": "Single Database (Schema por tenant)", "value": "single-db" },
+        { "name": "multi-db", "message": "Multiple Databases (DB por tenant)", "value": "multi-db" },
+        { "name": "hybrid", "message": "Híbrido (Configurável)", "value": "hybrid" }
+      ],
+      "default": "single-db"
+    },
+    {
+      "name": "authProviders",
+      "message": "Provedores de autenticação:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "email", "message": "Email/Password", "checked": true },
+        { "name": "google", "message": "Google OAuth", "checked": true },
+        { "name": "github", "message": "GitHub OAuth", "checked": false },
+        { "name": "microsoft", "message": "Microsoft OAuth", "checked": false },
+        { "name": "linkedin", "message": "LinkedIn OAuth", "checked": false },
+        { "name": "saml", "message": "SAML SSO", "checked": false },
+        { "name": "ldap", "message": "LDAP/Active Directory", "checked": false }
+      ]
+    },
+    {
+      "name": "features",
+      "message": "Funcionalidades a incluir:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "authentication", "message": "Sistema de autenticação", "checked": true },
+        { "name": "multitenancy", "message": "Multitenancy", "checked": true },
+        { "name": "subscription-billing", "message": "Assinaturas e cobrança", "checked": true },
+        { "name": "user-management", "message": "Gerenciamento de usuários", "checked": true },
+        { "name": "dashboard-analytics", "message": "Dashboard e analytics", "checked": true },
+        { "name": "api-management", "message": "Gerenciamento de APIs", "checked": false },
+        { "name": "team-collaboration", "message": "Colaboração em equipe", "checked": true },
+        { "name": "settings-configuration", "message": "Configurações avançadas", "checked": true },
+        { "name": "support-system", "message": "Sistema de suporte", "checked": false },
+        { "name": "email-campaigns", "message": "Email marketing", "checked": false },
+        { "name": "audit-logs", "message": "Logs de auditoria", "checked": false },
+        { "name": "white-label", "message": "White-label/Branding", "checked": false }
+      ]
+    },
+    {
+      "name": "subscriptionModel",
+      "message": "Modelo de assinatura:",
+      "type": "select",
+      "choices": [
+        { "name": "freemium", "message": "Freemium (Plano gratuito + Premium)", "value": "freemium" },
+        { "name": "trial", "message": "Trial gratuito + Assinatura", "value": "trial" },
+        { "name": "paid-only", "message": "Apenas planos pagos", "value": "paid-only" },
+        { "name": "usage-based", "message": "Baseado em uso", "value": "usage-based" }
+      ],
+      "default": "freemium"
+    },
+    {
+      "name": "billingProviders",
+      "message": "Provedores de cobrança:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "stripe", "message": "Stripe", "checked": true },
+        { "name": "paddle", "message": "Paddle", "checked": false },
+        { "name": "chargebee", "message": "Chargebee", "checked": false },
+        { "name": "razorpay", "message": "Razorpay", "checked": false },
+        { "name": "pagseguro", "message": "PagSeguro (Brasil)", "checked": false }
+      ]
+    },
+    {
+      "name": "defaultPlans",
+      "message": "Planos de assinatura padrão:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "free", "message": "Gratuito (até 5 usuários)", "checked": true },
+        { "name": "starter", "message": "Starter ($29/mês - até 25 usuários)", "checked": true },
+        { "name": "professional", "message": "Professional ($99/mês - até 100 usuários)", "checked": true },
+        { "name": "enterprise", "message": "Enterprise ($299/mês - usuários ilimitados)", "checked": true }
+      ]
+    },
+    {
+      "name": "database",
+      "message": "Tipo de banco de dados:",
+      "type": "select",
+      "choices": ["postgresql", "mysql", "mongodb"],
+      "default": "postgresql"
+    },
+    {
+      "name": "cacheProvider",
+      "message": "Provider de cache:",
+      "type": "select",
+      "choices": [
+        { "name": "redis", "message": "Redis", "value": "redis" },
+        { "name": "memcached", "message": "Memcached", "value": "memcached" },
+        { "name": "none", "message": "Sem cache", "value": "none" }
+      ],
+      "default": "redis"
+    },
+    {
+      "name": "emailProvider",
+      "message": "Provedor de email:",
+      "type": "select",
+      "choices": [
+        { "name": "sendgrid", "message": "SendGrid", "value": "sendgrid" },
+        { "name": "mailgun", "message": "Mailgun", "value": "mailgun" },
+        { "name": "ses", "message": "Amazon SES", "value": "ses" },
+        { "name": "smtp", "message": "SMTP Custom", "value": "smtp" }
+      ],
+      "default": "sendgrid"
+    },
+    {
+      "name": "analyticsProvider",
+      "message": "Provider de analytics:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "mixpanel", "message": "Mixpanel", "checked": false },
+        { "name": "amplitude", "message": "Amplitude", "checked": false },
+        { "name": "segment", "message": "Segment", "checked": false },
+        { "name": "google-analytics", "message": "Google Analytics", "checked": true },
+        { "name": "posthog", "message": "PostHog", "checked": false }
+      ]
+    },
+    {
+      "name": "deploymentTarget",
+      "message": "Plataforma de deployment:",
+      "type": "select",
+      "choices": [
+        { "name": "vercel", "message": "Vercel", "value": "vercel" },
+        { "name": "netlify", "message": "Netlify", "value": "netlify" },
+        { "name": "aws", "message": "AWS", "value": "aws" },
+        { "name": "gcp", "message": "Google Cloud", "value": "gcp" },
+        { "name": "docker", "message": "Docker/Kubernetes", "value": "docker" }
+      ],
+      "default": "vercel"
+    },
+    {
+      "name": "apiUrl",
+      "message": "URL da API backend:",
+      "type": "input",
+      "default": "http://localhost:3001/api"
+    },
+    {
+      "name": "useTypeScript",
+      "message": "Usar TypeScript?",
+      "type": "confirm",
+      "default": true
+    },
+    {
+      "name": "useTests",
+      "message": "Incluir configuração de testes?",
+      "type": "confirm",
+      "default": true
+    },
+    {
+      "name": "useDocker",
+      "message": "Incluir configuração Docker?",
+      "type": "confirm",
+      "default": true
+    },
+    {
+      "name": "useStorybook",
+      "message": "Incluir Storybook para componentes?",
+      "type": "confirm",
+      "default": false
+    }
+  ],
+  
+  "dependencies": {
+    "@archbase/react": "^2.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.0.0",
+    "@mantine/core": "^7.0.0",
+    "@mantine/hooks": "^7.0.0",
+    "@mantine/form": "^7.0.0",
+    "@mantine/dates": "^7.0.0",
+    "@mantine/notifications": "^7.0.0",
+    "@mantine/spotlight": "^7.0.0",
+    "@tabler/icons-react": "^2.40.0",
+    "axios": "^1.6.0",
+    "@tanstack/react-query": "^5.0.0",
+    "react-hook-form": "^7.47.0",
+    "yup": "^1.3.0",
+    "dayjs": "^1.11.0",
+    "recharts": "^2.9.0",
+    "zustand": "^4.4.0",
+    "immer": "^10.0.0",
+    "react-helmet-async": "^1.3.0",
+    "react-use": "^17.4.0",
+    "react-intersection-observer": "^9.5.0",
+    "framer-motion": "^10.16.0",
+    "@stripe/stripe-js": "^2.0.0",
+    "@stripe/react-stripe-js": "^2.0.0",
+    "react-hot-toast": "^2.4.0",
+    "react-dropzone": "^14.2.0",
+    "react-beautiful-dnd": "^13.1.0",
+    "react-markdown": "^9.0.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "uuid": "^9.0.0",
+    "lodash": "^4.17.21",
+    "date-fns": "^2.30.0",
+    "currency.js": "^2.0.4"
+  },
+  
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^9.0.0",
+    "@types/lodash": "^4.14.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "prettier": "^3.1.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "@testing-library/react": "^14.1.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "vitest": "^1.1.0",
+    "@vitest/ui": "^1.1.0",
+    "jsdom": "^23.0.0",
+    "msw": "^2.0.0",
+    "playwright": "^1.40.0",
+    "@playwright/test": "^1.40.0"
+  },
+  
+  "scripts": {
+    "pre-install": "hooks/pre-install.js",
+    "post-install": "hooks/post-install.js",
+    "setup": "hooks/setup-saas.js",
+    "seed-data": "hooks/seed-saas-data.js"
+  },
+  
+  "structure": {
+    "src/": {
+      "components/": {
+        "auth/": "Componentes de autenticação",
+        "billing/": "Componentes de cobrança e assinaturas",
+        "dashboard/": "Componentes do dashboard",
+        "tenant/": "Componentes de multitenancy",
+        "user/": "Componentes de usuário",
+        "team/": "Componentes de equipe",
+        "settings/": "Componentes de configuração",
+        "common/": "Componentes comuns reutilizáveis"
+      },
+      "pages/": {
+        "auth/": "Páginas de autenticação",
+        "dashboard/": "Páginas do dashboard",
+        "billing/": "Páginas de cobrança",
+        "settings/": "Páginas de configurações",
+        "admin/": "Páginas administrativas"
+      },
+      "layouts/": "Layouts da aplicação (Auth, Dashboard, Admin)",
+      "hooks/": "Custom hooks para SaaS",
+      "services/": {
+        "auth/": "Serviços de autenticação",
+        "billing/": "Serviços de cobrança",
+        "tenant/": "Serviços de tenant",
+        "api/": "Serviços de API",
+        "analytics/": "Serviços de analytics"
+      },
+      "store/": {
+        "auth/": "Estado de autenticação",
+        "tenant/": "Estado do tenant",
+        "user/": "Estado do usuário",
+        "billing/": "Estado de cobrança"
+      },
+      "utils/": {
+        "auth/": "Utilitários de auth",
+        "billing/": "Utilitários de cobrança",
+        "tenant/": "Utilitários de tenant",
+        "validation/": "Esquemas de validação",
+        "constants/": "Constantes da aplicação"
+      },
+      "types/": {
+        "auth.ts": "Tipos de autenticação",
+        "tenant.ts": "Tipos de tenant",
+        "user.ts": "Tipos de usuário",
+        "billing.ts": "Tipos de cobrança",
+        "api.ts": "Tipos de API"
+      },
+      "styles/": "Estilos globais e temas"
+    },
+    "docs/": {
+      "api/": "Documentação da API",
+      "deployment/": "Guias de deployment",
+      "multitenancy/": "Guia de multitenancy",
+      "billing/": "Guia de cobrança"
+    }
+  },
+  
+  "customization": {
+    "theme": {
+      "primary": "#6366f1",
+      "secondary": "#8b5cf6", 
+      "success": "#10b981",
+      "warning": "#f59e0b",
+      "danger": "#ef4444",
+      "info": "#3b82f6",
+      "light": "#f8fafc",
+      "dark": "#1e293b"
+    },
+    "branding": {
+      "appName": "My SaaS",
+      "logo": "assets/logo.svg",
+      "favicon": "assets/favicon.ico",
+      "tagline": "Sua solução SaaS completa"
+    },
+    "layout": {
+      "headerHeight": "64px",
+      "sidebarWidth": "256px",
+      "contentMaxWidth": "1200px"
+    },
+    "saas": {
+      "defaultTenant": "main",
+      "maxTenantsPerUser": 5,
+      "maxUsersPerTenant": 100,
+      "sessionTimeout": 30,
+      "passwordPolicy": {
+        "minLength": 8,
+        "requireUppercase": true,
+        "requireNumbers": true,
+        "requireSymbols": false
+      },
+      "billing": {
+        "currency": "USD",
+        "trialDays": 14,
+        "gracePeriodDays": 3,
+        "invoicePrefix": "INV-"
+      }
+    }
+  },
+  
+  "integrations": {
+    "authentication": {
+      "google": {
+        "enabled": false,
+        "clientId": "GOOGLE_CLIENT_ID",
+        "clientSecret": "GOOGLE_CLIENT_SECRET"
+      },
+      "github": {
+        "enabled": false,
+        "clientId": "GITHUB_CLIENT_ID",
+        "clientSecret": "GITHUB_CLIENT_SECRET"
+      },
+      "microsoft": {
+        "enabled": false,
+        "clientId": "MICROSOFT_CLIENT_ID",
+        "clientSecret": "MICROSOFT_CLIENT_SECRET"
+      }
+    },
+    "billing": {
+      "stripe": {
+        "enabled": false,
+        "publishableKey": "STRIPE_PUBLISHABLE_KEY",
+        "secretKey": "STRIPE_SECRET_KEY",
+        "webhookSecret": "STRIPE_WEBHOOK_SECRET"
+      },
+      "paddle": {
+        "enabled": false,
+        "vendorId": "PADDLE_VENDOR_ID",
+        "vendorAuthCode": "PADDLE_VENDOR_AUTH_CODE",
+        "publicKey": "PADDLE_PUBLIC_KEY"
+      }
+    },
+    "email": {
+      "sendgrid": {
+        "enabled": false,
+        "apiKey": "SENDGRID_API_KEY",
+        "fromEmail": "noreply@example.com"
+      },
+      "mailgun": {
+        "enabled": false,
+        "apiKey": "MAILGUN_API_KEY",
+        "domain": "MAILGUN_DOMAIN"
+      }
+    },
+    "analytics": {
+      "mixpanel": {
+        "enabled": false,
+        "token": "MIXPANEL_TOKEN"
+      },
+      "segment": {
+        "enabled": false,
+        "writeKey": "SEGMENT_WRITE_KEY"
+      },
+      "googleAnalytics": {
+        "enabled": false,
+        "trackingId": "GA_TRACKING_ID"
+      }
+    },
+    "monitoring": {
+      "sentry": {
+        "enabled": false,
+        "dsn": "SENTRY_DSN",
+        "environment": "production"
+      },
+      "logRocket": {
+        "enabled": false,
+        "appId": "LOGROCKET_APP_ID"
+      }
+    }
+  }
+}

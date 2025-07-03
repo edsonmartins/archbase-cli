@@ -1,0 +1,387 @@
+{
+  "name": "marketplace-ecommerce",
+  "version": "1.0.0",
+  "description": "Marketplace e-commerce completo com multi-vendedores, catálogo de produtos, carrinho e checkout",
+  "author": "Archbase Team",
+  "category": "ecommerce",
+  "tags": ["marketplace", "ecommerce", "multi-vendor", "payment", "inventory"],
+  "license": "MIT",
+  
+  "requirements": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  
+  "features": {
+    "vendor-management": {
+      "description": "Sistema completo de gerenciamento de vendedores",
+      "components": ["VendorDashboard", "VendorRegistration", "VendorProfile", "CommissionManagement"],
+      "enabled": true
+    },
+    "product-catalog": {
+      "description": "Catálogo de produtos com categorias, variações e estoque",
+      "components": ["ProductGrid", "ProductDetails", "CategoryTree", "ProductVariations", "InventoryManagement"],
+      "enabled": true
+    },
+    "shopping-cart": {
+      "description": "Carrinho de compras com múltiplos vendedores",
+      "components": ["ShoppingCart", "CartSummary", "MultiVendorCart", "ShippingCalculator"],
+      "enabled": true
+    },
+    "checkout": {
+      "description": "Processo de checkout com múltiplas formas de pagamento",
+      "components": ["CheckoutFlow", "PaymentMethods", "AddressForm", "OrderSummary"],
+      "enabled": true
+    },
+    "order-management": {
+      "description": "Gerenciamento de pedidos para compradores e vendedores",
+      "components": ["OrderTracking", "OrderHistory", "VendorOrders", "OrderStatus"],
+      "enabled": true
+    },
+    "payment-integration": {
+      "description": "Integração com gateways de pagamento",
+      "components": ["PaymentGateway", "StripeIntegration", "PagSeguroIntegration", "PaypalIntegration"],
+      "enabled": false
+    },
+    "review-rating": {
+      "description": "Sistema de avaliações e comentários",
+      "components": ["ProductReviews", "VendorRatings", "ReviewForm", "ReviewModeration"],
+      "enabled": true
+    },
+    "search-filters": {
+      "description": "Busca avançada com filtros e facetas",
+      "components": ["SearchBar", "FilterSidebar", "FacetedSearch", "SearchResults"],
+      "enabled": true
+    },
+    "wishlist": {
+      "description": "Lista de desejos para usuários",
+      "components": ["Wishlist", "WishlistButton", "WishlistPage"],
+      "enabled": true
+    },
+    "inventory-tracking": {
+      "description": "Controle de estoque em tempo real",
+      "components": ["InventoryDashboard", "StockAlerts", "InventoryReports"],
+      "enabled": false
+    },
+    "analytics": {
+      "description": "Analytics para vendedores e administradores",
+      "components": ["SalesAnalytics", "ProductAnalytics", "VendorAnalytics", "ReportsEngine"],
+      "enabled": false
+    },
+    "mobile-app": {
+      "description": "Aplicativo móvel React Native",
+      "components": ["MobileApp", "PushNotifications", "MobilePayments"],
+      "enabled": false
+    }
+  },
+  
+  "prompts": [
+    {
+      "name": "projectName",
+      "message": "Nome do marketplace:",
+      "type": "input",
+      "validate": "required|alphanumeric",
+      "default": "my-marketplace"
+    },
+    {
+      "name": "projectDescription",
+      "message": "Descrição do marketplace:",
+      "type": "input",
+      "default": "Marketplace e-commerce baseado em Archbase"
+    },
+    {
+      "name": "businessModel",
+      "message": "Modelo de negócio:",
+      "type": "select",
+      "choices": [
+        { "name": "commission", "message": "Comissão por venda", "value": "commission" },
+        { "name": "subscription", "message": "Assinatura mensal/anual", "value": "subscription" },
+        { "name": "hybrid", "message": "Híbrido (comissão + assinatura)", "value": "hybrid" },
+        { "name": "freemium", "message": "Freemium com planos premium", "value": "freemium" }
+      ],
+      "default": "commission"
+    },
+    {
+      "name": "features",
+      "message": "Funcionalidades a incluir:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "vendor-management", "message": "Gerenciamento de vendedores", "checked": true },
+        { "name": "product-catalog", "message": "Catálogo de produtos", "checked": true },
+        { "name": "shopping-cart", "message": "Carrinho de compras", "checked": true },
+        { "name": "checkout", "message": "Processo de checkout", "checked": true },
+        { "name": "order-management", "message": "Gerenciamento de pedidos", "checked": true },
+        { "name": "payment-integration", "message": "Integração com pagamentos", "checked": false },
+        { "name": "review-rating", "message": "Avaliações e comentários", "checked": true },
+        { "name": "search-filters", "message": "Busca e filtros avançados", "checked": true },
+        { "name": "wishlist", "message": "Lista de desejos", "checked": true },
+        { "name": "inventory-tracking", "message": "Controle de estoque", "checked": false },
+        { "name": "analytics", "message": "Analytics e relatórios", "checked": false },
+        { "name": "mobile-app", "message": "Aplicativo móvel", "checked": false }
+      ]
+    },
+    {
+      "name": "paymentGateways",
+      "message": "Gateways de pagamento:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "stripe", "message": "Stripe", "checked": true },
+        { "name": "pagseguro", "message": "PagSeguro", "checked": false },
+        { "name": "paypal", "message": "PayPal", "checked": false },
+        { "name": "mercadopago", "message": "Mercado Pago", "checked": false },
+        { "name": "pix", "message": "PIX (Brasil)", "checked": false }
+      ]
+    },
+    {
+      "name": "shippingIntegration",
+      "message": "Integração com transportadoras:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "correios", "message": "Correios (Brasil)", "checked": false },
+        { "name": "fedex", "message": "FedEx", "checked": false },
+        { "name": "dhl", "message": "DHL", "checked": false },
+        { "name": "custom", "message": "Transportadora customizada", "checked": true }
+      ]
+    },
+    {
+      "name": "defaultCurrency",
+      "message": "Moeda padrão:",
+      "type": "select",
+      "choices": ["BRL", "USD", "EUR", "GBP"],
+      "default": "BRL"
+    },
+    {
+      "name": "languages",
+      "message": "Idiomas suportados:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "pt-BR", "message": "Português (Brasil)", "checked": true },
+        { "name": "en-US", "message": "English (US)", "checked": false },
+        { "name": "es-ES", "message": "Español", "checked": false },
+        { "name": "fr-FR", "message": "Français", "checked": false }
+      ]
+    },
+    {
+      "name": "database",
+      "message": "Tipo de banco de dados:",
+      "type": "select",
+      "choices": ["postgresql", "mysql", "mongodb"],
+      "default": "postgresql"
+    },
+    {
+      "name": "apiUrl",
+      "message": "URL da API backend:",
+      "type": "input",
+      "default": "http://localhost:3001/api"
+    },
+    {
+      "name": "useRedis",
+      "message": "Usar Redis para cache e sessões?",
+      "type": "confirm",
+      "default": true
+    },
+    {
+      "name": "useElasticsearch",
+      "message": "Usar Elasticsearch para busca?",
+      "type": "confirm",
+      "default": false
+    },
+    {
+      "name": "useDocker",
+      "message": "Incluir configuração Docker?",
+      "type": "confirm",
+      "default": true
+    },
+    {
+      "name": "useTests",
+      "message": "Incluir configuração de testes?",
+      "type": "confirm",
+      "default": true
+    }
+  ],
+  
+  "dependencies": {
+    "@archbase/react": "^2.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.0.0",
+    "axios": "^1.6.0",
+    "react-query": "^3.39.0",
+    "react-hook-form": "^7.47.0",
+    "yup": "^1.3.0",
+    "dayjs": "^1.11.0",
+    "recharts": "^2.9.0",
+    "react-hot-toast": "^2.4.0",
+    "@mantine/core": "^7.0.0",
+    "@mantine/hooks": "^7.0.0",
+    "@mantine/form": "^7.0.0",
+    "@mantine/dates": "^7.0.0",
+    "@mantine/carousel": "^7.0.0",
+    "@tabler/icons-react": "^2.40.0",
+    "embla-carousel-react": "^8.0.0",
+    "zustand": "^4.4.0",
+    "immer": "^10.0.0",
+    "react-intersection-observer": "^9.5.0",
+    "react-image-gallery": "^1.3.0",
+    "react-rating-stars-component": "^2.2.0",
+    "currency.js": "^2.0.4",
+    "react-currency-input-field": "^3.6.10"
+  },
+  
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.0",
+    "@testing-library/react": "^14.1.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "vitest": "^1.1.0",
+    "msw": "^2.0.0",
+    "playwright": "^1.40.0"
+  },
+  
+  "scripts": {
+    "pre-install": "hooks/pre-install.js",
+    "post-install": "hooks/post-install.js",
+    "setup": "hooks/setup-marketplace.js",
+    "seed-data": "hooks/seed-marketplace-data.js"
+  },
+  
+  "structure": {
+    "src/": {
+      "components/": {
+        "common/": "Componentes reutilizáveis",
+        "product/": "Componentes relacionados a produtos",
+        "vendor/": "Componentes de vendedor",
+        "cart/": "Componentes do carrinho",
+        "checkout/": "Componentes do checkout",
+        "order/": "Componentes de pedidos",
+        "payment/": "Componentes de pagamento",
+        "review/": "Componentes de avaliação",
+        "search/": "Componentes de busca",
+        "user/": "Componentes de usuário"
+      },
+      "pages/": {
+        "home/": "Página inicial do marketplace",
+        "product/": "Páginas de produtos",
+        "vendor/": "Páginas de vendedor",
+        "cart/": "Página do carrinho",
+        "checkout/": "Páginas de checkout",
+        "account/": "Páginas da conta do usuário",
+        "admin/": "Páginas administrativas"
+      },
+      "layouts/": "Layouts de página (marketplace, vendor, admin)",
+      "hooks/": "Custom React hooks para e-commerce",
+      "services/": {
+        "api/": "Serviços de API",
+        "payment/": "Serviços de pagamento",
+        "shipping/": "Serviços de entrega",
+        "analytics/": "Serviços de analytics"
+      },
+      "store/": {
+        "slices/": "Slices do Zustand",
+        "cart/": "Estado do carrinho",
+        "user/": "Estado do usuário",
+        "product/": "Estado dos produtos"
+      },
+      "utils/": {
+        "currency/": "Utilitários de moeda",
+        "validation/": "Validações customizadas",
+        "formatters/": "Formatadores de dados",
+        "constants/": "Constantes do marketplace"
+      },
+      "types/": {
+        "product.ts": "Tipos de produtos",
+        "vendor.ts": "Tipos de vendedores", 
+        "order.ts": "Tipos de pedidos",
+        "payment.ts": "Tipos de pagamento",
+        "user.ts": "Tipos de usuários"
+      },
+      "styles/": "Estilos globais e temas do marketplace"
+    },
+    "public/": {
+      "images/": "Imagens estáticas",
+      "icons/": "Ícones do marketplace",
+      "favicon/": "Favicons"
+    },
+    "docs/": {
+      "api/": "Documentação da API",
+      "deployment/": "Guias de deployment",
+      "vendor-guide/": "Guia para vendedores",
+      "admin-guide/": "Guia administrativo"
+    }
+  },
+  
+  "customization": {
+    "theme": {
+      "primary": "#e74c3c",
+      "secondary": "#3498db",
+      "success": "#2ecc71",
+      "warning": "#f39c12",
+      "danger": "#e74c3c",
+      "info": "#3498db",
+      "light": "#ecf0f1",
+      "dark": "#2c3e50"
+    },
+    "branding": {
+      "appName": "My Marketplace",
+      "logo": "assets/logo.svg",
+      "favicon": "assets/favicon.ico",
+      "tagline": "Seu marketplace de confiança"
+    },
+    "layout": {
+      "headerHeight": "80px",
+      "sidebarWidth": "280px",
+      "footerHeight": "200px",
+      "containerMaxWidth": "1200px"
+    },
+    "ecommerce": {
+      "currency": "BRL",
+      "locale": "pt-BR",
+      "taxRate": 0.1,
+      "shippingFree": 100.0,
+      "commissionRate": 0.05,
+      "itemsPerPage": 20,
+      "maxImageSize": 5242880,
+      "allowedImageTypes": ["jpg", "jpeg", "png", "webp"]
+    }
+  },
+  
+  "integrations": {
+    "payment": {
+      "stripe": {
+        "enabled": false,
+        "testMode": true,
+        "publicKey": "pk_test_...",
+        "webhookSecret": "whsec_..."
+      },
+      "pagseguro": {
+        "enabled": false,
+        "sandbox": true,
+        "email": "",
+        "token": ""
+      }
+    },
+    "shipping": {
+      "correios": {
+        "enabled": false,
+        "contract": "",
+        "password": "",
+        "services": ["SEDEX", "PAC"]
+      }
+    },
+    "analytics": {
+      "googleAnalytics": {
+        "enabled": false,
+        "trackingId": "GA_TRACKING_ID"
+      },
+      "facebookPixel": {
+        "enabled": false,
+        "pixelId": "FACEBOOK_PIXEL_ID"
+      }
+    }
+  }
+}

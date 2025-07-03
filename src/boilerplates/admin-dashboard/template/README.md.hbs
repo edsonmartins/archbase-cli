@@ -1,0 +1,211 @@
+# {{projectName}}
+
+{{projectDescription}}
+
+## 🚀 Início Rápido
+
+### Pré-requisitos
+
+- Node.js >= 16.0.0
+- npm >= 8.0.0
+{{#if useDocker}}
+- Docker (opcional)
+{{/if}}
+
+### Instalação
+
+```bash
+# Instalar dependências
+npm install
+
+# Configurar variáveis de ambiente
+cp .env.example .env
+
+# Iniciar em modo de desenvolvimento
+npm run dev
+```
+
+### Configuração
+
+Edite o arquivo `.env` com suas configurações:
+
+```env
+VITE_API_URL={{apiUrl}}
+VITE_APP_NAME={{branding.appName}}
+```
+
+## 📁 Estrutura do Projeto
+
+```
+{{projectName}}/
+├── src/
+│   ├── components/     # Componentes reutilizáveis
+│   ├── pages/         # Páginas da aplicação
+│   ├── layouts/       # Layouts (sidebar, header)
+│   ├── hooks/         # Custom React hooks
+│   ├── services/      # Serviços de API
+│   ├── store/         # Estado global (Zustand)
+│   ├── utils/         # Funções utilitárias
+│   ├── types/         # Tipos TypeScript
+│   └── styles/        # Estilos globais
+├── public/            # Assets públicos
+└── tests/            # Testes unitários e E2E
+```
+
+## 🛠️ Funcionalidades
+
+{{#if (includes features "authentication")}}
+### ✅ Autenticação
+- Login/Logout
+- Proteção de rotas
+- Gerenciamento de sessão
+- Refresh token automático
+{{/if}}
+
+{{#if (includes features "user-management")}}
+### ✅ Gerenciamento de Usuários
+- CRUD completo de usuários
+- Gerenciamento de permissões
+- Perfis de usuário
+- Histórico de atividades
+{{/if}}
+
+{{#if (includes features "dashboard")}}
+### ✅ Dashboard
+- Métricas em tempo real
+- Gráficos interativos
+- Widgets customizáveis
+- Exportação de dados
+{{/if}}
+
+{{#if (includes features "reports")}}
+### ✅ Relatórios
+- Geração de relatórios
+- Exportação (PDF, Excel)
+- Agendamento de relatórios
+- Templates customizáveis
+{{/if}}
+
+{{#if (includes features "notifications")}}
+### ✅ Notificações
+- Notificações em tempo real
+- Central de notificações
+- Configurações por usuário
+- Integração com email
+{{/if}}
+
+{{#if (includes features "settings")}}
+### ✅ Configurações
+- Preferências do usuário
+- Temas (claro/escuro)
+- Configurações da aplicação
+- Backup de configurações
+{{/if}}
+
+## 📚 Tecnologias Utilizadas
+
+- **React 18** - Interface do usuário
+- **TypeScript** - Type safety
+- **Archbase React** - Componentes UI
+- **React Router** - Roteamento
+- **React Query** - Gerenciamento de estado do servidor
+- **Zustand** - Estado global
+- **Tailwind CSS** - Estilização
+- **Vite** - Build tool
+{{#if (includes features "dashboard")}}
+- **Recharts** - Gráficos
+{{/if}}
+{{#if useTests}}
+- **Vitest** - Testes unitários
+- **Testing Library** - Testes de componentes
+{{/if}}
+
+## 🧪 Testes
+
+{{#if useTests}}
+```bash
+# Executar testes
+npm test
+
+# Testes com interface
+npm run test:ui
+
+# Coverage
+npm run test:coverage
+```
+{{else}}
+Testes não configurados. Para adicionar testes, execute:
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom
+```
+{{/if}}
+
+## 🚀 Deploy
+
+### Build de Produção
+
+```bash
+# Build
+npm run build
+
+# Preview local
+npm run preview
+```
+
+{{#if useDocker}}
+### Docker
+
+```bash
+# Build da imagem
+docker build -t {{projectName}} .
+
+# Executar container
+docker run -p 3000:3000 {{projectName}}
+```
+
+### Docker Compose
+
+```bash
+# Iniciar todos os serviços
+docker-compose up -d
+
+# Parar serviços
+docker-compose down
+```
+{{/if}}
+
+## 📝 Scripts Disponíveis
+
+- `npm run dev` - Inicia servidor de desenvolvimento
+- `npm run build` - Build de produção
+- `npm run preview` - Preview do build
+- `npm run lint` - Verifica erros de lint
+- `npm run format` - Formata código com Prettier
+{{#if useTests}}
+- `npm test` - Executa testes
+- `npm run test:ui` - Testes com interface
+- `npm run test:coverage` - Relatório de cobertura
+{{/if}}
+- `npm run type-check` - Verifica tipos TypeScript
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie sua branch (`git checkout -b feature/amazing-feature`)
+3. Commit suas mudanças (`git commit -m 'Add amazing feature'`)
+4. Push para a branch (`git push origin feature/amazing-feature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 🆘 Suporte
+
+- 📧 Email: support@archbase.com
+- 💬 Discord: [Archbase Community](https://discord.gg/archbase)
+- 📖 Docs: [Archbase Documentation](https://docs.archbase.com)
+
+---
+
+Desenvolvido com ❤️ usando [Archbase CLI](https://github.com/archbase/cli)

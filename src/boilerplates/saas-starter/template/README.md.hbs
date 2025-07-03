@@ -1,0 +1,553 @@
+# {{projectName}} - SaaS Starter
+
+> {{projectDescription}}
+
+## 🚀 Características
+
+Este projeto SaaS foi criado com o **Archbase CLI** e inclui:
+
+### 🔐 Autenticação e Segurança
+{{#if features.authentication}}
+- ✅ **Autenticação Completa** - Login, registro, recuperação de senha
+{{#if authProviders.email}}
+- 🔹 **Email/Password** - Autenticação tradicional
+{{/if}}
+{{#if authProviders.google}}
+- 🔹 **Google OAuth** - Login social
+{{/if}}
+{{#if authProviders.github}}
+- 🔹 **GitHub OAuth** - Para desenvolvedores
+{{/if}}
+{{#if authProviders.microsoft}}
+- 🔹 **Microsoft OAuth** - Integração empresarial
+{{/if}}
+{{#if authProviders.saml}}
+- 🔹 **SAML SSO** - Single Sign-On empresarial
+{{/if}}
+{{/if}}
+
+### 🏢 Multitenancy
+{{#if features.multitenancy}}
+- ✅ **Arquitetura Multi-Tenant** - Isolamento completo de dados
+- 🔹 **Modelo**: {{tenancyModel}}
+- 🔹 **Tenant Switching** - Alternância entre organizações
+- 🔹 **Data Isolation** - Segurança e privacidade garantidas
+{{/if}}
+
+### 💳 Assinaturas e Cobrança
+{{#if features.subscription-billing}}
+- ✅ **Sistema de Assinaturas** - Modelo: {{subscriptionModel}}
+{{#if billingProviders.stripe}}
+- 💳 **Stripe** - Cartões e pagamentos automáticos
+{{/if}}
+{{#if billingProviders.paddle}}
+- 💳 **Paddle** - Pagamentos globais
+{{/if}}
+{{#if billingProviders.chargebee}}
+- 💳 **Chargebee** - Billing avançado
+{{/if}}
+
+#### Planos Padrão:
+{{#if defaultPlans.free}}
+- 🆓 **Gratuito** - Até 5 usuários
+{{/if}}
+{{#if defaultPlans.starter}}
+- 🚀 **Starter** - $29/mês - Até 25 usuários
+{{/if}}
+{{#if defaultPlans.professional}}
+- 💼 **Professional** - $99/mês - Até 100 usuários
+{{/if}}
+{{#if defaultPlans.enterprise}}
+- 🏢 **Enterprise** - $299/mês - Usuários ilimitados
+{{/if}}
+{{/if}}
+
+### 👥 Gerenciamento
+{{#if features.user-management}}
+- ✅ **Gestão de Usuários** - Convites, roles e permissões
+{{/if}}
+{{#if features.team-collaboration}}
+- ✅ **Colaboração em Equipe** - Workspaces e atividades
+{{/if}}
+{{#if features.dashboard-analytics}}
+- ✅ **Dashboard e Analytics** - Métricas em tempo real
+{{/if}}
+
+### ⚙️ Funcionalidades Avançadas
+{{#if features.api-management}}
+- ✅ **API Management** - Keys, rate limiting e webhooks
+{{/if}}
+{{#if features.support-system}}
+- ✅ **Sistema de Suporte** - Tickets e live chat
+{{/if}}
+{{#if features.email-campaigns}}
+- ✅ **Email Marketing** - Campanhas automáticas
+{{/if}}
+{{#if features.audit-logs}}
+- ✅ **Audit Logs** - Compliance e segurança
+{{/if}}
+{{#if features.white-label}}
+- ✅ **White-label** - Branding customizado
+{{/if}}
+
+## 🛠️ Stack Tecnológica
+
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI**: Mantine + Archbase React
+- **State**: Zustand + React Query
+- **Auth**: JWT + OAuth2
+- **Database**: {{database}}
+{{#if eq cacheProvider "redis"}}
+- **Cache**: Redis
+{{/if}}
+{{#if eq cacheProvider "memcached"}}
+- **Cache**: Memcached
+{{/if}}
+- **Email**: {{emailProvider}}
+- **Billing**: {{join billingProviders ", "}}
+- **Deploy**: {{deploymentTarget}}
+
+## 🚀 Início Rápido
+
+### Pré-requisitos
+
+- Node.js 16+
+- npm 8+
+{{#if useDocker}}
+- Docker (opcional)
+{{/if}}
+
+### 1. Instalação
+
+```bash
+# Instalar dependências
+npm install
+
+# Configurar ambiente
+cp .env.example .env
+```
+
+### 2. Configuração
+
+Edite o arquivo `.env`:
+
+```env
+# Base
+VITE_APP_NAME={{projectName}}
+VITE_API_URL={{apiUrl}}
+
+# Database
+DATABASE_URL={{database}}://user:password@localhost:5432/{{projectName}}_db
+
+{{#if eq cacheProvider "redis"}}
+# Cache
+REDIS_URL=redis://localhost:6379
+{{/if}}
+
+{{#if features.authentication}}
+# Auth
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
+
+{{#if authProviders.google}}
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+{{/if}}
+
+{{#if authProviders.github}}
+# GitHub OAuth
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+{{/if}}
+{{/if}}
+
+{{#if features.subscription-billing}}
+{{#if billingProviders.stripe}}
+# Stripe
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+{{/if}}
+{{/if}}
+
+# Email
+{{#if eq emailProvider "sendgrid"}}
+SENDGRID_API_KEY=your-sendgrid-api-key
+{{/if}}
+{{#if eq emailProvider "mailgun"}}
+MAILGUN_API_KEY=your-mailgun-api-key
+MAILGUN_DOMAIN=your-mailgun-domain
+{{/if}}
+```
+
+### 3. Configurar Banco de Dados
+
+```bash
+# Executar migrations
+npm run db:migrate
+
+# Popular com dados de exemplo
+npm run seed
+```
+
+{{#if useDocker}}
+### 4. Docker (Opcional)
+
+```bash
+# Subir stack completa
+docker-compose up -d
+
+# Verificar logs
+docker-compose logs -f
+```
+{{/if}}
+
+### 5. Executar
+
+```bash
+# Modo desenvolvimento
+npm run dev
+
+# Acesse: http://localhost:3000
+```
+
+## 📁 Estrutura do Projeto
+
+```
+{{projectName}}/
+├── src/
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── auth/           # Autenticação
+│   │   ├── billing/        # Cobrança e assinaturas
+│   │   ├── dashboard/      # Dashboard
+│   │   ├── tenant/         # Multitenancy
+│   │   ├── user/           # Usuários
+│   │   ├── team/           # Equipes
+│   │   ├── settings/       # Configurações
+│   │   └── common/         # Componentes comuns
+│   ├── pages/              # Páginas da aplicação
+│   │   ├── auth/           # Páginas de auth
+│   │   ├── dashboard/      # Dashboard
+│   │   ├── billing/        # Cobrança
+│   │   ├── settings/       # Configurações
+│   │   └── admin/          # Administração
+│   ├── layouts/            # Layouts
+│   ├── hooks/              # Custom hooks
+│   ├── services/           # Serviços
+│   ├── store/              # Estado global
+│   ├── utils/              # Utilitários
+│   ├── types/              # Tipos TypeScript
+│   └── styles/             # Estilos
+├── docs/                   # Documentação
+{{#if useTests}}
+├── tests/                  # Testes
+{{/if}}
+{{#if useDocker}}
+├── docker-compose.yml      # Docker
+{{/if}}
+└── README.md              # Este arquivo
+```
+
+## 🏗️ Arquitetura Multitenancy
+
+### Modelo: {{tenancyModel}}
+
+{{#if eq tenancyModel "single-db"}}
+**Single Database com Schema por Tenant**
+- Um banco de dados
+- Schema/namespace por tenant
+- Melhor para muitos tenants pequenos
+- Economia de recursos
+{{/if}}
+
+{{#if eq tenancyModel "multi-db"}}
+**Multiple Databases**
+- Banco separado por tenant
+- Isolamento máximo
+- Ideal para tenants grandes
+- Maior complexidade
+{{/if}}
+
+{{#if eq tenancyModel "hybrid"}}
+**Modelo Híbrido**
+- Configurável por tenant
+- Flexibilidade máxima
+- Permite migração entre modelos
+{{/if}}
+
+### Implementação
+
+```typescript
+// Contexto de Tenant
+const TenantContext = createContext<TenantInfo>();
+
+// Hook para acessar tenant atual
+const useTenant = () => {
+  const context = useContext(TenantContext);
+  return context;
+};
+
+// Isolamento de dados
+class TenantDataSource<T> {
+  constructor(private tenantId: string) {}
+  
+  async find(): Promise<T[]> {
+    return api.get(`/tenants/${this.tenantId}/data`);
+  }
+}
+```
+
+## 💳 Sistema de Assinaturas
+
+### Planos e Preços
+
+```typescript
+const plans = [
+{{#if defaultPlans.free}}
+  {
+    id: 'free',
+    name: 'Gratuito',
+    price: 0,
+    features: ['Até 5 usuários', 'Suporte básico'],
+    limits: { users: 5, storage: '1GB' }
+  },
+{{/if}}
+{{#if defaultPlans.starter}}
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 29,
+    features: ['Até 25 usuários', 'Email support'],
+    limits: { users: 25, storage: '10GB' }
+  },
+{{/if}}
+{{#if defaultPlans.professional}}
+  {
+    id: 'professional',
+    name: 'Professional',
+    price: 99,
+    features: ['Até 100 usuários', 'Priority support'],
+    limits: { users: 100, storage: '100GB' }
+  },
+{{/if}}
+{{#if defaultPlans.enterprise}}
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 299,
+    features: ['Usuários ilimitados', '24/7 support'],
+    limits: { users: -1, storage: 'Unlimited' }
+  }
+{{/if}}
+];
+```
+
+### Controle de Acesso
+
+```typescript
+// Hook para verificar limites
+const useSubscriptionLimits = () => {
+  const { tenant } = useTenant();
+  
+  return {
+    canAddUser: tenant.userCount < tenant.plan.limits.users,
+    canUploadFile: tenant.storageUsed < tenant.plan.limits.storage,
+    hasFeature: (feature: string) => tenant.plan.features.includes(feature)
+  };
+};
+```
+
+## 🔐 Autenticação e Autorização
+
+### Sistema de Roles
+
+```typescript
+enum Role {
+  OWNER = 'owner',         // Dono do tenant
+  ADMIN = 'admin',         // Administrador
+  MEMBER = 'member',       // Membro regular
+  VIEWER = 'viewer'        // Apenas visualização
+}
+
+enum Permission {
+  USER_MANAGE = 'user:manage',
+  BILLING_MANAGE = 'billing:manage',
+  SETTINGS_MANAGE = 'settings:manage',
+  DATA_READ = 'data:read',
+  DATA_WRITE = 'data:write'
+}
+```
+
+### Guards e Hooks
+
+```typescript
+// Proteção de rotas
+<ProtectedRoute requiredRole={Role.ADMIN}>
+  <AdminPanel />
+</ProtectedRoute>
+
+// Hook de permissões
+const { hasPermission } = usePermissions();
+
+{hasPermission(Permission.USER_MANAGE) && (
+  <UserManagementButton />
+)}
+```
+
+## 📊 Analytics e Métricas
+
+### Dashboard Metrics
+
+- **MRR** - Monthly Recurring Revenue
+- **Churn Rate** - Taxa de cancelamento
+- **LTV** - Lifetime Value
+- **CAC** - Customer Acquisition Cost
+- **Usage Metrics** - Uso por tenant
+
+### Implementação
+
+```typescript
+const useDashboardMetrics = () => {
+  return useQuery('dashboard-metrics', () => 
+    api.get('/analytics/dashboard')
+  );
+};
+```
+
+## 🔧 Configuração Avançada
+
+### Variáveis de Ambiente
+
+```env
+# Multitenancy
+TENANT_ISOLATION_MODE={{tenancyModel}}
+MAX_TENANTS_PER_USER={{customization.saas.maxTenantsPerUser}}
+MAX_USERS_PER_TENANT={{customization.saas.maxUsersPerTenant}}
+
+# Security
+SESSION_TIMEOUT={{customization.saas.sessionTimeout}}
+PASSWORD_MIN_LENGTH={{customization.saas.passwordPolicy.minLength}}
+REQUIRE_UPPERCASE={{customization.saas.passwordPolicy.requireUppercase}}
+
+# Billing
+BILLING_CURRENCY={{customization.saas.billing.currency}}
+TRIAL_DAYS={{customization.saas.billing.trialDays}}
+GRACE_PERIOD_DAYS={{customization.saas.billing.gracePeriodDays}}
+```
+
+### Customização por Tenant
+
+{{#if features.white-label}}
+```typescript
+// Branding por tenant
+const useTenantBranding = () => {
+  const { tenant } = useTenant();
+  
+  return {
+    logo: tenant.branding?.logo || defaultLogo,
+    colors: tenant.branding?.colors || defaultColors,
+    domain: tenant.customDomain || `${tenant.slug}.myapp.com`
+  };
+};
+```
+{{/if}}
+
+## 🚀 Deploy
+
+### {{deploymentTarget}}
+
+{{#if eq deploymentTarget "vercel"}}
+```bash
+# Instalar Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+Configure as variáveis de ambiente no dashboard da Vercel.
+{{/if}}
+
+{{#if eq deploymentTarget "aws"}}
+```bash
+# AWS deployment
+npm run build
+aws s3 sync dist/ s3://your-bucket-name
+```
+{{/if}}
+
+{{#if eq deploymentTarget "docker"}}
+```bash
+# Build da imagem
+docker build -t {{projectName}} .
+
+# Deploy no Kubernetes
+kubectl apply -f k8s/
+```
+{{/if}}
+
+{{#if useTests}}
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm run test
+
+# Testes E2E
+npm run e2e
+
+# Coverage
+npm run test:coverage
+```
+{{/if}}
+
+{{#if useStorybook}}
+## 📚 Storybook
+
+```bash
+# Executar Storybook
+npm run storybook
+
+# Build do Storybook
+npm run build-storybook
+```
+{{/if}}
+
+## 📚 Documentação
+
+- [Guia de Multitenancy](./docs/multitenancy.md)
+- [Sistema de Billing](./docs/billing.md)
+- [API Documentation](./docs/api.md)
+- [Deployment Guide](./docs/deployment.md)
+
+## 🔒 Segurança
+
+- **HTTPS Everywhere** - SSL obrigatório
+- **JWT Tokens** - Autenticação segura
+- **Rate Limiting** - Proteção contra abuse
+- **Data Encryption** - Dados sensíveis criptografados
+- **Audit Logs** - Rastreamento de ações
+- **GDPR Compliance** - Proteção de dados
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 🆘 Suporte
+
+- 📖 [Documentação do Archbase](https://docs.archbase.com)
+- 🐛 [Issues](https://github.com/edsonmartins/archbase-cli/issues)
+- 💬 [Discussions](https://github.com/edsonmartins/archbase-cli/discussions)
+
+---
+
+**Criado com ❤️ usando [Archbase CLI](https://github.com/edsonmartins/archbase-cli)**

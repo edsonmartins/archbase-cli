@@ -1,0 +1,163 @@
+{
+  "name": "admin-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard administrativo completo com autenticação, gerenciamento de usuários e relatórios",
+  "author": "Archbase Team",
+  "category": "admin",
+  "tags": ["dashboard", "admin", "crud", "auth", "reports"],
+  "license": "MIT",
+  
+  "requirements": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  
+  "features": {
+    "authentication": {
+      "description": "Sistema de autenticação completo com login, logout e proteção de rotas",
+      "components": ["AuthProvider", "LoginForm", "ProtectedRoute", "UserMenu"],
+      "enabled": true
+    },
+    "user-management": {
+      "description": "Gerenciamento completo de usuários com CRUD",
+      "components": ["UserList", "UserForm", "UserDetails", "RoleManager"],
+      "enabled": true
+    },
+    "dashboard": {
+      "description": "Dashboard com métricas, gráficos e widgets customizáveis",
+      "components": ["DashboardLayout", "MetricCard", "ChartWidget", "ActivityFeed"],
+      "enabled": true
+    },
+    "reports": {
+      "description": "Sistema de relatórios com exportação",
+      "components": ["ReportBuilder", "ReportViewer", "ExportManager"],
+      "enabled": false
+    },
+    "notifications": {
+      "description": "Sistema de notificações em tempo real",
+      "components": ["NotificationCenter", "NotificationToast"],
+      "enabled": false
+    },
+    "settings": {
+      "description": "Configurações da aplicação e do usuário",
+      "components": ["SettingsPage", "PreferencesForm", "ThemeSelector"],
+      "enabled": true
+    }
+  },
+  
+  "prompts": [
+    {
+      "name": "projectName",
+      "message": "Nome do projeto:",
+      "type": "input",
+      "validate": "required|alphanumeric",
+      "default": "my-admin-app"
+    },
+    {
+      "name": "projectDescription",
+      "message": "Descrição do projeto:",
+      "type": "input",
+      "default": "Dashboard administrativo baseado em Archbase"
+    },
+    {
+      "name": "features",
+      "message": "Funcionalidades a incluir:",
+      "type": "multiselect",
+      "choices": [
+        { "name": "authentication", "message": "Autenticação e autorização", "checked": true },
+        { "name": "user-management", "message": "Gerenciamento de usuários", "checked": true },
+        { "name": "dashboard", "message": "Dashboard com métricas", "checked": true },
+        { "name": "reports", "message": "Sistema de relatórios", "checked": false },
+        { "name": "notifications", "message": "Notificações em tempo real", "checked": false },
+        { "name": "settings", "message": "Configurações", "checked": true }
+      ]
+    },
+    {
+      "name": "database",
+      "message": "Tipo de banco de dados:",
+      "type": "select",
+      "choices": ["postgresql", "mysql", "mongodb", "sqlite"],
+      "default": "postgresql"
+    },
+    {
+      "name": "apiUrl",
+      "message": "URL da API backend:",
+      "type": "input",
+      "default": "http://localhost:3001/api"
+    },
+    {
+      "name": "useDocker",
+      "message": "Incluir configuração Docker?",
+      "type": "confirm",
+      "default": true
+    },
+    {
+      "name": "useTests",
+      "message": "Incluir configuração de testes?",
+      "type": "confirm",
+      "default": true
+    }
+  ],
+  
+  "dependencies": {
+    "@archbase/react": "^2.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.0.0",
+    "axios": "^1.6.0",
+    "react-query": "^3.39.0",
+    "react-hook-form": "^7.47.0",
+    "yup": "^1.3.0",
+    "dayjs": "^1.11.0",
+    "recharts": "^2.9.0",
+    "react-hot-toast": "^2.4.0"
+  },
+  
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.0",
+    "@testing-library/react": "^14.1.0",
+    "vitest": "^1.1.0"
+  },
+  
+  "scripts": {
+    "pre-install": "hooks/pre-install.js",
+    "post-install": "hooks/post-install.js",
+    "setup": "hooks/setup-project.js"
+  },
+  
+  "structure": {
+    "src/": {
+      "components/": "Componentes reutilizáveis da aplicação",
+      "pages/": "Páginas principais da aplicação",
+      "layouts/": "Layouts de página (sidebar, header, etc)",
+      "hooks/": "Custom React hooks",
+      "services/": "Serviços de API e business logic",
+      "store/": "Estado global da aplicação",
+      "utils/": "Funções utilitárias",
+      "types/": "Definições TypeScript",
+      "styles/": "Estilos globais e temas"
+    }
+  },
+  
+  "customization": {
+    "theme": {
+      "primary": "#1890ff",
+      "secondary": "#52c41a",
+      "danger": "#ff4d4f",
+      "warning": "#faad14",
+      "info": "#1890ff",
+      "success": "#52c41a"
+    },
+    "branding": {
+      "appName": "Admin Dashboard",
+      "logo": "assets/logo.svg",
+      "favicon": "assets/favicon.ico"
+    }
+  }
+}
