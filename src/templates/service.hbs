@@ -1,0 +1,88 @@
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+@injectable()
+export class {{serviceName}} extends ArchbaseRemoteApiService<{{entityType}}, {{idType}}> {
+    constructor(@inject(API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
+        super(client);
+    }
+
+    configureHeaders(): Record<string, string> {
+        return {};
+    }
+
+    transform(data: any): {{entityType}} {
+        return new {{entityType}}(data);
+    }
+
+    getEndpoint(): string {
+        return '{{endpoint}}';
+    }
+
+    getId(entity: {{entityType}}): {{idType}} {
+        return entity.id;
+    }
+
+    isNewRecord(entity: {{entityType}}): boolean {
+        return !entity.id || entity.id === '';
+    }
+
+    async delete<R>(id: {{idType}}): Promise<R> {
+        return this.client.delete<R>(`${this.getEndpoint()}/${id}`, {}, false);
+    }
+
+    async findOne(id: {{idType}}): Promise<{{entityType}}> {
+        const result = await this.client.get<{{entityType}}>(`${this.getEndpoint()}/${id}`, {}, false);
+        return this.transform(result);
+    }
+{{#if hasCustomMethods}}
+
+    // Custom methods from Java controller
+{{#each customMethods}}
+    async {{name}}({{buildMethodParams parameters}}): Promise<{{returnType}}> {
+        {{#if (eq httpMethod 'get')}}
+        const result = await this.client.get<{{returnType}}>(
+            `{{buildUrlParams endpoint parameters}}`,
+            {},
+            false{{#if (hasQueryParams parameters)}},
+            { params: { {{#each (getQueryParams parameters)}}{{name}}{{#unless @last}}, {{/unless}}{{/each}} } }{{/if}}
+        );
+        {{else if (eq httpMethod 'post')}}
+        const result = await this.client.post<{{returnType}}>(
+            `{{buildUrlParams endpoint parameters}}`,
+            {{getBodyParam parameters}},
+            {},
+            false{{#if (hasQueryParams parameters)}},
+            { params: { {{#each (getQueryParams parameters)}}{{name}}{{#unless @last}}, {{/unless}}{{/each}} } }{{/if}}
+        );
+        {{else if (eq httpMethod 'put')}}
+        const result = await this.client.put<{{returnType}}>(
+            `{{buildUrlParams endpoint parameters}}`,
+            {{getBodyParam parameters}},
+            {},
+            false{{#if (hasQueryParams parameters)}},
+            { params: { {{#each (getQueryParams parameters)}}{{name}}{{#unless @last}}, {{/unless}}{{/each}} } }{{/if}}
+        );
+        {{else if (eq httpMethod 'delete')}}
+        const result = await this.client.delete<{{returnType}}>(
+            `{{buildUrlParams endpoint parameters}}`,
+            {},
+            false{{#if (hasQueryParams parameters)}},
+            { params: { {{#each (getQueryParams parameters)}}{{name}}{{#unless @last}}, {{/unless}}{{/each}} } }{{/if}}
+        );
+        {{/if}}
+        {{#if (eq returnType 'void')}}
+        return;
+        {{else if (shouldTransform returnType)}}
+        return new {{returnType}}(result);
+        {{else}}
+        return result;
+        {{/if}}
+    }
+{{#unless @last}}
+
+{{/unless}}
+{{/each}}
+{{/if}}
+}

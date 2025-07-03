@@ -16,6 +16,7 @@ Archbase CLI is a powerful, AI-friendly development tool that bridges the gap be
 - 🔄 **Java-to-TypeScript** - Automatic conversion with validation decorators and enum support
 - 📊 **DTO-Based Generation** - Create forms and views directly from existing DTOs
 - 🔒 **Security Components** - Generate login views, user management, API tokens, and authentication infrastructure
+- 🔧 **Service Generation** - Generate remote services with Java controller analysis
 - 🚀 **Project Scaffolding** - Create complete projects from boilerplates (local and remote)
 - 🤖 **AI-Friendly** - Optimized outputs for AI consumption and integration
 - 📚 **Knowledge Base** - Automatic component analysis with manual curation support
@@ -61,18 +62,22 @@ Archbase CLI implements a complete workflow from Java backend entities to produc
 # 1. Generate TypeScript DTOs from Java entities
 archbase generate domain UserDto --java-text ./User.java --output ./src/domain
 
-# 2. Create forms with DataSource V2 integration
+# 2. Generate remote services with Java controller analysis
+archbase generate service UserRemoteService --entity User --type UserDto --java ./UserController.java
+
+# 3. Create forms with DataSource V2 integration
 archbase generate form UserForm --dto ./src/domain/UserDto.ts --category=usuarios
 
-# 3. Generate CRUD list views with permissions
+# 4. Generate CRUD list views with permissions
 archbase generate view UserView --dto ./src/domain/UserDto.ts --category=usuarios
 
-# 4. Create navigation items with proper routing
+# 5. Create navigation items with proper routing
 archbase generate navigation UserNavigation --category=usuarios --with-view --with-form --icon=IconUser
 ```
 
 **Generated Output:**
 - ✅ TypeScript DTOs with validation decorators
+- ✅ Remote services with Java controller method analysis
 - ✅ Enums with utility functions and UI rendering configs
 - ✅ Forms using ArchbaseFormTemplate (real pattern)
 - ✅ CRUD views with ArchbaseDataGrid
@@ -107,6 +112,10 @@ archbase validate file ./src/views/ProductView.tsx
 
 # Generate DTOs from Java classes
 archbase generate domain ProdutoDto --java-text /path/to/Produto.java --output ./src/domain
+
+# Generate remote services
+archbase generate service ClienteRemoteService --entity Cliente --type ClienteDto --java ./ClienteController.java
+archbase generate service ProdutoRemoteService --entity Produto --type ProdutoDto --endpoint /api/produtos
 
 # Generate security components
 archbase generate security AdminLogin --type=login --with-mobile --with-branding
@@ -175,6 +184,11 @@ archbase generate domain ProdutoDto --java-text ./Produto.java --with-audit-fiel
 # Generate from DTOs
 archbase generate form <name> --dto <dto-file> [--category <category>]
 archbase generate view <name> --dto <dto-file> [--category <category>]
+
+# Generate remote services
+archbase generate service <name> --entity <entity> --type <type> [--java <controller>] [--dto] [--wizard]
+archbase generate service ClienteRemoteService --entity Cliente --type ClienteDto --java ./ClienteController.java
+archbase generate service ProdutoRemoteService --entity Produto --type ProdutoDto --endpoint /api/produtos --dto
 
 # Generate security components
 archbase generate security <name> --type <type> [--features <features>] [--with-mobile] [--with-branding]
@@ -586,6 +600,86 @@ archbase generate navigation UserNavigation \
 - i18n integration with `mentors:` prefix
 - Support for grouped menu items
 
+### ServiceGenerator
+Generate remote services following the Archbase pattern with optional Java controller analysis.
+
+**Basic Service Structure:**
+```bash
+# Generate basic service with inheritance only
+archbase generate service ProdutoRemoteService \
+  --entity Produto --type ProdutoDto \
+  --endpoint /api/produtos --id-type string
+```
+
+**With Java Controller Analysis:**
+```bash
+# Analyze Java controller and generate custom methods
+archbase generate service ClienteRemoteService \
+  --entity Cliente --type ClienteDto \
+  --java ./ClienteController.java --dto
+```
+
+**Interactive Wizard:**
+```bash
+# Use wizard for guided setup
+archbase generate service UserRemoteService --wizard
+```
+
+**Generated Structure:**
+```typescript
+@injectable()
+export class ClienteRemoteService extends ArchbaseRemoteApiService<ClienteDto, string> {
+    constructor(@inject(API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
+        super(client);
+    }
+
+    // Required method implementations
+    configureHeaders(): Record<string, string> { return {}; }
+    transform(data: any): ClienteDto { return new ClienteDto(data); }
+    getEndpoint(): string { return '/api/clientes'; }
+    getId(entity: ClienteDto): string { return entity.id; }
+    isNewRecord(entity: ClienteDto): boolean { return !entity.id || entity.id === ''; }
+
+    // Standard CRUD methods
+    async delete<R>(id: string): Promise<R> { /* ... */ }
+    async findOne(id: string): Promise<ClienteDto> { /* ... */ }
+
+    // Custom methods from Java controller (if provided)
+    async buscarPorCpf(cpf: string): Promise<ClienteDto> { /* ... */ }
+    async listarAtivos(page: number, size: number): Promise<ClienteDto[]> { /* ... */ }
+}
+```
+
+**Java Controller Analysis Features:**
+- **Method Extraction**: Analyzes `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`
+- **Parameter Analysis**: Handles `@PathVariable`, `@RequestParam`, `@RequestBody`
+- **Type Conversion**: Maps Java types to TypeScript (String → string, List<ClienteDto> → ClienteDto[])
+- **Endpoint Building**: Constructs API endpoints with path variables
+- **HTTP Method Detection**: Automatically maps annotations to HTTP methods
+
+**Supported Java Annotations:**
+- `@GetMapping("/path")` → GET requests
+- `@PostMapping("/path")` → POST requests with body
+- `@PutMapping("/path")` → PUT requests with body
+- `@DeleteMapping("/path")` → DELETE requests
+- `@PathVariable` → URL path parameters
+- `@RequestParam` → Query parameters
+- `@RequestBody` → Request body content
+
+**Options:**
+- `--entity`: Entity name (e.g., Cliente, Produto)
+- `--type`: DTO type (e.g., ClienteDto, ProdutoDto)
+- `--id-type`: ID type (default: string, options: string, number)
+- `--endpoint`: API endpoint (default: auto-generated)
+- `--java`: Java controller file path or code
+- `--dto`: Also generate basic DTO
+- `--wizard`: Use interactive wizard
+- `--output`: Output directory
+
+**Generated Files:**
+- `services/[ServiceName].ts` - The remote service class
+- `dto/[EntityName]Dto.ts` - Basic DTO (if --dto flag used)
+
 ### SecurityGenerator
 Generate complete security infrastructure including login views, user management, API tokens, and authentication components.
 
@@ -688,8 +782,9 @@ All generators follow real patterns from powerview-admin:
 ### Usage Examples
 
 ```bash
-# Complete workflow: Java → DTO → Forms/Views → Navigation
+# Complete workflow: Java → DTO → Services → Forms/Views → Navigation
 archbase generate domain UserDto --java-text ./User.java --output ./src/domain
+archbase generate service UserRemoteService --entity User --type UserDto --java ./UserController.java
 archbase generate form UserForm --dto ./src/domain/UserDto.ts --category=usuarios
 archbase generate view UserView --dto ./src/domain/UserDto.ts --category=usuarios  
 archbase generate navigation UserNavigation --category=usuarios --with-view --with-form --icon=IconUser
@@ -950,7 +1045,69 @@ archbase knowledge update
 
 ## Changelog
 
-### v0.1.4 - Automatic Dependency Management + Interactive Wizard (Latest)
+### v0.1.5 - Service Generation with Java Controller Analysis (Latest)
+
+**New Features:**
+- ✅ **ServiceGenerator**: Complete remote service generation following Archbase patterns
+- ✅ **Java Controller Analysis**: Automatically analyze Java controllers and generate TypeScript methods
+- ✅ **JavaAnalyzer**: Advanced AST parsing for Java annotations and method signatures
+- ✅ **Service Templates**: Handlebars templates for remote services with dependency injection
+- ✅ **Interactive Service Wizard**: Guided service creation with Java controller integration
+- ✅ **Method Mapping**: Automatic HTTP method detection and parameter analysis
+- ✅ **Type Conversion**: Java to TypeScript type mapping (String → string, List<T> → T[])
+
+**Service Generation Features:**
+- 🔧 **ArchbaseRemoteApiService Inheritance**: Follows established Archbase patterns
+- 🎯 **Java Controller Integration**: Analyzes real Java controllers for method generation
+- 📊 **Annotation Support**: `@GetMapping`, `@PostMapping`, `@PathVariable`, `@RequestParam`, `@RequestBody`
+- 🔄 **Dependency Injection**: Uses Inversify with `@injectable()` and `@inject()` decorators
+- 📝 **TypeScript Safety**: Full type safety with generic parameters and proper DTOs
+- 🎨 **Template System**: Extensible Handlebars templates for customization
+
+**Java Analysis Capabilities:**
+- **Method Extraction**: Parses complex method signatures including multi-line parameters
+- **Annotation Processing**: Handles Spring Boot REST annotations with values and attributes
+- **Parameter Analysis**: Distinguishes between path variables, query params, and request bodies
+- **Return Type Mapping**: Converts complex Java generics to TypeScript (ResponseEntity<List<Dto>> → Dto[])
+- **Endpoint Construction**: Builds API endpoints with proper path variable substitution
+
+**Generated Service Structure:**
+```typescript
+@injectable()
+export class ClienteRemoteService extends ArchbaseRemoteApiService<ClienteDto, string> {
+    // Required implementations
+    configureHeaders(): Record<string, string> { return {}; }
+    transform(data: any): ClienteDto { return new ClienteDto(data); }
+    
+    // Standard CRUD methods
+    async delete<R>(id: string): Promise<R> { /* ... */ }
+    async findOne(id: string): Promise<ClienteDto> { /* ... */ }
+    
+    // Custom methods from Java controller analysis
+    async buscarPorCpf(cpf: string): Promise<ClienteDto> { /* ... */ }
+    async listarAtivos(page: number, size: number): Promise<ClienteDto[]> { /* ... */ }
+}
+```
+
+**New CLI Commands:**
+```bash
+# Generate service with Java controller analysis
+archbase generate service ClienteRemoteService --entity Cliente --type ClienteDto --java ./ClienteController.java
+
+# Generate basic service structure only
+archbase generate service ProdutoRemoteService --entity Produto --type ProdutoDto --endpoint /api/produtos
+
+# Use interactive wizard
+archbase generate service UserRemoteService --wizard
+```
+
+**Integration with Existing Workflow:**
+- Works seamlessly with existing DomainGenerator for DTOs
+- Integrates with FormGenerator and ViewGenerator for complete CRUD workflows
+- Compatible with SecurityGenerator for authenticated API services
+- Follows same patterns as powerview-admin project analysis
+
+### v0.1.4 - Automatic Dependency Management + Interactive Wizard
 
 **New Features:**
 - ✅ **Interactive Project Wizard**: Guided project creation with detailed explanations and questions

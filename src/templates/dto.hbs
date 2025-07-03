@@ -1,0 +1,31 @@
+import { IsNotEmpty, IsOptional } from 'archbase-react';
+
+export class {{entityName}}Dto {
+    id: {{idType}};
+    
+    @IsNotEmpty({ message: "Nome é obrigatório" })
+    nome: string;
+    
+    @IsOptional()
+    descricao?: string;
+    
+    // Metadata fields
+    version?: number;
+    createdDate?: Date;
+    lastModifiedDate?: Date;
+    createdBy?: string;
+    lastModifiedBy?: string;
+
+    constructor(data: any) {
+        if (data) {
+            this.id = data.id;
+            this.nome = data.nome;
+            this.descricao = data.descricao;
+            this.version = data.version;
+            this.createdDate = data.createdDate ? new Date(data.createdDate) : undefined;
+            this.lastModifiedDate = data.lastModifiedDate ? new Date(data.lastModifiedDate) : undefined;
+            this.createdBy = data.createdBy;
+            this.lastModifiedBy = data.lastModifiedBy;
+        }
+    }
+}

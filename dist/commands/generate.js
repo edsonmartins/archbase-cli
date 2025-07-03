@@ -56,6 +56,7 @@ const ComponentGenerator_1 = require("../generators/ComponentGenerator");
 const NavigationGenerator_1 = require("../generators/NavigationGenerator");
 const DomainGenerator_1 = require("../generators/DomainGenerator");
 const SecurityGenerator_1 = require("../generators/SecurityGenerator");
+const generate_service_1 = require("./generate-service");
 exports.generateCommand = new commander_1.Command('generate')
     .description('Generate code based on Archbase templates')
     .addCommand(new commander_1.Command('form')
@@ -477,7 +478,8 @@ exports.generateCommand = new commander_1.Command('generate')
         console.error(chalk_1.default.red(`❌ Error generating security component: ${error.message}`));
         process.exit(1);
     }
-}));
+}))
+    .addCommand((0, generate_service_1.createGenerateServiceCommand)());
 async function promptFormConfig(name, initialOptions) {
     const questions = [
         {

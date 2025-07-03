@@ -15,10 +15,12 @@ Archbase CLI is an AI-friendly command-line tool that solves the problem of AI a
 - ✅ **CLI Framework**: Complete structure with Commander.js
 - ✅ **Query System**: Component/pattern search implemented
 - ✅ **FormGenerator**: Complete form generation with validation
+- ✅ **ServiceGenerator**: Remote service generation with Java controller analysis
 - ✅ **Knowledge Base**: Hybrid auto/manual component knowledge
 - ✅ **Component Analyzer**: AST parsing for React/TypeScript
+- ✅ **Java Analyzer**: AST parsing for Java controllers and annotations
 - 🚧 **Need Implementation**: ViewGenerator, PageGenerator, ComponentGenerator
-- 🚧 **Need Creation**: Handlebars templates in `/templates` directory
+- 🚧 **Need Creation**: Additional Handlebars templates in `/templates` directory
 
 ## Key Commands
 
@@ -28,6 +30,7 @@ npm run dev                                    # Run CLI in development
 npm run dev --help                           # See all commands
 npm run dev query component ArchbaseEdit     # Test component query
 npm run dev generate form TestForm --fields=name,email  # Test form generation
+npm run dev generate service TestService --entity Test --type TestDto  # Test service generation
 
 # Build and test
 npm run build                                 # Build TypeScript
@@ -41,7 +44,8 @@ npm test                                      # Run tests
 - **Generators**: `/src/generators/` - Code generation logic
 - **Analyzers**: `/src/analyzers/` - AST parsing and component analysis
 - **Knowledge**: `/src/knowledge/` - Component knowledge management
-- **Templates**: `/src/templates/` - Handlebars templates (to be created)
+- **Templates**: `/src/templates/` - Handlebars templates
+- **Utils**: `/src/utils/` - Error handling, logging, and utilities
 
 ### AI-Friendly Features
 - JSON output for programmatic consumption
@@ -75,7 +79,9 @@ npm test                                      # Run tests
 
 - `/docs/development-context.md` - Complete development context
 - `/src/generators/FormGenerator.ts` - Reference implementation
+- `/src/generators/ServiceGenerator.ts` - Service generation with Java analysis
 - `/src/knowledge/KnowledgeBase.ts` - Component knowledge system
 - `/src/analyzers/ComponentAnalyzer.ts` - AST parsing logic
+- `/src/analyzers/JavaAnalyzer.ts` - Java controller analysis
 
 When starting work, always reference the development context document first to understand the full scope and previous decisions made.
