@@ -74,6 +74,26 @@ class FormGenerator {
         handlebars_1.default.registerHelper('toLowerCase', (str) => {
             return str.toLowerCase();
         });
+        // Register TypeScript type helper for forms
+        handlebars_1.default.registerHelper('tsType', (inputType) => {
+            const typeMapping = {
+                'text': 'string',
+                'email': 'string',
+                'password': 'string',
+                'textarea': 'string',
+                'number': 'number',
+                'decimal': 'number',
+                'date': 'string',
+                'datetime': 'string',
+                'checkbox': 'boolean',
+                'select': 'string',
+                'enum': 'string'
+            };
+            return typeMapping[inputType] || 'string';
+        });
+        // Register helpers for template literals
+        handlebars_1.default.registerHelper('lt', () => '{');
+        handlebars_1.default.registerHelper('gt', () => '}');
     }
     async generate(name, config) {
         try {
@@ -456,17 +476,23 @@ export const WithInitialValues: Story = {
 };`;
     }
     generateImports(fields, config) {
-        const imports = ['ArchbaseEdit', 'ArchbaseButton'];
+        const components = ['ArchbaseEdit', 'ArchbaseButton'];
         // Add specific components based on field types
         fields.forEach(field => {
             if (field.type === 'select')
-                imports.push('ArchbaseSelect');
+                components.push('ArchbaseSelect');
             if (field.type === 'textarea')
-                imports.push('ArchbaseTextArea');
+                components.push('ArchbaseTextArea');
             if (field.type === 'checkbox')
-                imports.push('ArchbaseCheckbox');
+                components.push('ArchbaseCheckbox');
         });
-        return [...new Set(imports)]; // Remove duplicates
+        // Remove duplicates and create import statements
+        const uniqueComponents = [...new Set(components)];
+        return [
+            "import React from 'react';",
+            `import { ${uniqueComponents.join(', ')} } from '@archbase/react';`,
+            config.validation !== 'none' ? `import * as ${config.validation} from '${config.validation}';` : ''
+        ].filter(Boolean);
     }
     generateValidationSchema(fields, library) {
         if (library === 'none')

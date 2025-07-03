@@ -290,7 +290,7 @@ exports.generateCommand = new commander_1.Command('generate')
     .option('--with-factory', 'Include static factory method', true)
     .option('--java-input <file>', 'Java class file to parse')
     .option('--java-text <text>', 'Java class as text input or file path')
-    .option('--enums <enums>', 'Comma-separated enum definitions (StatusUser:ATIVO,INATIVO)')
+    .option('--enums <enums>', 'Semicolon-separated enum definitions (Status:ACTIVE,INACTIVE;Type:A,B,C)')
     .action(async (name, options) => {
     console.log(chalk_1.default.blue(`🏗️  Generating domain: ${name}`));
     try {
@@ -310,11 +310,13 @@ exports.generateCommand = new commander_1.Command('generate')
         // Parse enums if provided
         let enums = [];
         if (options.enums) {
-            enums = options.enums.split(',').map((enumDef) => {
+            // Split by semicolon for multiple enums, not comma
+            const enumDefs = options.enums.split(';');
+            enums = enumDefs.map((enumDef) => {
                 const [enumName, enumValues] = enumDef.split(':');
                 return {
                     name: enumName.trim(),
-                    values: enumValues ? enumValues.split('|').map((v) => v.trim()) : []
+                    values: enumValues ? enumValues.split(',').map((v) => v.trim()) : []
                 };
             });
         }

@@ -75,6 +75,9 @@ class ViewGenerator {
         handlebars_1.default.registerHelper('toLowerCase', (str) => {
             return str.toLowerCase();
         });
+        // Register helpers for template literals
+        handlebars_1.default.registerHelper('lt', () => '{');
+        handlebars_1.default.registerHelper('gt', () => '}');
     }
     async generate(name, config) {
         try {

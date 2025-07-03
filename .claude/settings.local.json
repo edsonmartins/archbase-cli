@@ -17,7 +17,27 @@
       "Bash(./dist/archbase:*)",
       "Bash(sed:*)",
       "Bash(grep:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(archbase generate security:*)",
+      "Bash(cp:*)",
+      "Bash(npm pack)",
+      "Bash(archbase generate form:*)",
+      "Bash(archbase generate view:*)",
+      "Bash(archbase generate navigation:*)",
+      "Bash(archbase generate component:*)",
+      "Bash(archbase generate page:*)",
+      "Bash(archbase query:*)",
+      "Bash(archbase knowledge list:*)",
+      "Bash(archbase knowledge:*)",
+      "Bash(archbase create:*)",
+      "Bash(archbase validate code:*)",
+      "Bash(archbase validate:*)",
+      "Bash(archbase scan:*)",
+      "Bash(archbase cache:*)",
+      "Bash(archbase plugin:*)",
+      "Bash(archbase migrate:*)",
+      "Bash(archbase boilerplate create:*)",
+      "Bash(archbase generate domain:*)"
     ],
     "deny": []
   }

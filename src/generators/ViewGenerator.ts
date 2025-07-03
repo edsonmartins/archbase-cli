@@ -79,6 +79,10 @@ export class ViewGenerator {
     Handlebars.registerHelper('toLowerCase', (str: string) => {
       return str.toLowerCase();
     });
+    
+    // Register helpers for template literals
+    Handlebars.registerHelper('lt', () => '{');
+    Handlebars.registerHelper('gt', () => '}');
   }
   
   async generate(name: string, config: ViewConfig): Promise<GenerationResult> {

@@ -27,9 +27,31 @@ Archbase CLI is a powerful, AI-friendly development tool that bridges the gap be
 
 ## Installation
 
+### From NPM (Coming Soon)
 ```bash
 npm install -g @archbase/cli
 ```
+
+### From Source (Development)
+```bash
+# Clone and build
+git clone https://github.com/edsonmartins/archbase-cli.git
+cd archbase-cli
+npm install
+npm run build
+npm link
+
+# Verify installation
+archbase --version
+```
+
+### From Release Package
+```bash
+# Download the .tgz file from releases
+npm install -g ./archbase-cli-0.1.0.tgz
+```
+
+📚 **For detailed compilation and distribution instructions, see [Compilation and Distribution Guide](docs/compilation-and-distribution.md)**
 
 ## Domain-Driven Development Workflow
 

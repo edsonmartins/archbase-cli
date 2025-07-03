@@ -7,6 +7,7 @@ Esta pasta contém a documentação completa do Archbase CLI.
 ### Funcionalidades Principais
 - [archbase_cli_spec.md](./archbase_cli_spec.md) - Especificação completa do CLI
 - [development-context.md](./development-context.md) - Contexto de desenvolvimento e arquitetura
+- [compilation-and-distribution.md](./compilation-and-distribution.md) - Guia de compilação, empacotamento e distribuição
 
 ### Funcionalidades Avançadas
 - [advanced-scanning.md](./advanced-scanning.md) - Sistema avançado de scanning e análise de componentes

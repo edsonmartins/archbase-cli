@@ -1,0 +1,53 @@
+{
+  "name": "test-boilerplate",
+  "description": "Test boilerplate",
+  "category": "frontend",
+  "version": "1.0.0",
+  "templateFiles": [
+    "*.json",
+    "*.md",
+    "*.env*"
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "build",
+    ".git",
+    ".env"
+  ],
+  "prompts": [
+    {
+      "name": "projectName",
+      "message": "Project name:",
+      "type": "input",
+      "validate": "required|alphanumeric"
+    },
+    {
+      "name": "projectDescription",
+      "message": "Project description:",
+      "type": "input",
+      "default": "Generated with Archbase CLI"
+    },
+    {
+      "name": "useTypeScript",
+      "message": "Use TypeScript?",
+      "type": "confirm",
+      "default": true
+    }
+  ],
+  "features": {
+    "react": true,
+    "typescript": true
+  },
+  "dependencies": {
+    "@archbase/react": "^2.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

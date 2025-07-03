@@ -95,6 +95,7 @@ class DomainGenerator {
         // Register TypeScript type helper
         handlebars_1.default.registerHelper('tsType', (javaType) => {
             const typeMapping = {
+                // Java types
                 'String': 'string',
                 'Integer': 'number',
                 'int': 'number',
@@ -111,7 +112,15 @@ class DomainGenerator {
                 'LocalDateTime': 'string',
                 'LocalTime': 'string',
                 'UUID': 'string',
-                'BigDecimal': 'number'
+                'BigDecimal': 'number',
+                // CLI field types
+                'text': 'string',
+                'number': 'number',
+                'decimal': 'number',
+                'date': 'string',
+                'datetime': 'string',
+                'bool': 'boolean',
+                'enum': 'string' // Default to string, will be overridden by specific enum types
             };
             // Handle array types
             if (javaType.includes('[]') || javaType.includes('List<') || javaType.includes('Set<')) {
@@ -242,7 +251,7 @@ class DomainGenerator {
     buildTemplateContext(config) {
         const entityName = config.name.replace(/Dto$/, '');
         const dtoName = config.name.endsWith('Dto') ? config.name : `${config.name}Dto`;
-        // Add audit fields if requested
+        // Add audit fields if requested (only if not already present)
         const auditFields = config.withAuditFields ? [
             { name: 'id', type: 'string', required: true },
             { name: 'code', type: 'string', required: false },
@@ -252,18 +261,33 @@ class DomainGenerator {
             { name: 'createdByUser', type: 'string', required: false },
             { name: 'lastModifiedByUser', type: 'string', required: false }
         ] : [];
-        const allFields = [...auditFields, ...config.fields];
+        // Filter out duplicate fields (user fields take precedence)
+        const userFieldNames = config.fields.map(f => f.name);
+        const filteredAuditFields = auditFields.filter(auditField => !userFieldNames.includes(auditField.name));
+        const allFields = [...filteredAuditFields, ...config.fields];
+        // Map enum types to specific enum names
+        const processedFields = allFields.map(field => {
+            if (field.type === 'enum') {
+                // Default enum type naming: EntityName + Status
+                const enumTypeName = `${entityName}Status`;
+                return {
+                    ...field,
+                    type: enumTypeName
+                };
+            }
+            return field;
+        });
         return {
             // Basic info
             name: config.name,
             entityName,
             dtoName,
             // Fields
-            fields: allFields,
-            hasRequiredFields: allFields.some(f => f.required),
-            hasEnumFields: allFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
-            hasNestedFields: allFields.some(f => f.nested),
-            hasArrayFields: allFields.some(f => f.isArray),
+            fields: processedFields,
+            hasRequiredFields: processedFields.some(f => f.required),
+            hasEnumFields: processedFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
+            hasNestedFields: processedFields.some(f => f.nested),
+            hasArrayFields: processedFields.some(f => f.isArray),
             // Enums
             enums: config.enums || [],
             hasEnums: config.enums && config.enums.length > 0,
@@ -276,7 +300,7 @@ class DomainGenerator {
             camelCaseName: this.toCamelCase(entityName),
             newInstanceFlag: `isNovo${entityName}`,
             // Imports
-            needsValidation: config.withValidation && allFields.some(f => f.required),
+            needsValidation: config.withValidation && processedFields.some(f => f.required),
             needsUuid: config.withFactory || config.withAuditFields
         };
     }

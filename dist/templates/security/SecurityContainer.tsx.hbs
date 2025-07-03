@@ -1,0 +1,137 @@
+import { Container } from 'inversify';
+import { {{authenticatorClass}} } from './{{authenticatorClass}}';
+import { {{userClass}} } from '../domain/{{userClass}}';
+import { {{apiTokenClass}} } from '../domain/{{apiTokenClass}}';
+import { 
+  ArchbaseAuthenticator,
+  ArchbaseRemoteDataSource,
+  ArchbaseStore
+} from '@archbase/react';
+
+export interface {{componentName}}ContainerConfig {
+  baseURL: string;
+  {{#if hasFeature "custom-endpoints"}}
+  endpoints?: {
+    login?: string;
+    refresh?: string;
+    userInfo?: string;
+    users?: string;
+    apiTokens?: string;
+    {{#if hasFeature "password-reset"}}
+    passwordReset?: string;
+    {{/if}}
+  };
+  {{/if}}
+}
+
+export class {{componentName}}Container {
+  private container: Container;
+  private config: {{componentName}}ContainerConfig;
+
+  constructor(config: {{componentName}}ContainerConfig) {
+    this.config = config;
+    this.container = new Container();
+    this.setupBindings();
+  }
+
+  private setupBindings() {
+    // Bind authenticator
+    this.container.bind<ArchbaseAuthenticator>('Authenticator').to({{authenticatorClass}}).inSingletonScope();
+    
+    // Bind authenticator configuration
+    this.container.bind<{{authenticatorClass}}Config>('AuthenticatorConfig').toConstantValue({
+      baseURL: this.config.baseURL,
+      {{#if hasFeature "custom-endpoints"}}
+      loginEndpoint: this.config.endpoints?.login || '/api/v1/auth/authenticate',
+      refreshEndpoint: this.config.endpoints?.refresh || '/api/v1/auth/refresh-token',
+      userInfoEndpoint: this.config.endpoints?.userInfo || '/api/v1/auth/user-info',
+      {{#if hasFeature "password-reset"}}
+      passwordResetEndpoint: this.config.endpoints?.passwordReset || '/api/v1/auth/reset-password',
+      {{/if}}
+      {{else}}
+      loginEndpoint: '/api/v1/auth/authenticate',
+      refreshEndpoint: '/api/v1/auth/refresh-token',
+      userInfoEndpoint: '/api/v1/auth/user-info',
+      {{#if hasFeature "password-reset"}}
+      passwordResetEndpoint: '/api/v1/auth/reset-password',
+      {{/if}}
+      {{/if}}
+    });
+
+    // Bind data sources
+    this.container.bind<ArchbaseRemoteDataSource<{{userClass}}, string>>('UsersDataSource')
+      .toConstantValue(new ArchbaseRemoteDataSource<{{userClass}}, string>({
+        url: `${this.config.baseURL}{{#if hasFeature "custom-endpoints"}}${this.config.endpoints?.users || '/api/v1/users'}{{else}}/api/v1/users{{/if}}`,
+        name: '{{toLowerCase componentName}}-users-datasource'
+      }));
+
+    this.container.bind<ArchbaseRemoteDataSource<{{apiTokenClass}}, string>>('ApiTokensDataSource')
+      .toConstantValue(new ArchbaseRemoteDataSource<{{apiTokenClass}}, string>({
+        url: `${this.config.baseURL}{{#if hasFeature "custom-endpoints"}}${this.config.endpoints?.apiTokens || '/api/v1/api-tokens'}{{else}}/api/v1/api-tokens{{/if}}`,
+        name: '{{toLowerCase componentName}}-api-tokens-datasource'
+      }));
+
+    // Bind store
+    this.container.bind<ArchbaseStore>('Store').to(ArchbaseStore).inSingletonScope();
+  }
+
+  get<T>(serviceIdentifier: string): T {
+    return this.container.get<T>(serviceIdentifier);
+  }
+
+  getAuthenticator(): ArchbaseAuthenticator {
+    return this.get<ArchbaseAuthenticator>('Authenticator');
+  }
+
+  getUsersDataSource(): ArchbaseRemoteDataSource<{{userClass}}, string> {
+    return this.get<ArchbaseRemoteDataSource<{{userClass}}, string>>('UsersDataSource');
+  }
+
+  getApiTokensDataSource(): ArchbaseRemoteDataSource<{{apiTokenClass}}, string> {
+    return this.get<ArchbaseRemoteDataSource<{{apiTokenClass}}, string>>('ApiTokensDataSource');
+  }
+
+  getStore(): ArchbaseStore {
+    return this.get<ArchbaseStore>('Store');
+  }
+
+  {{#if hasFeature "custom-services"}}
+  // Método para adicionar serviços customizados
+  addCustomService<T>(identifier: string, service: T): void {
+    this.container.bind<T>(identifier).toConstantValue(service);
+  }
+
+  // Método para adicionar fábrica de serviços
+  addServiceFactory<T>(identifier: string, factory: () => T): void {
+    this.container.bind<T>(identifier).toDynamicValue(factory);
+  }
+  {{/if}}
+}
+
+// Factory function para criar o container
+export function create{{componentName}}Container(config: {{componentName}}ContainerConfig): {{componentName}}Container {
+  return new {{componentName}}Container(config);
+}
+
+// Hook para usar o container em componentes React
+export function use{{componentName}}Container(): {{componentName}}Container {
+  // Este hook deveria ser implementado usando React Context
+  // ou uma biblioteca de gerenciamento de estado
+  throw new Error('{{componentName}}Container deve ser fornecido via Context');
+}
+
+// Provider component para fornecer o container
+export interface {{componentName}}ContainerProviderProps {
+  container: {{componentName}}Container;
+  children: React.ReactNode;
+}
+
+export function {{componentName}}ContainerProvider({ container, children }: {{componentName}}ContainerProviderProps) {
+  // Implementação do provider usando React Context
+  // Esta é uma implementação básica - você pode usar bibliotecas como React Context ou Redux
+  return (
+    <div data-container-provider="{{toLowerCase componentName}}">
+      {children}
+    </div>
+  );
+}

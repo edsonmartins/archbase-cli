@@ -77,16 +77,16 @@ export class SecurityGenerator {
     const context = this.buildLoginContext(config);
     const files: string[] = [];
     
-    // Generate desktop login view
-    files.push(await this.generateFromTemplate('LoginView.tsx.hbs', `${config.name}View.tsx`, context, config.output));
+    // Generate simple login view first (for testing)
+    files.push(await this.generateFromTemplate('SimpleLogin.tsx.hbs', `${config.name}View.tsx`, context, config.output));
     
-    // Generate mobile login view if requested
-    if (config.withMobile) {
-      files.push(await this.generateFromTemplate('LoginMobileView.tsx.hbs', `${config.name}MobileView.tsx`, context, config.output));
-    }
+    // Generate mobile login view if requested (skip for now)
+    // if (config.withMobile) {
+    //   files.push(await this.generateFromTemplate('LoginMobileView.tsx.hbs', `${config.name}MobileView.tsx`, context, config.output));
+    // }
     
-    // Generate CSS module
-    files.push(await this.generateFromTemplate('Login.module.css.hbs', `${config.name}.module.css`, context, config.output));
+    // Generate CSS module (skip for now)
+    // files.push(await this.generateFromTemplate('Login.module.css.hbs', `${config.name}.module.css`, context, config.output));
     
     return files;
   }
@@ -131,11 +131,11 @@ export class SecurityGenerator {
     const context = this.buildAuthenticatorContext(config);
     const files: string[] = [];
     
-    // Authenticator class
-    files.push(await this.generateFromTemplate('Authenticator.ts.hbs', `${config.authenticatorClass || config.name + 'Authenticator'}.ts`, context, config.output));
+    // Simple authenticator class
+    files.push(await this.generateFromTemplate('SimpleAuthenticator.ts.hbs', `${config.authenticatorClass || config.name + 'Authenticator'}.ts`, context, config.output));
     
-    // IOC container setup
-    files.push(await this.generateFromTemplate('SecurityContainer.tsx.hbs', `${config.name}Container.tsx`, context, config.output));
+    // Simple IOC container setup
+    files.push(await this.generateFromTemplate('SimpleContainer.tsx.hbs', `${config.name}Container.tsx`, context, config.output));
     
     return files;
   }
@@ -182,6 +182,7 @@ export class SecurityGenerator {
   }
 
   private buildAuthenticatorContext(config: SecurityConfig): any {
+    const features = config.features || ['jwt', 'refresh-token', 'password-reset'];
     return {
       componentName: config.name,
       authenticatorClass: config.authenticatorClass || `${config.name}Authenticator`,
@@ -189,8 +190,13 @@ export class SecurityGenerator {
       apiTokenClass: config.apiTokenClass || `${config.name}ApiToken`,
       brandName: config.brandName || 'YourApp',
       baseURL: config.baseURL || 'http://localhost:8080',
-      features: config.features || ['jwt', 'refresh-token', 'password-reset'],
-      hasFeature: (feature: string) => config.features?.includes(feature) || false
+      features,
+      hasFeature: (feature: string) => features.includes(feature),
+      'password-reset': features.includes('password-reset'),
+      'logout': features.includes('logout'),
+      'change-password': features.includes('change-password'),
+      'custom-endpoints': features.includes('custom-endpoints'),
+      'custom-services': features.includes('custom-services')
     };
   }
 
@@ -228,5 +234,7 @@ export class SecurityGenerator {
     Handlebars.registerHelper('hasFeature', function(this: any, feature: string) {
       return this.features && this.features.includes(feature);
     });
+    Handlebars.registerHelper('lt', () => '{');
+    Handlebars.registerHelper('gt', () => '}');
   }
 }

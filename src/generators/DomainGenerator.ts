@@ -104,6 +104,7 @@ export class DomainGenerator {
     // Register TypeScript type helper
     Handlebars.registerHelper('tsType', (javaType: string) => {
       const typeMapping: { [key: string]: string } = {
+        // Java types
         'String': 'string',
         'Integer': 'number',
         'int': 'number',
@@ -120,7 +121,15 @@ export class DomainGenerator {
         'LocalDateTime': 'string',
         'LocalTime': 'string',
         'UUID': 'string',
-        'BigDecimal': 'number'
+        'BigDecimal': 'number',
+        // CLI field types
+        'text': 'string',
+        'number': 'number',
+        'decimal': 'number',
+        'date': 'string',
+        'datetime': 'string',
+        'bool': 'boolean',
+        'enum': 'string' // Default to string, will be overridden by specific enum types
       };
       
       // Handle array types
@@ -274,7 +283,7 @@ export class DomainGenerator {
     const entityName = config.name.replace(/Dto$/, '');
     const dtoName = config.name.endsWith('Dto') ? config.name : `${config.name}Dto`;
     
-    // Add audit fields if requested
+    // Add audit fields if requested (only if not already present)
     const auditFields: DomainField[] = config.withAuditFields ? [
       { name: 'id', type: 'string', required: true },
       { name: 'code', type: 'string', required: false },
@@ -285,7 +294,26 @@ export class DomainGenerator {
       { name: 'lastModifiedByUser', type: 'string', required: false }
     ] : [];
     
-    const allFields = [...auditFields, ...config.fields];
+    // Filter out duplicate fields (user fields take precedence)
+    const userFieldNames = config.fields.map(f => f.name);
+    const filteredAuditFields = auditFields.filter(auditField => 
+      !userFieldNames.includes(auditField.name)
+    );
+    
+    const allFields = [...filteredAuditFields, ...config.fields];
+    
+    // Map enum types to specific enum names
+    const processedFields = allFields.map(field => {
+      if (field.type === 'enum') {
+        // Default enum type naming: EntityName + Status
+        const enumTypeName = `${entityName}Status`;
+        return {
+          ...field,
+          type: enumTypeName
+        };
+      }
+      return field;
+    });
     
     return {
       // Basic info
@@ -294,11 +322,11 @@ export class DomainGenerator {
       dtoName,
       
       // Fields
-      fields: allFields,
-      hasRequiredFields: allFields.some(f => f.required),
-      hasEnumFields: allFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
-      hasNestedFields: allFields.some(f => f.nested),
-      hasArrayFields: allFields.some(f => f.isArray),
+      fields: processedFields,
+      hasRequiredFields: processedFields.some(f => f.required),
+      hasEnumFields: processedFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
+      hasNestedFields: processedFields.some(f => f.nested),
+      hasArrayFields: processedFields.some(f => f.isArray),
       
       // Enums
       enums: config.enums || [],
@@ -315,7 +343,7 @@ export class DomainGenerator {
       newInstanceFlag: `isNovo${entityName}`,
       
       // Imports
-      needsValidation: config.withValidation && allFields.some(f => f.required),
+      needsValidation: config.withValidation && processedFields.some(f => f.required),
       needsUuid: config.withFactory || config.withAuditFields
     };
   }
