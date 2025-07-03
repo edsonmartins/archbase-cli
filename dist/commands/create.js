@@ -7,6 +7,39 @@
  * archbase create module Products --with=forms,lists,details
  * archbase create list-boilerplates
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -15,7 +48,9 @@ exports.createCommand = void 0;
 const commander_1 = require("commander");
 const chalk_1 = __importDefault(require("chalk"));
 const ora_1 = __importDefault(require("ora"));
+const path = __importStar(require("path"));
 const BoilerplateGenerator_1 = require("../generators/BoilerplateGenerator");
+const PackageJsonGenerator_1 = require("../generators/PackageJsonGenerator");
 exports.createCommand = new commander_1.Command('create')
     .description('Create projects and modules from boilerplates')
     .addCommand(new commander_1.Command('project')
@@ -26,6 +61,10 @@ exports.createCommand = new commander_1.Command('create')
     .option('--npm <package>', 'npm package name for remote boilerplate')
     .option('--branch <branch>', 'Git branch to use (default: main)')
     .option('--subfolder <path>', 'Subfolder in repository to use as template')
+    .option('--project-type <type>', 'Project type (basic|admin|full) - determines dependency set', 'basic')
+    .option('--features <features>', 'Comma-separated features (rich-text,data-grid,auth,file-export,pdf,charts,image-crop,input-mask,color-picker)')
+    .option('--author <author>', 'Project author name')
+    .option('--description <desc>', 'Project description')
     .option('--interactive', 'Interactive setup with prompts')
     .option('--config <file>', 'Configuration file path')
     .option('--dry-run', 'Show what would be created without executing')
@@ -94,12 +133,63 @@ exports.createCommand = new commander_1.Command('create')
             result = await generator.generateFromRemote(name, remoteOptions, outputDir);
         }
         if (result.success) {
-            spinner.succeed(chalk_1.default.green(`✅ Project '${name}' created successfully!`));
-            console.log(chalk_1.default.cyan(`📁 Location: ${result.projectPath}`));
-            console.log(chalk_1.default.yellow('\n📋 Next steps:'));
-            console.log(chalk_1.default.gray(`  cd ${name}`));
-            console.log(chalk_1.default.gray('  npm install'));
-            console.log(chalk_1.default.gray('  npm run dev'));
+            // Generate package.json with proper dependencies
+            spinner.text = 'Setting up Archbase dependencies...';
+            const packageGenerator = new PackageJsonGenerator_1.PackageJsonGenerator();
+            const features = options.features ? options.features.split(',').map(f => f.trim()) : [];
+            try {
+                const packageResult = await packageGenerator.generate({
+                    name,
+                    description: options.description || `Archbase React application - ${name}`,
+                    author: options.author || '',
+                    projectType: options.projectType,
+                    features,
+                    outputDir: result.projectPath,
+                    typescript: true
+                });
+                if (packageResult.success) {
+                    spinner.succeed(chalk_1.default.green(`✅ Project '${name}' created with Archbase dependencies!`));
+                    console.log(chalk_1.default.cyan(`📁 Location: ${result.projectPath}`));
+                    // Show project info
+                    console.log(chalk_1.default.yellow('\n📋 Project Configuration:'));
+                    console.log(chalk_1.default.gray(`  Type: ${options.projectType}`));
+                    if (features.length > 0) {
+                        console.log(chalk_1.default.gray(`  Features: ${features.join(', ')}`));
+                    }
+                    console.log(chalk_1.default.yellow('\n📦 Dependencies:'));
+                    console.log(chalk_1.default.gray('  ✅ @archbase/react + all required dependencies'));
+                    console.log(chalk_1.default.gray('  ✅ @mantine/core 8.x ecosystem'));
+                    console.log(chalk_1.default.gray('  ✅ TypeScript configuration'));
+                    console.log(chalk_1.default.gray('  ✅ PostCSS + Mantine preset'));
+                    console.log(chalk_1.default.gray('  ✅ Vite build configuration'));
+                    console.log(chalk_1.default.yellow('\n📋 Next steps:'));
+                    console.log(chalk_1.default.gray(`  cd ${name}`));
+                    console.log(chalk_1.default.gray('  npm install'));
+                    console.log(chalk_1.default.gray('  npm run dev'));
+                    // Generate installation instructions
+                    const instructions = packageGenerator.generateInstallationInstructions({
+                        name,
+                        projectType: options.projectType,
+                        features,
+                        outputDir: result.projectPath
+                    });
+                    // Write README with instructions
+                    const readmePath = path.join(result.projectPath, 'README.md');
+                    await require('fs-extra').writeFile(readmePath, instructions);
+                    console.log(chalk_1.default.green(`\n📖 Installation guide written to README.md`));
+                }
+                else {
+                    console.warn(chalk_1.default.yellow('⚠️  Project created but failed to setup dependencies'));
+                    console.warn(chalk_1.default.gray('You may need to manually install Archbase dependencies'));
+                    packageResult.errors?.forEach(error => {
+                        console.error(chalk_1.default.red(`   ${error}`));
+                    });
+                }
+            }
+            catch (error) {
+                console.warn(chalk_1.default.yellow('⚠️  Project created but failed to setup dependencies'));
+                console.warn(chalk_1.default.gray(`Error: ${error.message}`));
+            }
         }
         else {
             spinner.fail(chalk_1.default.red('❌ Failed to create project'));
@@ -111,6 +201,56 @@ exports.createCommand = new commander_1.Command('create')
     }
     catch (error) {
         spinner.fail(chalk_1.default.red(`❌ Error creating project: ${error.message}`));
+        process.exit(1);
+    }
+}))
+    .addCommand(new commander_1.Command('package-json')
+    .description('Generate package.json with Archbase dependencies')
+    .option('--name <name>', 'Project name', 'my-archbase-app')
+    .option('--project-type <type>', 'Project type (basic|admin|full)', 'basic')
+    .option('--features <features>', 'Comma-separated features (rich-text,data-grid,auth,file-export,pdf,charts,image-crop,input-mask,color-picker)')
+    .option('--author <author>', 'Project author name')
+    .option('--description <desc>', 'Project description')
+    .option('--output <dir>', 'Output directory', '.')
+    .action(async (options) => {
+    console.log(chalk_1.default.blue(`📦 Generating package.json for Archbase project`));
+    try {
+        const packageGenerator = new PackageJsonGenerator_1.PackageJsonGenerator();
+        const features = options.features ? options.features.split(',').map(f => f.trim()) : [];
+        const result = await packageGenerator.generate({
+            name: options.name,
+            description: options.description || `Archbase React application - ${options.name}`,
+            author: options.author || '',
+            projectType: options.projectType,
+            features,
+            outputDir: options.output,
+            typescript: true
+        });
+        if (result.success) {
+            console.log(chalk_1.default.green(`✅ Package.json created successfully!`));
+            console.log(chalk_1.default.yellow('\n📋 Generated files:'));
+            result.files.forEach(file => {
+                console.log(chalk_1.default.gray(`  📄 ${file}`));
+            });
+            console.log(chalk_1.default.yellow('\n📦 Project Configuration:'));
+            console.log(chalk_1.default.gray(`  Type: ${options.projectType}`));
+            if (features.length > 0) {
+                console.log(chalk_1.default.gray(`  Features: ${features.join(', ')}`));
+            }
+            console.log(chalk_1.default.yellow('\n📋 Next steps:'));
+            console.log(chalk_1.default.gray('  npm install'));
+            console.log(chalk_1.default.gray('  # Start developing with Archbase components!'));
+        }
+        else {
+            console.error(chalk_1.default.red('❌ Failed to generate package.json'));
+            result.errors?.forEach(error => {
+                console.error(chalk_1.default.red(`  ${error}`));
+            });
+            process.exit(1);
+        }
+    }
+    catch (error) {
+        console.error(chalk_1.default.red(`❌ Error generating package.json: ${error.message}`));
         process.exit(1);
     }
 }))
