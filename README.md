@@ -112,7 +112,10 @@ archbase generate domain ProdutoDto --java-text /path/to/Produto.java --output .
 archbase generate security AdminLogin --type=login --with-mobile --with-branding
 archbase generate security UserManager --type=user-management --features=user-activation,user-roles
 
-# Create a project with automatic dependencies (NEW!)
+# Use interactive wizard for guided setup (NEW!)
+archbase create project MyApp --wizard
+
+# Create a project with automatic dependencies
 archbase create project MyApp --project-type=admin --features=auth,data-grid,file-export --author="Your Name"
 
 # Create a basic project with core dependencies only
@@ -185,6 +188,9 @@ archbase generate security CustomAuth --type=authenticator --features=password-r
 ### Create Commands
 
 ```bash
+# Interactive wizard for guided project creation (RECOMMENDED!)
+archbase create project <name> --wizard
+
 # Create project with automatic Archbase dependencies
 archbase create project <name> --project-type=<basic|admin|full> [--features=<features>] [--author=<author>]
 
@@ -222,6 +228,37 @@ archbase create list-boilerplates [--category=admin]
 - `image-crop` - Image cropping and processing
 - `input-mask` - Input masking for phones, documents
 - `color-picker` - Color selection components
+
+### Interactive Wizard (NEW!)
+
+For complex projects or when you need guidance choosing the right configuration, use the interactive wizard:
+
+```bash
+archbase create project MyApp --wizard
+```
+
+The wizard will guide you through:
+
+1. **📋 Project Information** - Name, description, author
+2. **🏗️ Project Architecture** - Basic, Admin, or Full with detailed explanations
+3. **🎛️ Features & Capabilities** - Select additional features with descriptions
+4. **⚙️ Development Setup** - TypeScript, Git, auto-install options
+5. **🔧 Additional Configuration** - API URLs, authentication, database type, deployment target
+6. **📋 Confirmation** - Review all choices before creation
+
+**Benefits of the Wizard:**
+- 📖 **Detailed Explanations** - Each option includes helpful descriptions
+- 🎯 **Guided Decisions** - No need to memorize all available options
+- ⚙️ **Complete Setup** - Generates environment files, Git repo, installs dependencies
+- 📄 **Project Summary** - Creates detailed documentation of your choices
+- 🚀 **Ready to Use** - Complete project structure with working code
+
+**Generated Files:**
+- Complete project structure with components, pages, utils
+- Environment configuration (.env files)
+- Git repository (optional)
+- PROJECT-SUMMARY.md with detailed configuration
+- Working React app with Archbase components
 
 ### Remote Boilerplates
 
@@ -913,15 +950,23 @@ archbase knowledge update
 
 ## Changelog
 
-### v0.1.4 - Automatic Dependency Management (Latest)
+### v0.1.4 - Automatic Dependency Management + Interactive Wizard (Latest)
 
 **New Features:**
+- ✅ **Interactive Project Wizard**: Guided project creation with detailed explanations and questions
 - ✅ **Automatic Dependency Management**: Projects now include all required Archbase dependencies automatically
 - ✅ **Mantine 8.x Complete Setup**: Full Mantine ecosystem with PostCSS configuration and theme provider
 - ✅ **Project Type Support**: Basic, Admin, and Full project configurations with appropriate dependencies
 - ✅ **Feature-based Dependencies**: Optional dependencies based on selected features (rich-text, charts, auth, etc.)
 - ✅ **Complete Build Configuration**: TypeScript, Vite, ESLint, and PostCSS pre-configured
 - ✅ **Package.json Generator**: Standalone command to generate package.json with Archbase dependencies
+
+**Interactive Wizard Features:**
+- 🧙‍♂️ **6-Step Guided Setup**: From project info to final confirmation
+- 📖 **Detailed Explanations**: Each option includes helpful descriptions and use cases
+- ⚙️ **Complete Environment Setup**: Environment files, Git initialization, dependency installation
+- 📄 **Auto-Generated Documentation**: PROJECT-SUMMARY.md with all configuration details
+- 🚀 **Working Project**: Complete React app with Archbase components ready to run
 
 **Dependencies Included:**
 - **Core**: @archbase/react, @mantine/core 8.x ecosystem, React 18, TypeScript
@@ -1125,6 +1170,118 @@ npm run lint
 2. **Test Compilation**: Ensure generated TypeScript code compiles without errors
 3. **Review Templates**: Check generated code matches your project patterns
 4. **Type Safety**: Verify that type mappings are correct for your use case
+
+## Complete Workflow Example
+
+Here's a complete example of creating a production-ready Archbase project:
+
+### Option 1: Using the Interactive Wizard (Recommended)
+
+```bash
+# Start the wizard for guided setup
+archbase create project MyAdminApp --wizard
+
+# The wizard will guide you through:
+# 1. Project information (name, description, author)
+# 2. Architecture choice (Basic/Admin/Full)
+# 3. Feature selection (auth, data-grid, file-export, etc.)
+# 4. Development setup (TypeScript, Git, auto-install)
+# 5. Configuration (API URL, database type, deployment)
+# 6. Final confirmation
+
+# Result: Complete project ready to run!
+cd MyAdminApp
+npm run dev  # Dependencies already installed!
+```
+
+### Option 2: Command Line Setup
+
+```bash
+# Create admin project with specific features
+archbase create project MyAdminApp \
+  --project-type=admin \
+  --features=auth,data-grid,file-export \
+  --author="Your Name" \
+  --description="Modern admin dashboard"
+
+# Install dependencies and start
+cd MyAdminApp
+npm install
+npm run dev
+```
+
+### Option 3: Add to Existing Project
+
+```bash
+# Add Archbase dependencies to existing project
+cd my-existing-project
+archbase create package-json \
+  --name=my-existing-project \
+  --project-type=full \
+  --features=rich-text,charts,pdf \
+  --output=.
+
+# Install new dependencies
+npm install
+```
+
+### What You Get
+
+After creation, your project includes:
+
+```
+MyAdminApp/
+├── src/
+│   ├── components/          # Reusable components
+│   ├── pages/              # Application pages
+│   ├── domain/             # DTOs and types (admin/full)
+│   ├── services/           # API services (admin/full)
+│   ├── providers/          # Mantine theme provider
+│   ├── App.tsx             # Main app component
+│   └── main.tsx            # Entry point
+├── package.json            # All dependencies configured
+├── tsconfig.json           # TypeScript configuration
+├── vite.config.ts          # Vite build configuration
+├── postcss.config.js       # Mantine PostCSS setup
+├── .env.example            # Environment template
+├── .env.local              # Local environment
+├── .gitignore              # Git ignore rules
+└── PROJECT-SUMMARY.md      # Configuration documentation
+```
+
+### Start Building
+
+```tsx
+// src/components/MyComponent.tsx
+import { ArchbaseEdit, ArchbaseButton } from '@archbase/react';
+import { Container, Title } from '@mantine/core';
+
+export function MyComponent() {
+  return (
+    <Container>
+      <Title>Welcome to Archbase!</Title>
+      <ArchbaseEdit label="Name" />
+      <ArchbaseButton>Save</ArchbaseButton>
+    </Container>
+  );
+}
+```
+
+### Generate More Components
+
+```bash
+# Generate domain objects
+archbase generate domain User --fields="name:text,email:text,status:enum" --enums="UserStatus:ACTIVE,INACTIVE"
+
+# Generate forms
+archbase generate form UserForm --dto=./src/domain/UserDto.ts --category=users
+
+# Generate CRUD views
+archbase generate view UserView --dto=./src/domain/UserDto.ts --with-permissions
+
+# Generate security components
+archbase generate security AdminSecurity --features=jwt,user-management,api-tokens
+```
 
 ## License
 

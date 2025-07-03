@@ -51,6 +51,7 @@ const ora_1 = __importDefault(require("ora"));
 const path = __importStar(require("path"));
 const BoilerplateGenerator_1 = require("../generators/BoilerplateGenerator");
 const PackageJsonGenerator_1 = require("../generators/PackageJsonGenerator");
+const wizard_1 = require("../utils/wizard");
 exports.createCommand = new commander_1.Command('create')
     .description('Create projects and modules from boilerplates')
     .addCommand(new commander_1.Command('project')
@@ -66,9 +67,14 @@ exports.createCommand = new commander_1.Command('create')
     .option('--author <author>', 'Project author name')
     .option('--description <desc>', 'Project description')
     .option('--interactive', 'Interactive setup with prompts')
+    .option('--wizard', 'Use guided wizard for project creation (recommended for complex projects)')
     .option('--config <file>', 'Configuration file path')
     .option('--dry-run', 'Show what would be created without executing')
     .action(async (name, options) => {
+    // Check if wizard mode is requested
+    if (options.wizard) {
+        return await handleWizardMode(name, options);
+    }
     console.log(chalk_1.default.blue(`🚀 Creating project: ${name}`));
     // Validate boilerplate source
     const hasLocal = !!options.boilerplate;
@@ -347,4 +353,283 @@ exports.createCommand = new commander_1.Command('create')
         spinner.fail(chalk_1.default.red(`❌ Error loading boilerplates: ${error.message}`));
     }
 }));
+/**
+ * Handle wizard mode for project creation
+ */
+async function handleWizardMode(suggestedName, options) {
+    try {
+        const wizard = new wizard_1.ProjectWizard();
+        const result = await wizard.run();
+        // Use suggested name or wizard result
+        const projectName = result.projectName || suggestedName;
+        const outputDir = path.resolve(process.cwd(), projectName);
+        console.log(chalk_1.default.blue(`\n🚀 Creating project based on wizard configuration...`));
+        const spinner = (0, ora_1.default)('Setting up project structure...').start();
+        // Generate package.json and configuration files
+        const packageGenerator = new PackageJsonGenerator_1.PackageJsonGenerator();
+        const packageResult = await packageGenerator.generate({
+            name: projectName,
+            description: result.description,
+            author: result.author,
+            projectType: result.projectType,
+            features: result.features,
+            outputDir,
+            typescript: result.useTypeScript,
+            scripts: {
+                "dev": "vite",
+                "build": result.useTypeScript ? "tsc && vite build" : "vite build",
+                "preview": "vite preview",
+                "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+                "lint:fix": "eslint . --ext ts,tsx --fix",
+                ...(result.useTypeScript ? { "type-check": "tsc --noEmit" } : {})
+            }
+        });
+        if (!packageResult.success) {
+            spinner.fail(chalk_1.default.red('❌ Failed to create project configuration'));
+            packageResult.errors?.forEach(error => {
+                console.error(chalk_1.default.red(`  ${error}`));
+            });
+            return;
+        }
+        // Create additional project structure
+        await createProjectStructure(outputDir, result);
+        // Generate configuration files based on wizard choices
+        await generateWizardConfigurations(outputDir, result);
+        // Initialize Git if requested
+        if (result.setupGit) {
+            spinner.text = 'Initializing Git repository...';
+            try {
+                const { execSync } = require('child_process');
+                execSync('git init', { cwd: outputDir, stdio: 'ignore' });
+                execSync('git add .', { cwd: outputDir, stdio: 'ignore' });
+                execSync('git commit -m "Initial commit from Archbase CLI"', { cwd: outputDir, stdio: 'ignore' });
+            }
+            catch (error) {
+                console.warn(chalk_1.default.yellow('⚠️  Git initialization failed (continuing without Git)'));
+            }
+        }
+        // Install dependencies if requested
+        if (result.installDependencies) {
+            spinner.text = 'Installing dependencies...';
+            try {
+                const { execSync } = require('child_process');
+                execSync('npm install', { cwd: outputDir, stdio: 'ignore' });
+            }
+            catch (error) {
+                console.warn(chalk_1.default.yellow('⚠️  Dependency installation failed. Run "npm install" manually.'));
+            }
+        }
+        // Generate project summary
+        const summary = wizard.generateSummary(result);
+        const fs = require('fs-extra');
+        await fs.writeFile(path.join(outputDir, 'PROJECT-SUMMARY.md'), summary);
+        spinner.succeed(chalk_1.default.green(`✅ Project '${projectName}' created successfully!`));
+        // Show completion message
+        console.log(chalk_1.default.cyan(`📁 Location: ${outputDir}`));
+        console.log(chalk_1.default.yellow('\n📦 Project Configuration:'));
+        console.log(chalk_1.default.gray(`  Type: ${result.projectType}`));
+        console.log(chalk_1.default.gray(`  Features: ${result.features.join(', ')}`));
+        console.log(chalk_1.default.gray(`  TypeScript: ${result.useTypeScript ? 'Yes' : 'No'}`));
+        console.log(chalk_1.default.gray(`  Git: ${result.setupGit ? 'Initialized' : 'Not initialized'}`));
+        if (result.additionalConfig && Object.keys(result.additionalConfig).length > 0) {
+            console.log(chalk_1.default.yellow('\n🔧 Additional Configuration:'));
+            Object.entries(result.additionalConfig).forEach(([key, value]) => {
+                if (value) {
+                    console.log(chalk_1.default.gray(`  ${key}: ${value}`));
+                }
+            });
+        }
+        console.log(chalk_1.default.yellow('\n📋 Next steps:'));
+        console.log(chalk_1.default.gray(`  cd ${projectName}`));
+        if (!result.installDependencies) {
+            console.log(chalk_1.default.gray('  npm install'));
+        }
+        console.log(chalk_1.default.gray('  npm run dev'));
+        console.log(chalk_1.default.gray('  # Check PROJECT-SUMMARY.md for detailed configuration'));
+    }
+    catch (error) {
+        console.error(chalk_1.default.red(`❌ Wizard failed: ${error.message}`));
+        process.exit(1);
+    }
+}
+/**
+ * Create basic project structure
+ */
+async function createProjectStructure(outputDir, config) {
+    const fs = require('fs-extra');
+    const directories = [
+        'src/components',
+        'src/pages',
+        'src/hooks',
+        'src/utils',
+        'src/types',
+        'src/assets',
+        'public'
+    ];
+    if (config.projectType === 'admin' || config.projectType === 'full') {
+        directories.push('src/domain', 'src/services', 'src/store');
+    }
+    for (const dir of directories) {
+        await fs.ensureDir(path.join(outputDir, dir));
+    }
+    // Create basic files
+    await createBasicFiles(outputDir, config);
+}
+/**
+ * Create basic project files
+ */
+async function createBasicFiles(outputDir, config) {
+    const fs = require('fs-extra');
+    // Create main.tsx
+    const mainContent = `import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App${config.useTypeScript ? '.tsx' : '.jsx'}'
+import { AppProvider } from './providers/AppProvider'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <AppProvider>
+      <App />
+    </AppProvider>
+  </React.StrictMode>,
+)`;
+    await fs.writeFile(path.join(outputDir, `src/main.${config.useTypeScript ? 'tsx' : 'jsx'}`), mainContent);
+    // Create App component
+    const appContent = `import { Container, Title, Text, Button, Group } from '@mantine/core'
+import { ArchbaseButton } from '@archbase/react'
+
+function App() {
+  return (
+    <Container size="md" py="xl">
+      <Title order={1} ta="center" mb="lg">
+        Welcome to ${config.projectName}
+      </Title>
+      
+      <Text ta="center" mb="xl">
+        ${config.description}
+      </Text>
+      
+      <Group justify="center">
+        <ArchbaseButton>Get Started</ArchbaseButton>
+        <Button variant="outline">Learn More</Button>
+      </Group>
+    </Container>
+  )
+}
+
+export default App`;
+    await fs.writeFile(path.join(outputDir, `src/App.${config.useTypeScript ? 'tsx' : 'jsx'}`), appContent);
+    // Create index.html
+    const htmlContent = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${config.projectName}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.${config.useTypeScript ? 'tsx' : 'jsx'}"></script>
+  </body>
+</html>`;
+    await fs.writeFile(path.join(outputDir, 'index.html'), htmlContent);
+}
+/**
+ * Generate configuration files based on wizard choices
+ */
+async function generateWizardConfigurations(outputDir, config) {
+    const fs = require('fs-extra');
+    // Create vite.config
+    const viteConfig = `import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@pages': path.resolve(__dirname, './src/pages'),
+      '@utils': path.resolve(__dirname, './src/utils'),
+      '@types': path.resolve(__dirname, './src/types'),
+      '@domain': path.resolve(__dirname, './src/domain'),
+      '@services': path.resolve(__dirname, './src/services'),
+    },
+  },
+  css: {
+    postcss: './postcss.config.js',
+  },
+  server: {
+    port: 3000,
+    open: true
+  }${config.additionalConfig?.apiUrl ? `,
+  define: {
+    'process.env.API_URL': JSON.stringify('${config.additionalConfig.apiUrl}')
+  }` : ''}
+})`;
+    await fs.writeFile(path.join(outputDir, 'vite.config.ts'), viteConfig);
+    // Create environment configuration if API URL is provided
+    if (config.additionalConfig?.apiUrl) {
+        const envContent = `# Environment Configuration
+# Generated by Archbase CLI Wizard
+
+# API Configuration
+VITE_API_URL=${config.additionalConfig.apiUrl}
+VITE_API_TIMEOUT=10000
+
+# Authentication
+${config.additionalConfig.authentication ? `VITE_AUTH_TYPE=${config.additionalConfig.authentication}` : '# VITE_AUTH_TYPE=jwt'}
+
+# Database (for reference)
+${config.additionalConfig.database ? `# DATABASE_TYPE=${config.additionalConfig.database}` : '# DATABASE_TYPE=postgresql'}
+
+# Deployment
+${config.additionalConfig.deployment ? `# DEPLOYMENT_TARGET=${config.additionalConfig.deployment}` : '# DEPLOYMENT_TARGET=vercel'}
+`;
+        await fs.writeFile(path.join(outputDir, '.env.example'), envContent);
+        await fs.writeFile(path.join(outputDir, '.env.local'), envContent.replace(/^# /gm, ''));
+    }
+    // Create .gitignore
+    const gitignoreContent = `# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production build
+dist/
+build/
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Coverage
+coverage/
+*.lcov
+
+# Temporary files
+*.tmp
+*.temp
+`;
+    await fs.writeFile(path.join(outputDir, '.gitignore'), gitignoreContent);
+}
 //# sourceMappingURL=create.js.map
