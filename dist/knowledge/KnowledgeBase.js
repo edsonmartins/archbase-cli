@@ -181,7 +181,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseTextArea', 'ArchbasePasswordEdit'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'data entry', 'user input'],
                 aiHints: [
@@ -212,7 +212,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseList', 'ArchbasePagination'],
-                dependencies: ['@archbase/react', '@tanstack/react-table'],
+                dependencies: ['archbase-react', '@tanstack/react-table'],
                 complexity: 'medium',
                 useCases: ['data display', 'admin panels', 'search results'],
                 aiHints: [
@@ -243,8 +243,8 @@ class KnowledgeBase {
                     }
                 ],
                 patterns: [],
-                relatedComponents: ['ArchbaseEdit', 'ArchbaseSelect', 'ArchbaseButton', 'useArchbaseRemoteDataSource'],
-                dependencies: ['@archbase/react'],
+                relatedComponents: ['ArchbaseEdit', 'ArchbaseSelect', 'Button', 'useArchbaseRemoteDataSource'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['forms', 'data entry', 'CRUD operations', 'admin panels'],
                 aiHints: [
@@ -280,7 +280,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseDataGridColumn', 'useArchbaseRemoteDataSource'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['data display', 'admin panels', 'CRUD lists', 'search results'],
                 aiHints: [
@@ -316,7 +316,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseEdit', 'ArchbaseMultiSelect'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'filters', 'status selection', 'category selection'],
                 aiHints: [
@@ -326,8 +326,8 @@ class KnowledgeBase {
                     'Perfect for enum and status fields'
                 ]
             },
-            'ArchbaseButton': {
-                name: 'ArchbaseButton',
+            'Button': {
+                name: 'Button',
                 description: 'Enhanced button component with loading states and variants',
                 category: 'actions',
                 version: '2.1.4',
@@ -352,8 +352,8 @@ class KnowledgeBase {
                     }
                 ],
                 patterns: [],
-                relatedComponents: ['ArchbaseActionIcon', 'ArchbaseButtonGroup'],
-                dependencies: ['@archbase/react'],
+                relatedComponents: ['ArchbaseActionIcon', 'ButtonGroup'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'actions', 'navigation', 'toolbars'],
                 aiHints: [
@@ -389,7 +389,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseEdit', 'ArchbaseRichTextEditor'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'comments', 'descriptions', 'notes'],
                 aiHints: [
@@ -424,7 +424,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseCheckboxGroup', 'ArchbaseSwitch'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'settings', 'agreements', 'boolean fields'],
                 aiHints: [
@@ -459,7 +459,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseSelect', 'ArchbaseSegmentedControl'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'selections', 'categories', 'priorities'],
                 aiHints: [
@@ -496,7 +496,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseDateTime', 'ArchbaseDateRange'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'date selection', 'scheduling', 'filtering'],
                 aiHints: [
@@ -534,7 +534,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseEdit', 'ArchbaseCurrency'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['forms', 'numeric data', 'quantities', 'prices'],
                 aiHints: [
@@ -570,7 +570,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseDialog', 'ArchbaseDrawer'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['confirmations', 'forms', 'details', 'overlays'],
                 aiHints: [
@@ -601,7 +601,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseAlert', 'ArchbaseToast'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['feedback', 'alerts', 'status updates', 'error handling'],
                 aiHints: [
@@ -634,7 +634,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseNavigationItem', 'ArchbaseBreadcrumbs'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'high',
                 useCases: ['admin panels', 'app navigation', 'menus', 'routing'],
                 aiHints: [
@@ -671,7 +671,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseSelect', 'ArchbaseAsyncMultiSelect', 'ArchbaseLookupSelect'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['remote data', 'user search', 'large datasets', 'API integration'],
                 aiHints: [
@@ -708,7 +708,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseTextArea', 'ArchbaseJsonEdit'],
-                dependencies: ['@archbase/react', 'suneditor-react'],
+                dependencies: ['archbase-react', 'suneditor-react'],
                 complexity: 'high',
                 useCases: ['content creation', 'blog posts', 'rich formatting', 'email templates'],
                 aiHints: [
@@ -744,7 +744,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseEdit', 'ArchbaseNumberEdit'],
-                dependencies: ['@archbase/react', 'react-imask'],
+                dependencies: ['archbase-react', 'react-imask'],
                 complexity: 'low',
                 useCases: ['document numbers', 'phone numbers', 'postal codes', 'formatted inputs'],
                 aiHints: [
@@ -781,7 +781,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseLookupSelect', 'ArchbaseLookupNumber', 'ArchbaseAsyncSelect'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'high',
                 useCases: ['complex selections', 'product search', 'customer lookup', 'modal selections'],
                 aiHints: [
@@ -817,7 +817,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseAvatarEdit', 'ArchbaseFileAttachment'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['profile pictures', 'product images', 'document uploads', 'galleries'],
                 aiHints: [
@@ -852,7 +852,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseKeyValueEditor', 'ArchbaseRichTextEdit'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['configuration', 'API payloads', 'settings', 'debugging'],
                 aiHints: [
@@ -888,7 +888,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseCheckbox', 'ArchbaseRadio'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['feature toggles', 'settings', 'active/inactive status', 'preferences'],
                 aiHints: [
@@ -924,7 +924,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseNumberEdit'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['product reviews', 'feedback', 'ratings', 'satisfaction scores'],
                 aiHints: [
@@ -959,7 +959,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseTimeEdit', 'ArchbaseOperationHoursEditor'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'high',
                 useCases: ['job scheduling', 'task automation', 'recurring events', 'batch processing'],
                 aiHints: [
@@ -996,7 +996,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseJsonEdit'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['configuration', 'environment variables', 'metadata', 'custom properties'],
                 aiHints: [
@@ -1031,7 +1031,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseTimeEdit', 'ArchbaseTimeRangeSelector'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['business hours', 'store schedules', 'availability', 'opening hours'],
                 aiHints: [
@@ -1067,7 +1067,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseTimeEdit', 'ArchbaseDateTimePickerRange'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['scheduling', 'appointments', 'time slots', 'duration selection'],
                 aiHints: [
@@ -1103,7 +1103,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseSelect', 'ArchbaseAsyncSelect'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'high',
                 useCases: ['category selection', 'organization structure', 'file systems', 'hierarchies'],
                 aiHints: [
@@ -1139,7 +1139,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseChip', 'ArchbaseChipItem', 'ArchbaseSelect'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['tag selection', 'filters', 'categories', 'skills'],
                 aiHints: [
@@ -1175,7 +1175,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseImageEdit', 'ArchbaseAvatarEdit'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['document uploads', 'attachments', 'file management', 'evidence'],
                 aiHints: [
@@ -1211,7 +1211,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseEdit', 'ArchbaseMaskEdit'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'low',
                 useCases: ['authentication', 'password change', 'user registration', 'security'],
                 aiHints: [
@@ -1246,7 +1246,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseSelect'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['theme customization', 'design tools', 'branding', 'preferences'],
                 aiHints: [
@@ -1281,7 +1281,7 @@ class KnowledgeBase {
                 ],
                 patterns: [],
                 relatedComponents: ['ArchbaseImageEdit', 'ArchbaseFileAttachment'],
-                dependencies: ['@archbase/react'],
+                dependencies: ['archbase-react'],
                 complexity: 'medium',
                 useCases: ['user profiles', 'avatars', 'team members', 'contact photos'],
                 aiHints: [
@@ -1312,7 +1312,7 @@ class KnowledgeBase {
                 name: 'admin-crud-grid',
                 title: 'Admin CRUD Grid',
                 description: 'Complete CRUD grid with permissions following powerview-admin pattern',
-                components: ['ArchbaseDataGrid', 'ArchbaseDataGridColumn', 'ArchbaseButton', 'useArchbaseRemoteDataSource'],
+                components: ['ArchbaseDataGrid', 'ArchbaseDataGridColumn', 'Button', 'useArchbaseRemoteDataSource'],
                 template: 'views/crud-list.hbs',
                 examples: ['examples/admin-crud-grid.tsx'],
                 complexity: 'medium',
@@ -1342,7 +1342,7 @@ class KnowledgeBase {
                 name: 'modal-confirmation',
                 title: 'Confirmation Modal',
                 description: 'Modal for user confirmations with proper UX patterns',
-                components: ['ArchbaseModal', 'ArchbaseButton', 'ArchbaseDialog'],
+                components: ['ArchbaseModal', 'Button', 'ArchbaseDialog'],
                 template: 'overlays/confirmation-modal.hbs',
                 examples: ['examples/confirmation-modal.tsx'],
                 complexity: 'low',
@@ -1372,7 +1372,7 @@ class KnowledgeBase {
                 name: 'user-registration-form',
                 title: 'User Registration Form',
                 description: 'Complete user registration with validation and DataSource V2',
-                components: ['ArchbaseFormTemplate', 'ArchbaseEdit', 'ArchbaseCheckbox', 'ArchbaseButton'],
+                components: ['ArchbaseFormTemplate', 'ArchbaseEdit', 'ArchbaseCheckbox', 'Button'],
                 template: 'forms/user-registration.hbs',
                 examples: ['examples/user-registration.tsx'],
                 complexity: 'medium',

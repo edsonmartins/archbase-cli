@@ -4,7 +4,7 @@ import {
   ArchbaseNavigationItem,
   isAdministrator,
   hasPermission
-} from '@archbase/react';
+} from 'archbase-react';
 import {
   IconDashboard,
   IconUsers,

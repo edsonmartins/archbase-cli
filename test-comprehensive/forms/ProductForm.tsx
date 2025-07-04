@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react';
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core';
 import * as yup from 'yup';
 
 interface ProductFormProps {

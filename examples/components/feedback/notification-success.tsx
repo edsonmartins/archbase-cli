@@ -2,7 +2,7 @@ import React from 'react';
 import {
   ArchbaseNotifications,
   useArchbaseRemoteDataSource
-} from '@archbase/react';
+} from 'archbase-react';
 import { Button, Group, Stack, TextInput } from '@mantine/core';
 import { 
   IconCheck, 

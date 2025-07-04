@@ -144,7 +144,7 @@ class ProjectPatternAnalyzer {
         (0, traverse_1.default)(ast, {
             ImportDeclaration: (path) => {
                 const source = path.node.source.value;
-                if (source === '@archbase/react') {
+                if (source === 'archbase-react') {
                     path.node.specifiers.forEach(spec => {
                         if (t.isImportSpecifier(spec) && t.isIdentifier(spec.imported)) {
                             const name = spec.imported.name;

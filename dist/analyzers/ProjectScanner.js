@@ -65,7 +65,7 @@ class ProjectScanner {
             'ArchbaseFileUpload', 'ArchbaseImageUpload', 'ArchbaseRichTextEditor',
             'ArchbaseCodeEditor', 'ArchbaseMarkdownEditor', 'ArchbaseTagInput',
             'ArchbaseAutocomplete', 'ArchbaseMultiSelect', 'ArchbaseTreeSelect',
-            'ArchbaseAsyncSelect', 'ArchbaseButton', 'ArchbaseIconButton',
+            'ArchbaseAsyncSelect', 'Button', 'ArchbaseIconButton',
             'ArchbaseModal', 'ArchbaseDrawer', 'ArchbasePopover', 'ArchbaseTooltip',
             'ArchbaseNotification', 'ArchbaseAlert', 'ArchbaseLoading', 'ArchbaseSkeleton'
         ]);
@@ -155,7 +155,7 @@ class ProjectScanner {
         (0, traverse_1.default)(ast, {
             ImportDeclaration: (path) => {
                 const source = path.node.source.value;
-                if (source.includes('@archbase/react') || source.includes('archbase')) {
+                if (source.includes('archbase-react') || source.includes('archbase')) {
                     path.node.specifiers.forEach(spec => {
                         if (t.isImportSpecifier(spec) && t.isIdentifier(spec.imported)) {
                             imports.set(spec.local.name, source);
@@ -299,7 +299,7 @@ class ProjectScanner {
             'ArchbaseDataGrid': ['dataSource'],
             'ArchbaseFormTemplate': ['dataSource'],
             'ArchbaseRemoteDataSource': ['url'],
-            'ArchbaseButton': [],
+            'Button': [],
             'ArchbaseModal': ['opened']
         };
         return requiredPropsMap[componentName] || [];
@@ -332,7 +332,7 @@ class ProjectScanner {
             }
             const packageJson = await fs.readJson(packageJsonPath);
             const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
-            const archbaseVersion = deps['@archbase/react'];
+            const archbaseVersion = deps['archbase-react'];
             const reactVersion = deps['react'];
             // Check for missing common dependencies
             const missingDependencies = [];

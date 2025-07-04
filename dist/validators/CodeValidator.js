@@ -254,7 +254,7 @@ class CodeValidator {
                     let hasArchbaseImport = false;
                     (0, traverse_1.default)(ast, {
                         ImportDeclaration: (path) => {
-                            if (path.node.source.value === '@archbase/react') {
+                            if (path.node.source.value === 'archbase-react') {
                                 hasArchbaseImport = true;
                             }
                         },
@@ -268,7 +268,7 @@ class CodeValidator {
                     if (archbaseComponents.size > 0 && !hasArchbaseImport) {
                         result.errors.push({
                             type: 'import',
-                            message: 'Missing @archbase/react import for Archbase components',
+                            message: 'Missing archbase-react import for Archbase components',
                             severity: 'error'
                         });
                     }

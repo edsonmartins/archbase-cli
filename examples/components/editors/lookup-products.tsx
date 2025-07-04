@@ -5,7 +5,7 @@ import {
   ArchbaseDataGridColumn,
   useArchbaseRemoteDataSource,
   ArchbaseModal
-} from '@archbase/react';
+} from 'archbase-react';
 import { Button, Group, TextInput, Stack, Badge } from '@mantine/core';
 import { IconSearch, IconPackage } from '@tabler/icons-react';
 

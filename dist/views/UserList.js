@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const react_1 = __importDefault(require("react"));
-const react_2 = require("@archbase/react");
-const react_3 = require("@archbase/react");
+const react_2 = require("archbase-react");
+const react_3 = require("archbase-react");
 const UserList = ({ data, loading = false, onRowClick }) => {
     const columns = [
         {

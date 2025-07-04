@@ -317,7 +317,8 @@ class FormGenerator {
 {{#if useValidation}}
 import * as {{validationLibrary}} from '{{validationLibrary}}';
 {{/if}}
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react';
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core';
 
 {{#if typescript}}
 interface {{componentName}}Props {
@@ -383,13 +384,13 @@ const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if
       />
       {{/each}}
       
-      <ArchbaseButton
+      <Button
         type="submit"
         loading={loading}
         disabled={loading}
       >
         Submit
-      </ArchbaseButton>
+      </Button>
     </form>
   );
 };
@@ -476,21 +477,24 @@ export const WithInitialValues: Story = {
 };`;
     }
     generateImports(fields, config) {
-        const components = ['ArchbaseEdit', 'ArchbaseButton'];
+        const archbaseComponents = ['ArchbaseEdit'];
+        const mantineComponents = ['Button'];
         // Add specific components based on field types
         fields.forEach(field => {
             if (field.type === 'select')
-                components.push('ArchbaseSelect');
+                archbaseComponents.push('ArchbaseSelect');
             if (field.type === 'textarea')
-                components.push('ArchbaseTextArea');
+                archbaseComponents.push('ArchbaseTextArea');
             if (field.type === 'checkbox')
-                components.push('ArchbaseCheckbox');
+                archbaseComponents.push('ArchbaseCheckbox');
         });
         // Remove duplicates and create import statements
-        const uniqueComponents = [...new Set(components)];
+        const uniqueArchbaseComponents = [...new Set(archbaseComponents)];
+        const uniqueMantineComponents = [...new Set(mantineComponents)];
         return [
             "import React from 'react';",
-            `import { ${uniqueComponents.join(', ')} } from '@archbase/react';`,
+            `import { ${uniqueArchbaseComponents.join(', ')} } from 'archbase-react';`,
+            `import { ${uniqueMantineComponents.join(', ')} } from '@mantine/core';`,
             config.validation !== 'none' ? `import * as ${config.validation} from '${config.validation}';` : ''
         ].filter(Boolean);
     }

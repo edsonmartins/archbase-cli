@@ -258,7 +258,7 @@ npm run build
 This project includes all necessary dependencies for Archbase React development:
 
 ### Core Dependencies
-- **@archbase/react**: Component library
+- **archbase-react**: Component library
 - **@mantine/core**: UI components (v8.x)
 - **React**: ^18.3.1
 - **TypeScript**: Full type safety
@@ -323,13 +323,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 2. Start using Archbase components:
 
 \`\`\`tsx
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react'
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core'
 
 function MyComponent() {
   return (
     <div>
       <ArchbaseEdit label="Name" />
-      <ArchbaseButton>Submit</ArchbaseButton>
+      <Button>Submit</Button>
     </div>
   )
 }

@@ -29,7 +29,7 @@ export const ARCHBASE_CORE_DEPENDENCIES: DependencyConfig[] = [
   { name: 'react-dom', version: '^18.3.1', required: true, category: 'core', description: 'React DOM library' },
   
   // Archbase main library
-  { name: '@archbase/react', version: '^2.1.3', required: true, category: 'core', description: 'Archbase React components library' },
+  { name: 'archbase-react', version: '^2.1.3', required: true, category: 'core', description: 'Archbase React components library' },
   
   // Mantine 8.x ecosystem (all required by archbase-react)
   { name: '@mantine/core', version: '8.1.2', required: true, category: 'ui', description: 'Mantine core components' },

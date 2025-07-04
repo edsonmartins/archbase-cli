@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { ArchbaseSidebar, ArchbaseHeader } from '@archbase/react'
+import { ArchbaseSidebar, ArchbaseHeader } from 'archbase-react'
 import { 
   DashboardIcon, 
   UsersIcon, 

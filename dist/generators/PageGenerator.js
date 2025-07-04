@@ -111,25 +111,25 @@ class PageGenerator {
         // Layout-specific imports
         switch (config.layout) {
             case 'sidebar':
-                imports.push("import { ArchbaseSidebar, ArchbaseLayout } from '@archbase/react';");
+                imports.push("import { ArchbaseSidebar, ArchbaseLayout } from 'archbase-react';");
                 break;
             case 'header':
-                imports.push("import { ArchbaseHeader, ArchbaseLayout } from '@archbase/react';");
+                imports.push("import { ArchbaseHeader, ArchbaseLayout } from 'archbase-react';");
                 break;
             case 'dashboard':
-                imports.push("import { ArchbaseDashboard, ArchbaseLayout, ArchbaseCard } from '@archbase/react';");
+                imports.push("import { ArchbaseDashboard, ArchbaseLayout, ArchbaseCard } from 'archbase-react';");
                 break;
             case 'blank':
-                imports.push("import { ArchbaseContainer } from '@archbase/react';");
+                imports.push("import { ArchbaseContainer } from 'archbase-react';");
                 break;
         }
         // Authentication imports
         if (config.withAuth) {
-            imports.push("import { ArchbaseAuthProvider, ProtectedRoute } from '@archbase/react';");
+            imports.push("import { ArchbaseAuthProvider, ProtectedRoute } from 'archbase-react';");
         }
         // Navigation imports
         if (config.withNavigation) {
-            imports.push("import { ArchbaseNavigation, ArchbaseBreadcrumb } from '@archbase/react';");
+            imports.push("import { ArchbaseNavigation, ArchbaseBreadcrumb } from 'archbase-react';");
         }
         // Component-specific imports
         const componentImports = components.map(comp => {

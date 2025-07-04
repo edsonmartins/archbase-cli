@@ -1,5 +1,5 @@
 // Component with intentional problems for validation testing
-import { ArchbaseEdit } from '@archbase/react';
+import { ArchbaseEdit } from 'archbase-react';
 
 const ProblemComponent = (props) => {
   const handleSubmit = () => {

@@ -3,7 +3,7 @@ import {
   ArchbaseMaskEdit,
   MaskPattern,
   useArchbaseRemoteDataSource
-} from '@archbase/react';
+} from 'archbase-react';
 import { Stack, Group, Button, Text } from '@mantine/core';
 
 interface CompanyDto {

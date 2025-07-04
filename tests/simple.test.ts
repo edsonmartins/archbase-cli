@@ -76,7 +76,7 @@ export default TestComponent;
 
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors[0].message).toContain('Missing @archbase/react import');
+      expect(result.errors[0].message).toContain('Missing archbase-react import');
     });
 
     it('should calculate metrics correctly', async () => {
@@ -166,7 +166,7 @@ export default TestComponent;
       // This simulates what our generators would produce
       const generatedCode = `
 import React from 'react';
-import { FormBuilder, FieldConfig } from '@archbase/react';
+import { FormBuilder, FieldConfig } from 'archbase-react';
 
 interface UserFormProps {
   onSubmit: (values: User) => Promise<void>;
@@ -214,7 +214,7 @@ export default UserForm;
       // Create code using the component information
       const code = `
 import React from 'react';
-import { FormBuilder } from '@archbase/react';
+import { FormBuilder } from 'archbase-react';
 
 const TestForm: React.FC = () => {
   const fields = [

@@ -42,7 +42,7 @@ var __runInitializers = (this && this.__runInitializers) || function (thisArg, i
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductDto = void 0;
 const uuid_1 = require("uuid");
-const react_1 = require("@archbase/react");
+const react_1 = require("archbase-react");
 let ProductDto = (() => {
     var _a;
     let _id_decorators;

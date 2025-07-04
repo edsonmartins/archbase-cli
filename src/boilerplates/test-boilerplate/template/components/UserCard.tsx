@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArchbaseCard, ArchbaseText, ArchbaseImage } from '@archbase/react';
+import { ArchbaseCard, ArchbaseText, ArchbaseImage } from 'archbase-react';
 
 interface UserCardProps {
   name: string;

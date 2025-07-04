@@ -103,10 +103,10 @@ async function validateArchbaseProject(projectPath) {
         ...packageJson.dependencies,
         ...packageJson.devDependencies
     };
-    if (!dependencies['@archbase/react']) {
-        throw new Error('Projeto não usa @archbase/react como dependência');
+    if (!dependencies['archbase-react']) {
+        throw new Error('Projeto não usa archbase-react como dependência');
     }
-    console.log(chalk_1.default.green(`✅ Projeto válido usando @archbase/react ${dependencies['@archbase/react']}`));
+    console.log(chalk_1.default.green(`✅ Projeto válido usando archbase-react ${dependencies['archbase-react']}`));
 }
 function processArchbaseProjectAnalysis(result) {
     return {

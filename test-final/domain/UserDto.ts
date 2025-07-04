@@ -11,7 +11,7 @@ import {
   IsEmail,
   ValidateNested,
   IsOptional
-} from '@archbase/react';
+} from 'archbase-react';
 
 import { UserStatus } from './UserStatus';
 

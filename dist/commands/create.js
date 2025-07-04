@@ -163,7 +163,7 @@ exports.createCommand = new commander_1.Command('create')
                         console.log(chalk_1.default.gray(`  Features: ${features.join(', ')}`));
                     }
                     console.log(chalk_1.default.yellow('\n📦 Dependencies:'));
-                    console.log(chalk_1.default.gray('  ✅ @archbase/react + all required dependencies'));
+                    console.log(chalk_1.default.gray('  ✅ archbase-react + all required dependencies'));
                     console.log(chalk_1.default.gray('  ✅ @mantine/core 8.x ecosystem'));
                     console.log(chalk_1.default.gray('  ✅ TypeScript configuration'));
                     console.log(chalk_1.default.gray('  ✅ PostCSS + Mantine preset'));
@@ -496,7 +496,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     await fs.writeFile(path.join(outputDir, `src/main.${config.useTypeScript ? 'tsx' : 'jsx'}`), mainContent);
     // Create App component
     const appContent = `import { Container, Title, Text, Button, Group } from '@mantine/core'
-import { ArchbaseButton } from '@archbase/react'
 
 function App() {
   return (
@@ -510,7 +509,7 @@ function App() {
       </Text>
       
       <Group justify="center">
-        <ArchbaseButton>Get Started</ArchbaseButton>
+        <Button>Get Started</Button>
         <Button variant="outline">Learn More</Button>
       </Group>
     </Container>

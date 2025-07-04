@@ -1,6 +1,9 @@
-{{#each imports}}
-{{{this}}}
-{{/each}}
+import React from 'react';
+{{#if useValidation}}
+import * as {{validationLibrary}} from '{{validationLibrary}}';
+{{/if}}
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core';
 
 {{#if typescript}}
 interface {{componentName}}Props {

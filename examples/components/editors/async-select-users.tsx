@@ -3,7 +3,7 @@ import {
   ArchbaseAsyncSelect,
   OptionsResult,
   useArchbaseRemoteDataSource
-} from '@archbase/react';
+} from 'archbase-react';
 import axios from 'axios';
 
 interface UserOption {

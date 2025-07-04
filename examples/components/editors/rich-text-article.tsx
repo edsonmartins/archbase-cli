@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   ArchbaseRichTextEdit,
   useArchbaseRemoteDataSource
-} from '@archbase/react';
+} from 'archbase-react';
 import { Stack, Button, Group, TextInput, Select } from '@mantine/core';
 
 interface ArticleDto {

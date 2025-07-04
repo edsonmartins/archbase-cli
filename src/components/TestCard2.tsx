@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArchbaseCard, ArchbaseText, ArchbaseImage } from '@archbase/react';
+import { ArchbaseCard, ArchbaseText, ArchbaseImage } from 'archbase-react';
 
 interface TestCard2Props {
   title: string;

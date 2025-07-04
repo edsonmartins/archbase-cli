@@ -4,7 +4,7 @@ import {
   ArchbaseDataGridColumn,
   useArchbaseRemoteDataSource,
   isAdministrator
-} from '@archbase/react';
+} from 'archbase-react';
 import { ActionIcon, Button, Group, TextInput } from '@mantine/core';
 import { IconEdit, IconTrash, IconEye, IconPlus, IconSearch } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
