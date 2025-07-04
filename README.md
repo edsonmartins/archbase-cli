@@ -518,7 +518,7 @@ archbase generate form ProductForm \
 **Generated Structure:**
 ```typescript
 import React from 'react';
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react';
+import { ArchbaseEdit, ArchbaseButton } from 'archbase-react';
 import * as yup from 'yup';
 
 interface ProductFormProps {
@@ -1126,7 +1126,7 @@ archbase generate service UserRemoteService --wizard
 - 🚀 **Working Project**: Complete React app with Archbase components ready to run
 
 **Dependencies Included:**
-- **Core**: @archbase/react, @mantine/core 8.x ecosystem, React 18, TypeScript
+- **Core**: archbase-react, @mantine/core 8.x ecosystem, React 18, TypeScript
 - **Admin Features**: @mui/x-data-grid, mantine-react-table, JWT auth, file export
 - **Full Features**: Rich text editing, charts (D3), PDF generation, image processing, color picker
 - **Build Tools**: Vite, ESLint, TypeScript compiler, PostCSS with Mantine preset
@@ -1410,7 +1410,7 @@ MyAdminApp/
 
 ```tsx
 // src/components/MyComponent.tsx
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react';
+import { ArchbaseEdit, ArchbaseButton } from 'archbase-react';
 import { Container, Title } from '@mantine/core';
 
 export function MyComponent() {

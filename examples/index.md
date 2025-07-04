@@ -29,7 +29,7 @@ Exemplos de uso dos componentes Archbase organizados por categoria.
 
 ### 1. Instalação das Dependências
 ```bash
-npm install @archbase/react @mantine/core @mantine/hooks
+npm install archbase-react @mantine/core @mantine/hooks
 npm install react react-dom react-router-dom
 npm install @tabler/icons-react
 npm install axios yup
@@ -40,7 +40,7 @@ npm install axios yup
 // App.tsx
 import { MantineProvider } from '@mantine/core';
 import { BrowserRouter } from 'react-router-dom';
-import { ArchbaseNotifications } from '@archbase/react';
+import { ArchbaseNotifications } from 'archbase-react';
 
 function App() {
   return (
@@ -142,7 +142,7 @@ const validator = new ArchbaseValidator(schema);
 Uso de verificações de permissão:
 
 ```tsx
-import { isAdministrator, hasPermission } from '@archbase/react';
+import { isAdministrator, hasPermission } from 'archbase-react';
 
 // Verificação de admin
 {isAdministrator() && <AdminButton />}

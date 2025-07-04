@@ -96,10 +96,10 @@ O sistema de migração utiliza transformações AST para converter automaticame
 1. **Imports:**
    ```typescript
    // ANTES
-   import { ArchbaseDataSource } from '@archbase/react';
+   import { ArchbaseDataSource } from 'archbase-react';
    
    // DEPOIS
-   import { ArchbaseRemoteDataSource } from '@archbase/react';
+   import { ArchbaseRemoteDataSource } from 'archbase-react';
    ```
 
 2. **Instanciação:**
@@ -188,7 +188,7 @@ const ast = parser.parse(content, {
 traverse(ast, {
   ImportDeclaration: (path) => {
     const source = path.node.source.value;
-    if (source.includes('@archbase/react')) {
+    if (source.includes('archbase-react')) {
       // Analisar imports Archbase
     }
   }

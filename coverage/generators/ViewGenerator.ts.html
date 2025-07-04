@@ -1140,18 +1140,18 @@ interface GenerationResult {
     
 <span class="cstat-no" title="statement not covered" >    switch (config.template) {</span>
       case 'crud':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDataTable, ArchbaseFormBuilder, ArchbaseDialog } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDataTable, ArchbaseFormBuilder, ArchbaseDialog } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
       case 'list':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDataTable, ArchbaseFilter } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDataTable, ArchbaseFilter } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
       case 'dashboard':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDashboard, ArchbaseCard, ArchbaseChart } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDashboard, ArchbaseCard, ArchbaseChart } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
     }
     
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (config.withFilters) {</span>
-<span class="cstat-no" title="statement not covered" >      imports.push("import { ArchbaseFilterBuilder } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >      imports.push("import { ArchbaseFilterBuilder } from 'archbase-react';");</span>
     }
     
 <span class="cstat-no" title="statement not covered" >    return imports;</span>

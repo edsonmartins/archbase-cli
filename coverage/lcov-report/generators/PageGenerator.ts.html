@@ -1252,27 +1252,27 @@ interface GenerationResult {
     // Layout-specific imports
 <span class="cstat-no" title="statement not covered" >    switch (config.layout) {</span>
       case 'sidebar':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseSidebar, ArchbaseLayout } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseSidebar, ArchbaseLayout } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
       case 'header':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseHeader, ArchbaseLayout } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseHeader, ArchbaseLayout } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
       case 'dashboard':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDashboard, ArchbaseLayout, ArchbaseCard } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseDashboard, ArchbaseLayout, ArchbaseCard } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
       case 'blank':
-<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseContainer } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >        imports.push("import { ArchbaseContainer } from 'archbase-react';");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
     }
     
     // Authentication imports
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (config.withAuth) {</span>
-<span class="cstat-no" title="statement not covered" >      imports.push("import { ArchbaseAuthProvider, ProtectedRoute } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >      imports.push("import { ArchbaseAuthProvider, ProtectedRoute } from 'archbase-react';");</span>
     }
     
     // Navigation imports
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (config.withNavigation) {</span>
-<span class="cstat-no" title="statement not covered" >      imports.push("import { ArchbaseNavigation, ArchbaseBreadcrumb } from '@archbase/react';");</span>
+<span class="cstat-no" title="statement not covered" >      imports.push("import { ArchbaseNavigation, ArchbaseBreadcrumb } from 'archbase-react';");</span>
     }
     
     // Component-specific imports

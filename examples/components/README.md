@@ -164,7 +164,7 @@ components/
 
 ### 1. Pré-requisitos
 ```bash
-npm install @archbase/react @mantine/core @mantine/hooks
+npm install archbase-react @mantine/core @mantine/hooks
 npm install react react-dom react-router-dom
 npm install @tabler/icons-react axios yup
 ```

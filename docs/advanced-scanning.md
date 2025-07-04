@@ -98,7 +98,7 @@ archbase scan watch ./my-project --patterns "src/**/*.tsx,components/**/*.ts"
 O scanner identifica automaticamente:
 
 **Componentes Archbase:**
-- Todos os componentes da biblioteca @archbase/react
+- Todos os componentes da biblioteca archbase-react
 - Props utilizadas e seus tipos
 - Integração com DataSource (V1 ou V2)
 - Padrões de uso implementados
@@ -108,14 +108,14 @@ O scanner identifica automaticamente:
 📋 Component Usage:
 
 ArchbaseEdit (UserForm.tsx:25)
-   Import: @archbase/react
+   Import: archbase-react
    DataSource: V2
    Props: dataSource:variable, dataField:string, label:string
    Patterns: form-with-datasource
    Issues: 0
 
 ArchbaseDataGrid (UserList.tsx:40)
-   Import: @archbase/react
+   Import: archbase-react
    DataSource: V1
    Props: dataSource:variable, columns:array
    Patterns: crud-with-datagrid

@@ -219,7 +219,7 @@ Os boilerplates são projetos completos pré-configurados que incluem:
     "Navigation"
   ],
   "dependencies": {
-    "@archbase/react": "^2.0.0",
+    "archbase-react": "^2.0.0",
     "react-router-dom": "^6.0.0",
     "react-query": "^4.0.0"
   },
@@ -506,7 +506,7 @@ Usar Handlebars.js para flexibilidade e facilidade de manutenção.
 
 ```handlebars
 import React from 'react';
-import { FormBuilder, FieldConfig } from '@archbase/react';
+import { FormBuilder, FieldConfig } from 'archbase-react';
 {{#if useValidation}}
 import * as yup from 'yup';
 {{/if}}
@@ -686,7 +686,7 @@ Templates que IAs podem facilmente customizar:
 ```handlebars
 {{!-- Template com placeholders explícitos para IA --}}
 import React from 'react';
-import { FormBuilder } from '@archbase/react';
+import { FormBuilder } from 'archbase-react';
 
 // AI_PLACEHOLDER: Add additional imports based on requirements
 {{#if needsValidation}}
@@ -812,8 +812,8 @@ Arquivo especial para treinar contexto de IA:
   },
   "codePatterns": {
     "imports": [
-      "import { FormBuilder, DataTable } from '@archbase/react';",
-      "import { useArchbaseForm } from '@archbase/react/hooks';"
+      "import { FormBuilder, DataTable } from 'archbase-react';",
+      "import { useArchbaseForm } from 'archbase-react/hooks';"
     ],
     "commonCode": {
       "basicForm": "// Code example",
