@@ -110,7 +110,7 @@ function MyPage() {
 
 ### 🧭 Navegação e Feedback
 - **ArchbaseNavigation** - Sistema de navegação
-- **ArchbaseButton** - Botões com estados
+- **Button** - Botões com estados (Mantine)
 - **ArchbaseNotifications** - Sistema de notificações
 
 ## 🛠️ Padrões dos Exemplos

@@ -248,13 +248,14 @@ npm run dev
 E comece a usar os componentes Archbase imediatamente:
 
 ```tsx
-import { ArchbaseEdit, ArchbaseButton } from 'archbase-react'
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core';
 
 function MyComponent() {
   return (
     <div>
       <ArchbaseEdit label="Nome" />
-      <ArchbaseButton>Salvar</ArchbaseButton>
+      <Button>Salvar</Button>
     </div>
   )
 }
