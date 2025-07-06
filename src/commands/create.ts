@@ -47,15 +47,6 @@ export const createCommand = new Command('create')
         const hasGit = !!options.git;
         const hasNpm = !!options.npm;
         
-        if (!hasLocal && !hasGit && !hasNpm) {
-          console.error(chalk.red('❌ Boilerplate source is required:'));
-          console.error(chalk.gray('   --boilerplate <name>  (local boilerplate)'));
-          console.error(chalk.gray('   --git <url>           (Git repository)'));
-          console.error(chalk.gray('   --npm <package>       (npm package)'));
-          console.error(chalk.gray('   Use list-boilerplates to see available local templates'));
-          process.exit(1);
-        }
-        
         if ([hasLocal, hasGit, hasNpm].filter(Boolean).length > 1) {
           console.error(chalk.red('❌ Only one boilerplate source can be specified'));
           process.exit(1);
@@ -64,9 +55,96 @@ export const createCommand = new Command('create')
         const spinner = ora('Creating project...').start();
         
         try {
-          const generator = new BoilerplateGenerator();
           const outputDir = process.cwd();
           
+          // If no template options provided, create blank project
+          if (!hasLocal && !hasGit && !hasNpm) {
+            spinner.text = 'Creating blank project...';
+            
+            const projectPath = path.resolve(outputDir, name);
+            
+            // Create project directory structure
+            await createProjectStructure(projectPath, {
+              projectName: name,
+              projectType: options.projectType || 'basic',
+              useTypeScript: true,
+              description: options.description || `Archbase React application - ${name}`,
+              author: options.author || '',
+              features: options.features ? options.features.split(',').map(f => f.trim()) : [],
+              additionalConfig: {}
+            });
+            
+            // Generate package.json and configuration files for blank project
+            const packageGenerator = new PackageJsonGenerator();
+            const features = options.features ? options.features.split(',').map(f => f.trim()) : [];
+            
+            const packageResult = await packageGenerator.generate({
+              name,
+              description: options.description || `Archbase React application - ${name}`,
+              author: options.author || '',
+              projectType: options.projectType as 'basic' | 'admin' | 'full' || 'basic',
+              features,
+              outputDir: projectPath,
+              typescript: true,
+              scripts: {
+                "dev": "vite",
+                "build": "tsc && vite build",
+                "preview": "vite preview",
+                "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+                "lint:fix": "eslint . --ext ts,tsx --fix",
+                "type-check": "tsc --noEmit"
+              }
+            });
+            
+            if (packageResult.success) {
+              // Create basic project files
+              await createBasicFiles(projectPath, {
+                projectName: name,
+                useTypeScript: true,
+                description: options.description || `Archbase React application - ${name}`
+              });
+              
+              // Generate configuration files
+              await generateWizardConfigurations(projectPath, {
+                projectName: name,
+                useTypeScript: true,
+                additionalConfig: {}
+              });
+              
+              spinner.succeed(chalk.green(`✅ Project '${name}' created successfully!`));
+              console.log(chalk.cyan(`📁 Location: ${projectPath}`));
+              
+              // Show project info
+              console.log(chalk.yellow('\n📋 Project Configuration:'));
+              console.log(chalk.gray(`  Type: ${options.projectType || 'basic'}`));
+              console.log(chalk.gray('  Template: Blank project'));
+              if (features.length > 0) {
+                console.log(chalk.gray(`  Features: ${features.join(', ')}`));
+              }
+              
+              console.log(chalk.yellow('\n📦 Dependencies:'));
+              console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
+              console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+              console.log(chalk.gray('  ✅ TypeScript configuration'));
+              console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
+              console.log(chalk.gray('  ✅ Vite build configuration'));
+              
+              console.log(chalk.yellow('\n📋 Next steps:'));
+              console.log(chalk.gray(`  cd ${name}`));
+              console.log(chalk.gray('  npm install'));
+              console.log(chalk.gray('  npm run dev'));
+              
+              return;
+            } else {
+              spinner.fail(chalk.red('❌ Failed to create blank project'));
+              packageResult.errors?.forEach(error => {
+                console.error(chalk.red(`  ${error}`));
+              });
+              process.exit(1);
+            }
+          }
+          
+          const generator = new BoilerplateGenerator();
           let result;
           
           if (options.boilerplate) {
@@ -375,22 +453,180 @@ export const createCommand = new Command('create')
   );
 
 /**
+ * Handle wizard mode with boilerplate selection
+ */
+async function handleWizardWithBoilerplate(result: any, projectName: string, outputDir: string, spinner: any) {
+  try {
+    const generator = new BoilerplateGenerator();
+    
+    let boilerplateResult;
+    
+    if (result.boilerplateSource === 'builtin') {
+      spinner.text = `Generating project from ${result.selectedBoilerplate} boilerplate...`;
+      
+      // Use wizard answers for boilerplate generation
+      const answers = {
+        projectName: result.projectName,
+        projectDescription: result.description,
+        features: result.features,
+        useTypeScript: result.useTypeScript,
+        setupGit: result.setupGit,
+        installDependencies: result.installDependencies,
+        ...result.additionalConfig
+      };
+      
+      boilerplateResult = await generator.generateFromAnySource(
+        result.selectedBoilerplate, 
+        projectName, 
+        process.cwd(), 
+        answers
+      );
+      
+    } else if (result.boilerplateSource === 'git') {
+      spinner.text = `Downloading from Git repository: ${result.remoteOptions?.url}...`;
+      
+      const remoteOptions = {
+        source: 'git' as const,
+        url: result.remoteOptions!.url,
+        branch: result.remoteOptions?.branch || 'main',
+        subfolder: result.remoteOptions?.subfolder,
+        cache: true
+      };
+      
+      boilerplateResult = await generator.generateFromRemote(projectName, remoteOptions, process.cwd());
+      
+    } else if (result.boilerplateSource === 'npm') {
+      spinner.text = `Downloading from npm: ${result.remoteOptions?.url}...`;
+      
+      const remoteOptions = {
+        source: 'npm' as const,
+        url: result.remoteOptions!.url,
+        packageName: result.remoteOptions!.url,
+        subfolder: result.remoteOptions?.subfolder,
+        cache: true
+      };
+      
+      boilerplateResult = await generator.generateFromRemote(projectName, remoteOptions, process.cwd());
+    }
+    
+    if (boilerplateResult && boilerplateResult.success) {
+      // Generate package.json with proper dependencies
+      spinner.text = 'Setting up Archbase dependencies...';
+      
+      const packageGenerator = new PackageJsonGenerator();
+      
+      try {
+        const packageResult = await packageGenerator.generate({
+          name: projectName,
+          description: result.description,
+          author: result.author,
+          projectType: result.projectType as 'basic' | 'admin' | 'full',
+          features: result.features,
+          outputDir: boilerplateResult.projectPath,
+          typescript: result.useTypeScript
+        });
+        
+        if (packageResult.success) {
+          spinner.succeed(chalk.green(`✅ Project '${projectName}' created with ${result.selectedBoilerplate || 'remote template'}!`));
+          console.log(chalk.cyan(`📁 Location: ${boilerplateResult.projectPath}`));
+          
+          showProjectInfo(result, projectName);
+          
+        } else {
+          console.warn(chalk.yellow('⚠️  Project created but failed to setup dependencies'));
+          packageResult.errors?.forEach(error => {
+            console.error(chalk.red(`   ${error}`));
+          });
+        }
+        
+      } catch (error) {
+        console.warn(chalk.yellow('⚠️  Project created but failed to setup dependencies'));
+        console.warn(chalk.gray(`Error: ${error.message}`));
+      }
+    } else {
+      spinner.fail(chalk.red('❌ Failed to create project from template'));
+      boilerplateResult?.errors?.forEach(error => {
+        console.error(chalk.red(`  ${error}`));
+      });
+      process.exit(1);
+    }
+    
+  } catch (error) {
+    spinner.fail(chalk.red(`❌ Error creating project: ${error.message}`));
+    process.exit(1);
+  }
+}
+
+/**
+ * Show project information after creation
+ */
+function showProjectInfo(result: any, projectName: string) {
+  console.log(chalk.yellow('\n📋 Project Configuration:'));
+  console.log(chalk.gray(`  Type: ${result.projectType}`));
+  console.log(chalk.gray(`  TypeScript: ${result.useTypeScript ? 'Yes' : 'No'}`));
+  console.log(chalk.gray(`  Git: ${result.setupGit ? 'Initialized' : 'Not initialized'}`));
+  
+  if (result.boilerplateSource && result.boilerplateSource !== 'blank') {
+    if (result.boilerplateSource === 'builtin') {
+      console.log(chalk.gray(`  Template: ${result.selectedBoilerplate}`));
+    } else {
+      console.log(chalk.gray(`  Template: ${result.boilerplateSource} (${result.remoteOptions?.url})`));
+    }
+  } else {
+    console.log(chalk.gray(`  Template: Blank project`));
+  }
+  
+  if (result.features && result.features.length > 0) {
+    console.log(chalk.gray(`  Features: ${result.features.join(', ')}`));
+  }
+  
+  if (result.additionalConfig && Object.keys(result.additionalConfig).length > 0) {
+    console.log(chalk.yellow('\n🔧 Additional Configuration:'));
+    Object.entries(result.additionalConfig).forEach(([key, value]) => {
+      if (value) {
+        console.log(chalk.gray(`  ${key}: ${value}`));
+      }
+    });
+  }
+  
+  console.log(chalk.yellow('\n📦 Dependencies:'));
+  console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
+  console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+  console.log(chalk.gray('  ✅ TypeScript configuration'));
+  console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
+  console.log(chalk.gray('  ✅ Vite build configuration'));
+  
+  console.log(chalk.yellow('\n📋 Next steps:'));
+  console.log(chalk.gray(`  cd ${projectName}`));
+  if (!result.installDependencies) {
+    console.log(chalk.gray('  npm install'));
+  }
+  console.log(chalk.gray('  npm run dev'));
+  console.log(chalk.gray('  # Check PROJECT-SUMMARY.md for detailed configuration'));
+}
+
+/**
  * Handle wizard mode for project creation
  */
 async function handleWizardMode(suggestedName: string, options: any) {
   try {
     const wizard = new ProjectWizard();
-    const result = await wizard.run();
+    const result = await wizard.run(suggestedName);
     
-    // Use suggested name or wizard result
-    const projectName = result.projectName || suggestedName;
+    // Use the project name from wizard result
+    const projectName = result.projectName;
     const outputDir = path.resolve(process.cwd(), projectName);
     
     console.log(chalk.blue(`\n🚀 Creating project based on wizard configuration...`));
     
     const spinner = ora('Setting up project structure...').start();
     
-    // Generate package.json and configuration files
+    // Check if we should use a boilerplate
+    if (result.boilerplateSource !== 'blank') {
+      return await handleWizardWithBoilerplate(result, projectName, outputDir, spinner);
+    }
+    
+    // Generate package.json and configuration files for blank project
     const packageGenerator = new PackageJsonGenerator();
     
     const packageResult = await packageGenerator.generate({
@@ -455,31 +691,10 @@ async function handleWizardMode(suggestedName: string, options: any) {
     await fs.writeFile(path.join(outputDir, 'PROJECT-SUMMARY.md'), summary);
     
     spinner.succeed(chalk.green(`✅ Project '${projectName}' created successfully!`));
-    
-    // Show completion message
     console.log(chalk.cyan(`📁 Location: ${outputDir}`));
-    console.log(chalk.yellow('\n📦 Project Configuration:'));
-    console.log(chalk.gray(`  Type: ${result.projectType}`));
-    console.log(chalk.gray(`  Features: ${result.features.join(', ')}`));
-    console.log(chalk.gray(`  TypeScript: ${result.useTypeScript ? 'Yes' : 'No'}`));
-    console.log(chalk.gray(`  Git: ${result.setupGit ? 'Initialized' : 'Not initialized'}`));
     
-    if (result.additionalConfig && Object.keys(result.additionalConfig).length > 0) {
-      console.log(chalk.yellow('\n🔧 Additional Configuration:'));
-      Object.entries(result.additionalConfig).forEach(([key, value]) => {
-        if (value) {
-          console.log(chalk.gray(`  ${key}: ${value}`));
-        }
-      });
-    }
-    
-    console.log(chalk.yellow('\n📋 Next steps:'));
-    console.log(chalk.gray(`  cd ${projectName}`));
-    if (!result.installDependencies) {
-      console.log(chalk.gray('  npm install'));
-    }
-    console.log(chalk.gray('  npm run dev'));
-    console.log(chalk.gray('  # Check PROJECT-SUMMARY.md for detailed configuration'));
+    // Show project information
+    showProjectInfo(result, projectName);
     
   } catch (error) {
     console.error(chalk.red(`❌ Wizard failed: ${error.message}`));

@@ -37,7 +37,8 @@
       "Bash(archbase plugin:*)",
       "Bash(archbase migrate:*)",
       "Bash(archbase boilerplate create:*)",
-      "Bash(archbase generate domain:*)"
+      "Bash(archbase generate domain:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": []
   }
