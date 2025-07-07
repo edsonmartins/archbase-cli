@@ -40,7 +40,8 @@
       "Bash(archbase generate domain:*)",
       "Bash(npm run dev:*)",
       "Bash(timeout 5 archbase create:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
