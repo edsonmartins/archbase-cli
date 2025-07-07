@@ -1,0 +1,37 @@
+import { Button, Container, Stack, Title, Text, Code, Paper } from '@mantine/core';
+import { IconRefresh } from '@tabler/icons-react';
+
+interface {{pascalCase projectName}}ErrorFallbackProps {
+  error: Error;
+  resetError: () => void;
+}
+
+export function {{pascalCase projectName}}ErrorFallback({ error, resetError }: {{pascalCase projectName}}ErrorFallbackProps) {
+  return (
+    <Container size="md" py="xl" style=\{{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
+      <Paper shadow="md" p="xl" radius="md" withBorder w="100%">
+        <Stack align="center" gap="md">
+          <Title order={1} c="red">
+            Oops! Algo deu errado
+          </Title>
+          
+          <Text ta="center" c="dimmed">
+            Ocorreu um erro inesperado na aplicação. Por favor, tente novamente ou entre em contato com o suporte.
+          </Text>
+          
+          <Code block p="md" style=\{{ width: '100%', overflow: 'auto' }}>
+            {error.message}
+          </Code>
+          
+          <Button 
+            leftSection={<IconRefresh size={16} />}
+            onClick={resetError}
+            size="lg"
+          >
+            Tentar Novamente
+          </Button>
+        </Stack>
+      </Paper>
+    </Container>
+  );
+}

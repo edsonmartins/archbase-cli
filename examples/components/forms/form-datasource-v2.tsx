@@ -8,7 +8,7 @@ import {
   ArchbaseDate,
   useArchbaseRemoteDataSource,
   ArchbaseValidator
-} from '@archbase/react';
+} from 'archbase-react';
 import { Button, Group, Stack } from '@mantine/core';
 import * as yup from 'yup';
 

@@ -6,6 +6,7 @@
 
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import { BoilerplateGenerator } from '../generators/BoilerplateGenerator';
 
 export interface WizardResult {
   projectName: string;
@@ -16,6 +17,13 @@ export interface WizardResult {
   useTypeScript: boolean;
   setupGit: boolean;
   installDependencies: boolean;
+  selectedBoilerplate?: string;
+  boilerplateSource: 'builtin' | 'git' | 'npm';
+  remoteOptions?: {
+    url: string;
+    branch?: string;
+    subfolder?: string;
+  };
   additionalConfig: {
     apiUrl?: string;
     database?: string;
@@ -26,34 +34,38 @@ export interface WizardResult {
 
 export class ProjectWizard {
   
-  async run(): Promise<WizardResult> {
+  async run(suggestedName?: string): Promise<WizardResult> {
     console.log(chalk.blue.bold('\n🧙‍♂️ Archbase Project Creation Wizard'));
     console.log(chalk.gray('Let\'s create your perfect Archbase React project step by step.\n'));
     
-    const result = await this.runWizardSteps();
+    const result = await this.runWizardSteps(suggestedName);
     return result;
   }
   
-  private async runWizardSteps(): Promise<WizardResult> {
+  private async runWizardSteps(suggestedName?: string): Promise<WizardResult> {
     // Step 1: Project basics
-    const basics = await this.askProjectBasics();
+    const basics = await this.askProjectBasics(suggestedName);
     
     // Step 2: Project type and architecture
     const architecture = await this.askProjectArchitecture();
     
-    // Step 3: Features and capabilities
+    // Step 3: Template selection
+    const template = await this.askTemplateSelection();
+    
+    // Step 4: Features and capabilities
     const features = await this.askProjectFeatures(architecture.projectType);
     
-    // Step 4: Development setup
+    // Step 5: Development setup
     const devSetup = await this.askDevelopmentSetup();
     
-    // Step 5: Additional configuration
+    // Step 6: Additional configuration
     const additionalConfig = await this.askAdditionalConfig(architecture.projectType);
     
-    // Step 6: Confirmation
+    // Step 7: Confirmation
     const confirmation = await this.confirmChoices({
       ...basics,
       ...architecture,
+      ...template,
       ...features,
       ...devSetup,
       additionalConfig
@@ -67,18 +79,22 @@ export class ProjectWizard {
     return {
       ...basics,
       ...architecture,
+      ...template,
       ...features,
       ...devSetup,
       additionalConfig
     };
   }
   
-  private async askProjectBasics() {
+  private async askProjectBasics(suggestedName?: string) {
     console.log(chalk.yellow.bold('📋 Step 1: Project Information'));
     console.log(chalk.gray('Basic information about your project.\n'));
     
-    return inquirer.prompt([
-      {
+    const questions: any[] = [];
+    
+    // Se não temos um nome sugerido, perguntamos
+    if (!suggestedName) {
+      questions.push({
         type: 'input',
         name: 'projectName',
         message: 'What is your project name?',
@@ -87,12 +103,17 @@ export class ProjectWizard {
           if (!/^[a-zA-Z0-9-_]+$/.test(input)) return 'Use only letters, numbers, hyphens, and underscores';
           return true;
         }
-      },
+      });
+    } else {
+      console.log(chalk.green(`✅ Project name: ${suggestedName}`));
+    }
+    
+    questions.push(
       {
         type: 'input',
         name: 'description',
         message: 'Brief description of your project:',
-        default: (answers: any) => `Modern React application built with Archbase - ${answers.projectName}`
+        default: `Modern React application built with Archbase - ${suggestedName || '{{projectName}}'}`
       },
       {
         type: 'input',
@@ -100,7 +121,16 @@ export class ProjectWizard {
         message: 'Author name (for package.json):',
         default: 'Your Name'
       }
-    ]);
+    );
+    
+    const answers = await inquirer.prompt(questions);
+    
+    // Se temos um nome sugerido, o adicionamos ao resultado
+    if (suggestedName) {
+      answers.projectName = suggestedName;
+    }
+    
+    return answers;
   }
   
   private async askProjectArchitecture() {
@@ -141,8 +171,150 @@ export class ProjectWizard {
     ]);
   }
   
+  private async askTemplateSelection() {
+    console.log(chalk.yellow.bold('\n📦 Step 3: Template Selection'));
+    console.log(chalk.gray('Choose a starting template for your project.\n'));
+    
+    const boilerplateGenerator = new BoilerplateGenerator();
+    let availableBoilerplates: string[] = [];
+    
+    try {
+      const allBoilerplates = await boilerplateGenerator.listAllBoilerplates();
+      availableBoilerplates = [...allBoilerplates.builtin, ...allBoilerplates.custom];
+    } catch (error) {
+      console.log(chalk.yellow('⚠️  Could not load boilerplates, continuing with basic options'));
+    }
+    
+    const templateChoices: Array<{
+      name: string;
+      short: string;
+      value: { source: string; name: string | undefined };
+    }> = [];
+    
+    // Add built-in boilerplates
+    for (const name of availableBoilerplates) {
+      try {
+        const config = await boilerplateGenerator.getBoilerplateConfig(name);
+        if (config) {
+          templateChoices.push({
+            name: `${chalk.cyan(config.name)} - ${config.description}`,
+            short: config.name,
+            value: { source: 'builtin', name: name }
+          });
+        }
+      } catch (error) {
+        // Skip invalid boilerplates
+      }
+    }
+    
+    templateChoices.push(
+      {
+        name: `${chalk.blue('Remote Git Repository')} - Use template from Git`,
+        short: 'Git Repository',
+        value: { source: 'git', name: undefined }
+      },
+      {
+        name: `${chalk.blue('npm Package')} - Use template from npm`,
+        short: 'npm Package',
+        value: { source: 'npm', name: undefined }
+      }
+    );
+    
+    const answers = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'templateSelection',
+        message: 'Select a project template:',
+        choices: templateChoices,
+        when: () => {
+          console.log(chalk.gray('📖 Template Types:'));
+          console.log(chalk.cyan('   Built-in:') + chalk.gray(' Pre-configured templates with components and features'));
+          console.log(chalk.blue('   Remote:') + chalk.gray(' Custom templates from external sources'));
+          console.log('');
+          return true;
+        }
+      }
+    ]);
+    
+    const selection = answers.templateSelection;
+    
+    if (selection.source === 'git') {
+      const gitAnswers = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'gitUrl',
+          message: 'Git repository URL:',
+          validate: (input: string) => {
+            if (!input.trim()) return 'Git URL is required';
+            if (!input.includes('git') && !input.includes('github') && !input.includes('gitlab')) {
+              return 'Please provide a valid Git repository URL';
+            }
+            return true;
+          }
+        },
+        {
+          type: 'input',
+          name: 'gitBranch',
+          message: 'Git branch:',
+          default: 'main'
+        },
+        {
+          type: 'input',
+          name: 'gitSubfolder',
+          message: 'Subfolder (optional):',
+          default: ''
+        }
+      ]);
+      
+      return {
+        selectedBoilerplate: undefined,
+        boilerplateSource: 'git' as const,
+        remoteOptions: {
+          url: gitAnswers.gitUrl,
+          branch: gitAnswers.gitBranch,
+          subfolder: gitAnswers.gitSubfolder || undefined
+        }
+      };
+    }
+    
+    if (selection.source === 'npm') {
+      const npmAnswers = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'npmPackage',
+          message: 'npm package name:',
+          validate: (input: string) => {
+            if (!input.trim()) return 'Package name is required';
+            return true;
+          }
+        },
+        {
+          type: 'input',
+          name: 'npmSubfolder',
+          message: 'Subfolder in package (optional):',
+          default: ''
+        }
+      ]);
+      
+      return {
+        selectedBoilerplate: undefined,
+        boilerplateSource: 'npm' as const,
+        remoteOptions: {
+          url: npmAnswers.npmPackage,
+          subfolder: npmAnswers.npmSubfolder || undefined
+        }
+      };
+    }
+    
+    return {
+      selectedBoilerplate: selection.name,
+      boilerplateSource: selection.source as 'builtin',
+      remoteOptions: undefined
+    };
+  }
+  
   private async askProjectFeatures(projectType: string) {
-    console.log(chalk.yellow.bold('\n🎛️  Step 3: Features & Capabilities'));
+    console.log(chalk.yellow.bold('\n🎛️  Step 4: Features & Capabilities'));
     console.log(chalk.gray('Select additional features for your project.\n'));
     
     const baseFeatures = this.getBaseFeaturesForType(projectType);
@@ -176,7 +348,7 @@ export class ProjectWizard {
   }
   
   private async askDevelopmentSetup() {
-    console.log(chalk.yellow.bold('\n⚙️  Step 4: Development Setup'));
+    console.log(chalk.yellow.bold('\n⚙️  Step 5: Development Setup'));
     console.log(chalk.gray('Configure your development environment.\n'));
     
     return inquirer.prompt([
@@ -216,7 +388,7 @@ export class ProjectWizard {
   }
   
   private async askAdditionalConfig(projectType: string) {
-    console.log(chalk.yellow.bold('\n🔧 Step 5: Additional Configuration'));
+    console.log(chalk.yellow.bold('\n🔧 Step 6: Additional Configuration'));
     console.log(chalk.gray('Optional configuration for advanced features.\n'));
     
     const questions: any[] = [];
@@ -289,7 +461,7 @@ export class ProjectWizard {
   }
   
   private async confirmChoices(choices: any) {
-    console.log(chalk.yellow.bold('\n📋 Step 6: Confirmation'));
+    console.log(chalk.yellow.bold('\n📋 Step 7: Confirmation'));
     console.log(chalk.gray('Review your project configuration:\n'));
     
     // Display choices
@@ -298,6 +470,24 @@ export class ProjectWizard {
     console.log(`  Type: ${chalk.white(choices.projectType)}`);
     console.log(`  Author: ${chalk.white(choices.author)}`);
     console.log(`  Description: ${chalk.gray(choices.description)}`);
+    
+    console.log(chalk.blue.bold('\nTemplate:'));
+    if (choices.boilerplateSource === 'builtin') {
+      console.log(`  ${chalk.cyan(choices.selectedBoilerplate)} - Built-in template`);
+    } else if (choices.boilerplateSource === 'git') {
+      console.log(`  ${chalk.blue('Git Repository')} - ${choices.remoteOptions?.url}`);
+      if (choices.remoteOptions?.branch) {
+        console.log(`    Branch: ${choices.remoteOptions.branch}`);
+      }
+      if (choices.remoteOptions?.subfolder) {
+        console.log(`    Subfolder: ${choices.remoteOptions.subfolder}`);
+      }
+    } else if (choices.boilerplateSource === 'npm') {
+      console.log(`  ${chalk.blue('npm Package')} - ${choices.remoteOptions?.url}`);
+      if (choices.remoteOptions?.subfolder) {
+        console.log(`    Subfolder: ${choices.remoteOptions.subfolder}`);
+      }
+    }
     
     console.log(chalk.blue.bold('\nFeatures:'));
     choices.features.forEach((feature: string) => {

@@ -146,43 +146,33 @@ export class PackageJsonGenerator {
   private async generateTsConfig(outputDir: string): Promise<string> {
     const tsConfig = {
       compilerOptions: {
-        target: "ES2020",
+        target: "ESNext",
         useDefineForClassFields: true,
-        lib: ["ES2020", "DOM", "DOM.Iterable"],
-        module: "ESNext",
+        lib: ["DOM", "DOM.Iterable", "ESNext"],
+        allowJs: false,
         skipLibCheck: true,
-        
-        // Bundle resolution
-        moduleResolution: "bundler",
-        allowImportingTsExtensions: true,
+        esModuleInterop: false,
+        allowSyntheticDefaultImports: true,
+        strict: true,
+        forceConsistentCasingInFileNames: true,
+        experimentalDecorators: true,
+        module: "ESNext",
+        moduleResolution: "Node",
         resolveJsonModule: true,
         isolatedModules: true,
+        noImplicitAny: false,
+        noImplicitReturns: false,
+        noImplicitThis: true,
+        strictPropertyInitialization: false,
         noEmit: true,
         jsx: "react-jsx",
-        
-        // Linting
-        strict: true,
-        noUnusedLocals: true,
-        noUnusedParameters: true,
-        noFallthroughCasesInSwitch: true,
-        
-        // Path mapping for cleaner imports
-        baseUrl: ".",
+        baseUrl: "./src",
         paths: {
-          "@/*": ["./src/*"],
-          "@components/*": ["./src/components/*"],
-          "@pages/*": ["./src/pages/*"],
-          "@utils/*": ["./src/utils/*"],
-          "@types/*": ["./src/types/*"],
-          "@domain/*": ["./src/domain/*"],
-          "@services/*": ["./src/services/*"]
-        },
-        
-        // Decorators support for Inversify
-        experimentalDecorators: true,
-        emitDecoratorMetadata: true
+          "@/*": ["./*"]
+        }
       },
       include: ["src"],
+      exclude: ["**/*.story.tsx"],
       references: [{ path: "./tsconfig.node.json" }]
     };
     
@@ -274,7 +264,7 @@ npm run build
 This project includes all necessary dependencies for Archbase React development:
 
 ### Core Dependencies
-- **@archbase/react**: Component library
+- **archbase-react**: Component library
 - **@mantine/core**: UI components (v8.x)
 - **React**: ^18.3.1
 - **TypeScript**: Full type safety
@@ -343,13 +333,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 2. Start using Archbase components:
 
 \`\`\`tsx
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react'
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core'
 
 function MyComponent() {
   return (
     <div>
       <ArchbaseEdit label="Name" />
-      <ArchbaseButton>Submit</ArchbaseButton>
+      <Button>Submit</Button>
     </div>
   )
 }

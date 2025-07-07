@@ -235,7 +235,7 @@ export class MigrationEngine {
         // Transform imports
         ImportDeclaration: (path) => {
           const source = path.node.source.value;
-          if (source.includes('@archbase/react')) {
+          if (source.includes('archbase-react')) {
             path.node.specifiers.forEach(spec => {
               if (t.isImportSpecifier(spec) && t.isIdentifier(spec.imported)) {
                 if (spec.imported.name === 'ArchbaseDataSource') {

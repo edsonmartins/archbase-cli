@@ -381,7 +381,7 @@ src/templates/
 
 ```typescript
 import React from 'react';
-import { FormBuilder, FieldConfig } from '@archbase/react';
+import { FormBuilder, FieldConfig } from 'archbase-react';
 import * as yup from 'yup';
 
 interface UserFormProps {
@@ -988,7 +988,7 @@ archbase --ai-mode query suggest-components "user registration form"
 ```handlebars
 {{!-- Template otimizado para customização por IA --}}
 import React from 'react';
-import { FormBuilder } from '@archbase/react';
+import { FormBuilder } from 'archbase-react';
 
 // AI_PLACEHOLDER: Add additional imports based on requirements
 
@@ -1500,7 +1500,7 @@ archbase generate form Test --template=basic
 
 ```bash
 # Fazer scan de componentes
-archbase knowledge scan ./node_modules/@archbase/react/dist
+archbase knowledge scan ./node_modules/archbase-react/dist
 
 # Validar conhecimento
 archbase knowledge validate

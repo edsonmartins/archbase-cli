@@ -1,5 +1,5 @@
 ArchbaseEdit
-ArchbaseButton
+Button
 
 interface UserFormProps {
   onSubmit: (values: User) => Promise<void>;

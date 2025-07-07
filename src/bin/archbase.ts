@@ -9,6 +9,8 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import * as fs from 'fs';
+import * as path from 'path';
 import { queryCommand } from '../commands/query';
 import { generateCommand } from '../commands/generate';
 import { createCommand } from '../commands/create';
@@ -20,21 +22,29 @@ import { scanCommand } from '../commands/scan';
 import { migrateCommand } from '../commands/migrate';
 import { pluginCommand } from '../commands/plugin';
 
+// Read version from package.json
+const packageJsonPath = path.join(__dirname, '../../package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const program = new Command();
 
 program
   .name('archbase')
   .description('AI-friendly CLI for Archbase ecosystem')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 // ASCII Art Banner (only if not JSON output)
 const isJsonMode = process.argv.includes('--format=json') || 
                    process.argv.includes('--format') && process.argv[process.argv.indexOf('--format') + 1] === 'json';
 
 if (!isJsonMode) {
+  const versionText = `ARCHBASE CLI v${packageJson.version}`;
+  const padding = Math.max(0, 39 - versionText.length);
+  const leftPad = Math.floor(padding / 2);
+  const rightPad = padding - leftPad;
+  
   console.log(chalk.cyan(`
 ╔═══════════════════════════════════════╗
-║           ARCHBASE CLI v0.1.0         ║
+║${' '.repeat(leftPad)}${versionText}${' '.repeat(rightPad)}║
 ║     AI-Friendly Development Tool      ║
 ╚═══════════════════════════════════════╝
 `));

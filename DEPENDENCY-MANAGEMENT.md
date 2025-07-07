@@ -29,7 +29,7 @@ Baseado na análise do `package.json` do archbase-react v2.1.3:
 ### Tipos de Projeto
 
 1. **Basic** - Dependências essenciais
-   - @archbase/react + dependências core
+   - archbase-react + dependências core
    - @mantine/core 8.x ecosystem
    - React 18, TypeScript, Vite
 
@@ -85,7 +85,7 @@ archbase create package-json \
 ### Core (Todos os Projetos)
 ```json
 {
-  "@archbase/react": "^2.1.3",
+  "archbase-react": "^2.1.3",
   "@mantine/core": "8.1.2",
   "@mantine/hooks": "8.1.2",
   "@mantine/emotion": "8.1.2",
@@ -248,13 +248,14 @@ npm run dev
 E comece a usar os componentes Archbase imediatamente:
 
 ```tsx
-import { ArchbaseEdit, ArchbaseButton } from '@archbase/react'
+import { ArchbaseEdit } from 'archbase-react';
+import { Button } from '@mantine/core';
 
 function MyComponent() {
   return (
     <div>
       <ArchbaseEdit label="Nome" />
-      <ArchbaseButton>Salvar</ArchbaseButton>
+      <Button>Salvar</Button>
     </div>
   )
 }

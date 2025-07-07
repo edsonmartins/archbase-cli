@@ -89,7 +89,7 @@ archbase migrate batch ./my-project --report --output ./batch-migration-report.j
 **O que é migrado:**
 ```typescript
 // ANTES (V1)
-import { ArchbaseDataSource } from '@archbase/react';
+import { ArchbaseDataSource } from 'archbase-react';
 
 const dataSource = new ArchbaseDataSource();
 dataSource.forceUpdate();
@@ -101,7 +101,7 @@ dataSource.forceUpdate();
 />
 
 // DEPOIS (V2)
-import { ArchbaseRemoteDataSource } from '@archbase/react';
+import { ArchbaseRemoteDataSource } from 'archbase-react';
 
 const dataSource = new ArchbaseRemoteDataSource();
 // forceUpdate removido - automático no V2

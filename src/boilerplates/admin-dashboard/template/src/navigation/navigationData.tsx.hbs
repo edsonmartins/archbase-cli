@@ -1,0 +1,68 @@
+import {
+  IconDashboard,
+  IconHome2,
+  IconSettings,
+  IconShieldLock,
+} from "@tabler/icons-react";
+import { HomeView } from "../views/home/HomeView";
+import { DashboardView } from "../views/dashboard/DashboardView";
+import { 
+  DASHBOARD_CATEGORY, 
+  DASHBOARD_ROUTE, 
+  TEAL_COLOR, 
+  HOME_CATEGORY, 
+  HOME_ROUTE, 
+  CONFIGURACAO_CATEGORY,
+  SEGURANCA_CATEGORY,
+  RED_COLOR 
+} from "./navigationDataConstants";
+import { ArchbaseNavigationItem } from "archbase-react";
+
+const homeView: ArchbaseNavigationItem = {
+  label: HOME_CATEGORY,
+  icon: <IconHome2 strokeWidth={1.25} size={28} />,
+  link: HOME_ROUTE,
+  category: HOME_CATEGORY,
+  color: TEAL_COLOR,
+  component: <HomeView />,
+  showInSidebar: true,
+  disabled: false,
+};
+
+const dashBoardView: ArchbaseNavigationItem = {
+  label: DASHBOARD_CATEGORY,
+  icon: <IconDashboard strokeWidth={1.25} size={28} />,
+  link: DASHBOARD_ROUTE,
+  category: DASHBOARD_CATEGORY,
+  disabled: false,
+  color: TEAL_COLOR,
+  component: <DashboardView />,
+  showInSidebar: true,
+};
+
+const configuracaoGroupMenu: ArchbaseNavigationItem = {
+  label: CONFIGURACAO_CATEGORY,
+  links: [],
+  icon: <IconSettings strokeWidth={1.25} size={28} />,
+  category: CONFIGURACAO_CATEGORY,
+  color: TEAL_COLOR,
+  showInSidebar: true,
+  disabled: true,
+};
+
+const segurancaGroupMenu: ArchbaseNavigationItem = {
+  label: SEGURANCA_CATEGORY,
+  links: [],
+  icon: <IconShieldLock strokeWidth={1.25} size={28} />,
+  category: SEGURANCA_CATEGORY,
+  color: RED_COLOR,
+  disabled: true,
+  showInSidebar: true,
+};
+
+export const navigationData: ArchbaseNavigationItem[] = [
+  homeView,
+  dashBoardView,
+  configuracaoGroupMenu,
+  segurancaGroupMenu,
+];

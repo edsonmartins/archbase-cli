@@ -1,0 +1,115 @@
+import { Container, Title, Text, Card, Group, Stack, Grid, Paper, Progress } from '@mantine/core'
+import { IconDashboard, IconUsers, IconChartBar, IconSettings } from '@tabler/icons-react'
+import i18next from 'i18next'
+
+export function DashboardView() {
+  return (
+    <Container size="xl" py="xl">
+      <Group mb="xl">
+        <IconDashboard size={32} />
+        <Title order={1}>{i18next.t('{{projectName}}:Dashboard')}</Title>
+      </Group>
+      
+      <Text c="dimmed" mb="xl">
+        {i18next.t('{{projectName}}:Painel administrativo')} - {i18next.t('{{projectName}}:Estatísticas e métricas')}
+      </Text>
+      
+      <Grid>
+        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text c="dimmed" size="sm" fw={500}>
+                  Usuários Ativos
+                </Text>
+                <Text fw={700} size="xl">
+                  1,234
+                </Text>
+              </div>
+              <IconUsers size={32} color="blue" />
+            </Group>
+            <Progress value={65} mt="md" radius="xl" />
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text c="dimmed" size="sm" fw={500}>
+                  Vendas Este Mês
+                </Text>
+                <Text fw={700} size="xl">
+                  R$ 45,678
+                </Text>
+              </div>
+              <IconChartBar size={32} color="green" />
+            </Group>
+            <Progress value={82} mt="md" radius="xl" color="green" />
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text c="dimmed" size="sm" fw={500}>
+                  Pedidos Pendentes
+                </Text>
+                <Text fw={700} size="xl">
+                  23
+                </Text>
+              </div>
+              <IconSettings size={32} color="orange" />
+            </Group>
+            <Progress value={23} mt="md" radius="xl" color="orange" />
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group justify="space-between">
+              <div>
+                <Text c="dimmed" size="sm" fw={500}>
+                  Taxa de Conversão
+                </Text>
+                <Text fw={700} size="xl">
+                  4.2%
+                </Text>
+              </div>
+              <IconChartBar size={32} color="red" />
+            </Group>
+            <Progress value={42} mt="md" radius="xl" color="red" />
+          </Card>
+        </Grid.Col>
+      </Grid>
+      
+      <Grid mt="xl">
+        <Grid.Col span=\{{ base: 12, lg: 8 }}>
+          <Paper shadow="sm" padding="lg" radius="md" withBorder h={400}>
+            <Title order={3} mb="md">
+              Gráfico de Vendas
+            </Title>
+            <Text c="dimmed">
+              Aqui seria exibido um gráfico de vendas ao longo do tempo
+            </Text>
+          </Paper>
+        </Grid.Col>
+        
+        <Grid.Col span=\{{ base: 12, lg: 4 }}>
+          <Paper shadow="sm" padding="lg" radius="md" withBorder h={400}>
+            <Title order={3} mb="md">
+              Atividade Recente
+            </Title>
+            <Stack gap="sm">
+              <Text size="sm">• Novo usuário registrado</Text>
+              <Text size="sm">• Pedido #1234 processado</Text>
+              <Text size="sm">• Backup realizado com sucesso</Text>
+              <Text size="sm">• Relatório mensal gerado</Text>
+            </Stack>
+          </Paper>
+        </Grid.Col>
+      </Grid>
+    </Container>
+  )
+}

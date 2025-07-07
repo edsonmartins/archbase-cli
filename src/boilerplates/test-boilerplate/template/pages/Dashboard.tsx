@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArchbaseSidebar, ArchbaseLayout } from '@archbase/react';
+import { ArchbaseSidebar, ArchbaseLayout } from 'archbase-react';
 
 interface DashboardProps {
   title?: string;

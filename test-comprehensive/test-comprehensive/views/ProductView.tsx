@@ -25,7 +25,7 @@ import {
   useArchbaseTheme,
   ArchbaseNotifications,
   ArchbaseDialog
-} from '@archbase/react';
+} from 'archbase-react';
 import { useTranslation } from 'react-i18next';
 import { ProductDto } from '../domain/ProductDto';
 import { ProductRemoteService } from '../service/ProductRemoteService';

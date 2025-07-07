@@ -153,13 +153,13 @@ export class ComponentGenerator {
     // Type-specific imports
     switch (config.type) {
       case 'input':
-        imports.push("import { ArchbaseEdit, ArchbaseSelect, ArchbaseCheckbox } from '@archbase/react';");
+        imports.push("import { ArchbaseEdit, ArchbaseSelect, ArchbaseCheckbox } from 'archbase-react';");
         break;
       case 'display':
-        imports.push("import { ArchbaseCard, ArchbaseText, ArchbaseImage } from '@archbase/react';");
+        imports.push("import { ArchbaseCard, ArchbaseText, ArchbaseImage } from 'archbase-react';");
         break;
       case 'layout':
-        imports.push("import { ArchbaseContainer, ArchbaseRow, ArchbaseCol } from '@archbase/react';");
+        imports.push("import { ArchbaseContainer, ArchbaseRow, ArchbaseCol } from 'archbase-react';");
         break;
     }
     

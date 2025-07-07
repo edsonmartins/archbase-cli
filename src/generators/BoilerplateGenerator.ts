@@ -86,6 +86,27 @@ export class BoilerplateGenerator {
     Handlebars.registerHelper('capitalize', function(str: string) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
+
+    // Helper for camelCase conversion
+    Handlebars.registerHelper('camelCase', function(str: string) {
+      return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+        return index === 0 ? word.toLowerCase() : word.toUpperCase();
+      }).replace(/\s+/g, '').replace(/[-_]/g, '');
+    });
+
+    // Helper for PascalCase conversion
+    Handlebars.registerHelper('pascalCase', function(str: string) {
+      return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {
+        return word.toUpperCase();
+      }).replace(/\s+/g, '').replace(/[-_]/g, '');
+    });
+
+    // Helper for Title Case conversion
+    Handlebars.registerHelper('titleCase', function(str: string) {
+      return str.replace(/\w\S*/g, (txt) => {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+      });
+    });
   }
 
   async listBoilerplates(): Promise<string[]> {
@@ -234,11 +255,21 @@ export class BoilerplateGenerator {
       const relativePath = path.relative(templatePath, file);
       const isHandlebarsTemplate = file.endsWith('.hbs');
       
-      // Determine output path (remove .hbs extension)
-      const outputPath = path.join(
-        context.outputPath, 
-        isHandlebarsTemplate ? relativePath.replace('.hbs', '') : relativePath
-      );
+      // Process file path with Handlebars to handle {{variables}} in filenames
+      let processedPath = isHandlebarsTemplate ? relativePath.replace('.hbs', '') : relativePath;
+      
+      // Compile and render the path if it contains Handlebars variables
+      if (processedPath.includes('{{')) {
+        const pathTemplate = Handlebars.compile(processedPath);
+        processedPath = pathTemplate({
+          ...context.answers,
+          ...context.config.customization,
+          features: context.features
+        });
+      }
+      
+      // Determine final output path
+      const outputPath = path.join(context.outputPath, processedPath);
 
       await fs.ensureDir(path.dirname(outputPath));
 
