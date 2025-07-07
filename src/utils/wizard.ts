@@ -18,7 +18,7 @@ export interface WizardResult {
   setupGit: boolean;
   installDependencies: boolean;
   selectedBoilerplate?: string;
-  boilerplateSource: 'builtin' | 'git' | 'npm' | 'blank';
+  boilerplateSource: 'builtin' | 'git' | 'npm';
   remoteOptions?: {
     url: string;
     branch?: string;
@@ -189,13 +189,7 @@ export class ProjectWizard {
       name: string;
       short: string;
       value: { source: string; name: string | undefined };
-    }> = [
-      {
-        name: `${chalk.green('Blank Project')} - Start from scratch with minimal structure`,
-        short: 'Blank',
-        value: { source: 'blank', name: undefined }
-      }
-    ];
+    }> = [];
     
     // Add built-in boilerplates
     for (const name of availableBoilerplates) {
@@ -234,7 +228,6 @@ export class ProjectWizard {
         choices: templateChoices,
         when: () => {
           console.log(chalk.gray('📖 Template Types:'));
-          console.log(chalk.green('   Blank:') + chalk.gray(' Minimal structure with just essential files'));
           console.log(chalk.cyan('   Built-in:') + chalk.gray(' Pre-configured templates with components and features'));
           console.log(chalk.blue('   Remote:') + chalk.gray(' Custom templates from external sources'));
           console.log('');
@@ -315,7 +308,7 @@ export class ProjectWizard {
     
     return {
       selectedBoilerplate: selection.name,
-      boilerplateSource: selection.source as 'builtin' | 'blank',
+      boilerplateSource: selection.source as 'builtin',
       remoteOptions: undefined
     };
   }
@@ -479,9 +472,7 @@ export class ProjectWizard {
     console.log(`  Description: ${chalk.gray(choices.description)}`);
     
     console.log(chalk.blue.bold('\nTemplate:'));
-    if (choices.boilerplateSource === 'blank') {
-      console.log(`  ${chalk.green('Blank Project')} - Starting from scratch`);
-    } else if (choices.boilerplateSource === 'builtin') {
+    if (choices.boilerplateSource === 'builtin') {
       console.log(`  ${chalk.cyan(choices.selectedBoilerplate)} - Built-in template`);
     } else if (choices.boilerplateSource === 'git') {
       console.log(`  ${chalk.blue('Git Repository')} - ${choices.remoteOptions?.url}`);

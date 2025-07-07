@@ -38,7 +38,9 @@
       "Bash(archbase migrate:*)",
       "Bash(archbase boilerplate create:*)",
       "Bash(archbase generate domain:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(timeout 5 archbase create:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
