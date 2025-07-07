@@ -1,7 +1,7 @@
 {
   "name": "admin-dashboard",
-  "version": "1.0.0",
-  "description": "Dashboard administrativo completo com autenticação, gerenciamento de usuários e relatórios",
+  "version": "2.0.0",
+  "description": "Dashboard administrativo completo baseado no Archbase com autenticação, i18n, temas e navegação estruturada",
   "author": "Archbase Team",
   "category": "admin",
   "tags": ["dashboard", "admin", "crud", "auth", "reports"],
@@ -14,33 +14,33 @@
   
   "features": {
     "authentication": {
-      "description": "Sistema de autenticação completo com login, logout e proteção de rotas",
-      "components": ["AuthProvider", "LoginForm", "ProtectedRoute", "UserMenu"],
+      "description": "Sistema de autenticação completo baseado no Archbase com IOC container",
+      "components": ["Authenticator", "Login", "LoginView", "LoginMobileView", "UserMenu"],
       "enabled": true
     },
-    "user-management": {
-      "description": "Gerenciamento completo de usuários com CRUD",
-      "components": ["UserList", "UserForm", "UserDetails", "RoleManager"],
+    "internationalization": {
+      "description": "Sistema de internacionalização com suporte a PT-BR, EN e ES",
+      "components": ["i18n", "translations", "LanguageSelector"],
       "enabled": true
     },
     "dashboard": {
-      "description": "Dashboard com métricas, gráficos e widgets customizáveis",
-      "components": ["DashboardLayout", "MetricCard", "ChartWidget", "ActivityFeed"],
+      "description": "Dashboard administrativo com métricas e layout responsivo",
+      "components": ["DashboardView", "HomeView", "MetricCards", "Navigation"],
       "enabled": true
     },
-    "reports": {
-      "description": "Sistema de relatórios com exportação",
-      "components": ["ReportBuilder", "ReportViewer", "ExportManager"],
-      "enabled": false
+    "theming": {
+      "description": "Sistema de temas customizáveis com modo claro e escuro",
+      "components": ["ThemeProvider", "ColorSchemeToggle", "CustomThemes"],
+      "enabled": true
     },
-    "notifications": {
-      "description": "Sistema de notificações em tempo real",
-      "components": ["NotificationCenter", "NotificationToast"],
-      "enabled": false
+    "navigation": {
+      "description": "Sistema de navegação estruturado com tabs e menu lateral",
+      "components": ["NavigationData", "TabContainer", "SidebarMenu"],
+      "enabled": true
     },
-    "settings": {
-      "description": "Configurações da aplicação e do usuário",
-      "components": ["SettingsPage", "PreferencesForm", "ThemeSelector"],
+    "ioc-container": {
+      "description": "Inversão de controle configurada para serviços",
+      "components": ["IOCContainer", "ServiceRegistration", "DependencyInjection"],
       "enabled": true
     }
   },
@@ -133,15 +133,14 @@
   
   "structure": {
     "src/": {
-      "components/": "Componentes reutilizáveis da aplicação",
-      "pages/": "Páginas principais da aplicação",
-      "layouts/": "Layouts de página (sidebar, header, etc)",
-      "hooks/": "Custom React hooks",
-      "services/": "Serviços de API e business logic",
-      "store/": "Estado global da aplicação",
-      "utils/": "Funções utilitárias",
-      "types/": "Definições TypeScript",
-      "styles/": "Estilos globais e temas"
+      "auth/": "Sistema de autenticação com Authenticator personalizado",
+      "ioc/": "Inversão de controle - container e tipos de serviços",
+      "navigation/": "Dados de navegação e constantes de rotas",
+      "locales/": "Arquivos de tradução para múltiplos idiomas",
+      "theme/": "Temas personalizados (claro e escuro)",
+      "views/": "Views principais (Home, Dashboard, Login)",
+      "utils/": "Utilitários e componentes de erro",
+      "types/": "Definições TypeScript"
     }
   },
   

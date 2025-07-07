@@ -146,43 +146,33 @@ export class PackageJsonGenerator {
   private async generateTsConfig(outputDir: string): Promise<string> {
     const tsConfig = {
       compilerOptions: {
-        target: "ES2020",
+        target: "ESNext",
         useDefineForClassFields: true,
-        lib: ["ES2020", "DOM", "DOM.Iterable"],
-        module: "ESNext",
+        lib: ["DOM", "DOM.Iterable", "ESNext"],
+        allowJs: false,
         skipLibCheck: true,
-        
-        // Bundle resolution
-        moduleResolution: "bundler",
-        allowImportingTsExtensions: true,
+        esModuleInterop: false,
+        allowSyntheticDefaultImports: true,
+        strict: true,
+        forceConsistentCasingInFileNames: true,
+        experimentalDecorators: true,
+        module: "ESNext",
+        moduleResolution: "Node",
         resolveJsonModule: true,
         isolatedModules: true,
+        noImplicitAny: false,
+        noImplicitReturns: false,
+        noImplicitThis: true,
+        strictPropertyInitialization: false,
         noEmit: true,
         jsx: "react-jsx",
-        
-        // Linting
-        strict: true,
-        noUnusedLocals: true,
-        noUnusedParameters: true,
-        noFallthroughCasesInSwitch: true,
-        
-        // Path mapping for cleaner imports
-        baseUrl: ".",
+        baseUrl: "./src",
         paths: {
-          "@/*": ["./src/*"],
-          "@components/*": ["./src/components/*"],
-          "@pages/*": ["./src/pages/*"],
-          "@utils/*": ["./src/utils/*"],
-          "@types/*": ["./src/types/*"],
-          "@domain/*": ["./src/domain/*"],
-          "@services/*": ["./src/services/*"]
-        },
-        
-        // Decorators support for Inversify
-        experimentalDecorators: true,
-        emitDecoratorMetadata: true
+          "@/*": ["./*"]
+        }
       },
       include: ["src"],
+      exclude: ["**/*.story.tsx"],
       references: [{ path: "./tsconfig.node.json" }]
     };
     

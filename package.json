@@ -7,7 +7,9 @@
     "archbase": "dist/bin/archbase.js"
   },
   "scripts": {
+    "prebuild": "npm run copy-assets",
     "build": "tsc",
+    "copy-assets": "node scripts/copy-assets.js",
     "dev": "ts-node src/bin/archbase.ts",
     "start": "node dist/bin/archbase.js",
     "test": "jest",

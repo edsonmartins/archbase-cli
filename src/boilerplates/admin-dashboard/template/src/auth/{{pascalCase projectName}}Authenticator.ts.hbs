@@ -1,0 +1,69 @@
+import { ArchbaseAuthenticator, ArchbaseUser } from 'archbase-react'
+import { ArchbaseAccessToken, ARCHBASE_IOC_API_TYPE, ArchbaseRemoteApiClient } from 'archbase-react'
+import { inject, injectable } from 'inversify'
+
+interface RefreshToken {
+  token: string
+}
+
+export class {{pascalCase projectName}}User extends ArchbaseUser {
+  constructor(data) {
+    super(data)
+  }
+
+  public isAdministrator = (): boolean => {
+    return true
+  }
+}
+
+type UsernameAndPassword = {
+  email: string
+  password: string
+}
+
+@injectable()
+export class {{pascalCase projectName}}Authenticator implements ArchbaseAuthenticator {
+  private client: ArchbaseRemoteApiClient
+  
+  constructor(@inject(ARCHBASE_IOC_API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
+    this.client = client
+  }
+  
+  sendResetPasswordEmail(email: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+  
+  resetPassword(email: string, passwordResetToken: string, newPassword: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  public async login(username: string, password: string): Promise<ArchbaseAccessToken> {
+    // Prepara os dados de login
+    const loginData: UsernameAndPassword = {
+      email: username,
+      password
+    };
+    
+    // Para autenticação, geralmente não usamos token (withoutToken = true)
+    const withoutToken = true;
+    
+    // Executa a requisição POST
+    return this.client.post<UsernameAndPassword, ArchbaseAccessToken>(
+      '/api/v1/auth/authenticate',
+      loginData,
+      {},
+      withoutToken
+    );
+  }
+
+  public async refreshToken(refresh_token: string): Promise<ArchbaseAccessToken> {
+    const withoutToken = true;
+    
+    return this.client.post<RefreshToken, ArchbaseAccessToken>(
+      '/api/v1/auth/refresh-token',
+      { token: refresh_token },
+      {},
+      withoutToken
+    );
+  }
+}

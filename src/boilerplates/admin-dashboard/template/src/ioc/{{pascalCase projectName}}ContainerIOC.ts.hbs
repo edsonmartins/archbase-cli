@@ -1,0 +1,20 @@
+import axios from "axios";
+import { API_TYPE } from "./{{pascalCase projectName}}IOCTypes";
+import { {{pascalCase projectName}}Authenticator } from "../auth/{{pascalCase projectName}}Authenticator";
+import { IOCContainer } from "archbase-react";
+import { ArchbaseAuthenticator } from "archbase-react";
+import { ArchbaseAxiosRemoteApiClient, ArchbaseRemoteApiClient } from "archbase-react";
+
+axios.defaults.baseURL = import.meta.env.VITE_API;
+
+IOCContainer.registerDefaultContainers();
+const container = IOCContainer.getContainer(); 
+
+container
+  .bind<ArchbaseAuthenticator>(API_TYPE.Authenticator)
+  .to({{pascalCase projectName}}Authenticator);
+container
+  .bind<ArchbaseRemoteApiClient>(API_TYPE.ApiClient)
+  .to(ArchbaseAxiosRemoteApiClient);
+
+export default container;
