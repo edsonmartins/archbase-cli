@@ -1,0 +1,81 @@
+// Types for {{name}} Dashboard
+
+{{#if (hasKPIs kpis)}}
+export interface KPIData {
+  {{#each kpis}}
+  {{id}}: number;
+  {{/each}}
+}
+{{/if}}
+
+{{#if (hasCharts charts)}}
+export interface ChartDataPoint {
+  [key: string]: any;
+}
+
+export interface ChartData {
+  {{#each charts}}
+  {{id}}: ChartDataPoint[];
+  {{/each}}
+}
+{{/if}}
+
+{{#if (hasTables tables)}}
+{{#each tables}}
+export interface {{capitalize id}}TableRow {
+  {{#each columns}}
+  {{field}}: {{#if (eq type 'number')}}number{{else if (eq type 'date')}}Date | string{{else}}string{{/if}};
+  {{/each}}
+}
+{{/each}}
+
+export interface TableData {
+  {{#each tables}}
+  {{id}}: {{capitalize id}}TableRow[];
+  {{/each}}
+}
+{{/if}}
+
+{{#if (hasFilters filters)}}
+export interface FilterData {
+  {{#each filters}}
+  {{field}}: {{#if (eq type 'date')}}Date | null{{else if (eq type 'dateRange')}}[Date | null, Date | null]{{else}}string{{/if}};
+  {{/each}}
+}
+{{/if}}
+
+export interface {{name}}State {
+  loading: boolean;
+  error?: string;
+  {{#if (hasKPIs kpis)}}
+  kpis: KPIData;
+  {{/if}}
+  {{#if (hasCharts charts)}}
+  chartData: ChartData;
+  {{/if}}
+  {{#if (hasTables tables)}}
+  tableData: TableData;
+  {{/if}}
+  {{#if (hasFilters filters)}}
+  filters?: FilterData;
+  {{/if}}
+}
+
+{{#if serviceIntegration}}
+// Service interfaces
+export interface {{name}}Service {
+  {{#if (hasKPIs kpis)}}
+  getKPIData(): Promise<KPIData>;
+  {{/if}}
+  {{#if (hasCharts charts)}}
+  {{#each charts}}
+  get{{capitalize id}}Data(): Promise<ChartDataPoint[]>;
+  {{/each}}
+  {{/if}}
+  {{#if (hasTables tables)}}
+  {{#each tables}}
+  get{{capitalize id}}Data(): Promise<{{capitalize id}}TableRow[]>;
+  {{/each}}
+  {{/if}}
+}
+{{/if}}

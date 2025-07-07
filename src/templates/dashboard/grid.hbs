@@ -1,0 +1,252 @@
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+{{#each interfaces}}
+{{{this}}}
+{{/each}}
+
+export function {{name}}() {
+  const [data, setData] = useState<{{name}}State>({
+    loading: true,
+    error: undefined,
+    {{#if (hasKPIs kpis)}}
+    kpis: {},
+    {{/if}}
+    {{#if (hasCharts charts)}}
+    chartData: {},
+    {{/if}}
+    {{#if (hasTables tables)}}
+    tableData: {}
+    {{/if}}
+  });
+
+  {{#if withNavigation}}
+  const { closeAllowed } = useArchbaseNavigationListener('{{generateRoute category feature}}', () => {
+    closeAllowed();
+  });
+  {{/if}}
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setData(prev => ({ ...prev, loading: true, error: undefined }));
+        
+        // TODO: Replace with actual API calls
+        const mockData = {
+          {{#if (hasKPIs kpis)}}
+          kpis: {
+            {{#each kpis}}
+            {{id}}: {{@index}}{{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{/if}}
+          {{#if (hasCharts charts)}}
+          chartData: {
+            {{#each charts}}
+            {{id}}: Array.from({ length: 10 }, (_, i) => ({ name: `Item ${i + 1}`, value: Math.floor(Math.random() * 100) })){{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{/if}}
+          {{#if (hasTables tables)}}
+          tableData: {
+            {{#each tables}}
+            {{id}}: Array.from({ length: 20 }, (_, i) => ({
+              {{#each columns}}
+              {{field}}: {{#if (eq type 'number')}}Math.floor(Math.random() * 1000){{else if (eq type 'date')}}new Date().toISOString(){{else}}`Sample {{../title}} ${i + 1}`{{/if}}{{#unless @last}},{{/unless}}
+              {{/each}}
+            })){{#unless @last}},{{/unless}}
+            {{/each}}
+          }
+          {{/if}}
+        };
+
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          ...mockData
+        }));
+      } catch (error) {
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          error: error instanceof Error ? error.message : 'Erro ao carregar dados'
+        }));
+      }
+    };
+
+    loadData();
+    
+    {{#if autoRefresh}}
+    const interval = setInterval(loadData, {{autoRefresh}});
+    return () => clearInterval(interval);
+    {{/if}}
+  }, []);
+
+  if (data.loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+
+  if (data.error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Text color="red">{data.error}</Text>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Group justify="space-between" className="mb-4">
+          <div>
+            <Text size="xl" className="font-bold">{{title}}</Text>
+            {{#if description}}
+            <Text size="sm" className="text-gray-600">{{description}}</Text>
+            {{/if}}
+          </div>
+          <Badge color="blue" leftSection={<IconDashboard size={16} />}>
+            Dashboard
+          </Badge>
+        </Group>
+      </div>
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-12 gap-6">
+        {{#if (hasKPIs kpis)}}
+        <!-- KPI Section -->
+        {{#each kpis}}
+        <div className="col-span-12 md:col-span-{{#if (eq @index 0)}}6{{else if (eq @index 1)}}6{{else}}4{{/if}}">
+          <Card withBorder className="h-32">
+            <Group>
+              <RingProgress
+                size={80}
+                sections={[{ value: Math.min(100, data.kpis.{{id}} || 0), color: '{{color}}' }]}
+                label={
+                  <Group justify="center">
+                    <IconDashboard size={24} />
+                  </Group>
+                }
+              />
+              <div>
+                <Text size="sm" className="text-gray-600">{{title}}</Text>
+                <Text size="xl" className="font-bold">
+                  {{#if (eq format 'currency')}}
+                  {(data.kpis.{{id}} || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  {{else if (eq format 'percentage')}}
+                  {(data.kpis.{{id}} || 0).toFixed(1)}%
+                  {{else}}
+                  {(data.kpis.{{id}} || 0).toLocaleString()}
+                  {{/if}}
+                </Text>
+                {{#if description}}
+                <Text size="xs" className="text-{{color}}">{{description}}</Text>
+                {{/if}}
+              </div>
+            </Group>
+          </Card>
+        </div>
+        {{/each}}
+        {{/if}}
+
+        {{#if (hasCharts charts)}}
+        <!-- Charts Section -->
+        {{#each charts}}
+        <div className="col-span-12 {{#if (eq @index 0)}}lg:col-span-8{{else}}lg:col-span-6{{/if}}">
+          <Card withBorder className="{{#if height}}h-{{height}}{{else}}h-80{{/if}}">
+            <Group justify="space-between" className="mb-4">
+              <Text size="lg" className="font-bold">{{title}}</Text>
+            </Group>
+            <ResponsiveContainer width="100%" height={{lt}}{{#if height}}{{height}}{{else}}280{{/if}}{{gt}}>
+              <{{getChartComponent type}} data={data.chartData.{{id}} || []}>
+                {{#if (eq type 'pie')}}
+                <Tooltip />
+                <Legend />
+                <Pie
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                />
+                {{else}}
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="{{#if xAxis}}{{xAxis}}{{else}}name{{/if}}" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {{#if (eq type 'line')}}
+                <Line
+                  type="monotone"
+                  dataKey="{{#if yAxis}}{{yAxis}}{{else}}value{{/if}}"
+                  stroke="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                  strokeWidth={2}
+                />
+                {{else if (eq type 'bar')}}
+                <Bar
+                  dataKey="{{#if yAxis}}{{yAxis}}{{else}}value{{/if}}"
+                  fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                />
+                {{else if (eq type 'area')}}
+                <Area
+                  type="monotone"
+                  dataKey="{{#if yAxis}}{{yAxis}}{{else}}value{{/if}}"
+                  stroke="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                  fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                />
+                {{/if}}
+                {{/if}}
+              </{{getChartComponent type}}>
+            </ResponsiveContainer>
+          </Card>
+        </div>
+        {{/each}}
+        {{/if}}
+
+        {{#if (hasTables tables)}}
+        <!-- Tables Section -->
+        {{#each tables}}
+        <div className="col-span-12">
+          <Card withBorder>
+            <Group justify="space-between" className="mb-4">
+              <Text size="lg" className="font-bold">{{title}}</Text>
+            </Group>
+            <ArchbaseDataGrid
+              data={data.tableData.{{id}} || []}
+              {{#if pagination}}
+              enablePagination={true}
+              {{/if}}
+              {{#if searchable}}
+              enableGlobalFilter={true}
+              {{/if}}
+              height={300}
+            >
+              {{#each columns}}
+              <ArchbaseDataGridColumn
+                accessorKey="{{field}}"
+                header="{{title}}"
+                {{#if (eq type 'number')}}
+                meta={{ isNumeric: true }}
+                {{/if}}
+                {{#if sortable}}
+                enableSorting={true}
+                {{/if}}
+              />
+              {{/each}}
+            </ArchbaseDataGrid>
+          </Card>
+        </div>
+        {{/each}}
+        {{/if}}
+      </div>
+    </div>
+  );
+}
+
+export default {{name}};

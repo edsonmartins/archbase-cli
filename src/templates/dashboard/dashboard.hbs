@@ -1,0 +1,302 @@
+{{#each imports}}
+{{{this}}}
+{{/each}}
+
+{{#each interfaces}}
+{{{this}}}
+{{/each}}
+
+export function {{name}}() {
+  const [data, setData] = useState<{{name}}State>({
+    loading: true,
+    error: undefined,
+    {{#if (hasKPIs kpis)}}
+    kpis: {},
+    {{/if}}
+    {{#if (hasCharts charts)}}
+    chartData: {},
+    {{/if}}
+    {{#if (hasTables tables)}}
+    tableData: {}
+    {{/if}}
+  });
+
+  {{#if withNavigation}}
+  const { closeAllowed } = useArchbaseNavigationListener('{{generateRoute category feature}}', () => {
+    closeAllowed();
+  });
+  {{/if}}
+
+  {{#if serviceIntegration}}
+  // Service integration - replace with actual service
+  // const dashboardService = useArchbaseRemoteServiceApi<DashboardRemoteService>(API_TYPE.Dashboard);
+  {{/if}}
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setData(prev => ({ ...prev, loading: true, error: undefined }));
+        
+        // TODO: Replace with actual API calls
+        const mockData = {
+          {{#if (hasKPIs kpis)}}
+          kpis: {
+            {{#each kpis}}
+            {{id}}: {{@index}}{{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{/if}}
+          {{#if (hasCharts charts)}}
+          chartData: {
+            {{#each charts}}
+            {{id}}: []{{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{/if}}
+          {{#if (hasTables tables)}}
+          tableData: {
+            {{#each tables}}
+            {{id}}: []{{#unless @last}},{{/unless}}
+            {{/each}}
+          }
+          {{/if}}
+        };
+
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          ...mockData
+        }));
+      } catch (error) {
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          error: error instanceof Error ? error.message : 'Erro ao carregar dados'
+        }));
+      }
+    };
+
+    loadData();
+    
+    {{#if autoRefresh}}
+    // Auto-refresh data
+    const interval = setInterval(loadData, {{autoRefresh}});
+    return () => clearInterval(interval);
+    {{/if}}
+  }, []);
+
+  if (data.loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+
+  if (data.error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Text color="red">{data.error}</Text>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-1" offsetScrollbars>
+        <div className="p-6">
+          <Stack gap="lg">
+            {/* Header */}
+            <Group justify="space-between" className="mb-4">
+              <div>
+                <Text size="xl" className="font-bold">{{title}}</Text>
+                {{#if description}}
+                <Text size="sm" className="text-gray-600">{{description}}</Text>
+                {{/if}}
+              </div>
+              <Badge color="blue" leftSection={<IconDashboard size={16} />}>
+                Dashboard
+              </Badge>
+            </Group>
+
+            {{#if (hasFilters filters)}}
+            {/* Filters */}
+            <Card withBorder>
+              <Text size="md" className="font-medium mb-3">Filtros</Text>
+              <Grid>
+                {{#each filters}}
+                <Grid.Col span={{ base: 12, md: 4 }}>
+                  {{#if (eq type 'date')}}
+                  <DateInput
+                    label="{{label}}"
+                    placeholder="Selecione a data"
+                    // value={filters.{{field}}}
+                    // onChange={(value) => setFilters(prev => ({ ...prev, {{field}}: value }))}
+                  />
+                  {{else if (eq type 'select')}}
+                  <Select
+                    label="{{label}}"
+                    placeholder="Selecione uma opção"
+                    data={[
+                      {{#each options}}
+                      { value: '{{value}}', label: '{{label}}' }{{#unless @last}},{{/unless}}
+                      {{/each}}
+                    ]}
+                    // value={filters.{{field}}}
+                    // onChange={(value) => setFilters(prev => ({ ...prev, {{field}}: value }))}
+                  />
+                  {{else if (eq type 'search')}}
+                  <TextInput
+                    label="{{label}}"
+                    placeholder="Digite para pesquisar..."
+                    // value={filters.{{field}}}
+                    // onChange={(event) => setFilters(prev => ({ ...prev, {{field}}: event.currentTarget.value }))}
+                  />
+                  {{/if}}
+                </Grid.Col>
+                {{/each}}
+              </Grid>
+            </Card>
+            {{/if}}
+
+            {{#if (hasKPIs kpis)}}
+            {/* KPI Cards */}
+            <Grid>
+              {{#each kpis}}
+              <Grid.Col span={{ base: 12, md: {{getKPISpan ../kpis.length}} }}>
+                <Card withBorder className="h-32">
+                  <Group>
+                    <RingProgress
+                      size={80}
+                      sections={[{ value: Math.min(100, data.kpis.{{id}} || 0), color: '{{color}}' }]}
+                      label={
+                        <Group justify="center">
+                          {/* Replace with actual icon: {{icon}} */}
+                          <IconDashboard size={24} />
+                        </Group>
+                      }
+                    />
+                    <div>
+                      <Text size="sm" className="text-gray-600">{{title}}</Text>
+                      <Text size="xl" className="font-bold">
+                        {{#if (eq format 'currency')}}
+                        {(data.kpis.{{id}} || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        {{else if (eq format 'percentage')}}
+                        {(data.kpis.{{id}} || 0).toFixed(1)}%
+                        {{else}}
+                        {(data.kpis.{{id}} || 0).toLocaleString()}
+                        {{/if}}
+                      </Text>
+                      {{#if description}}
+                      <Text size="xs" className="text-{{color}}">{{description}}</Text>
+                      {{/if}}
+                    </div>
+                  </Group>
+                </Card>
+              </Grid.Col>
+              {{/each}}
+            </Grid>
+            {{/if}}
+
+            {{#if (hasCharts charts)}}
+            {/* Charts */}
+            <Grid>
+              {{#each charts}}
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Card withBorder className="{{#if height}}h-{{height}}{{else}}h-80{{/if}}">
+                  <Group justify="space-between" className="mb-4">
+                    <Text size="lg" className="font-bold">{{title}}</Text>
+                  </Group>
+                  <ResponsiveContainer width="100%" height={{lt}}{{#if height}}{{height}}{{else}}280{{/if}}{{gt}}>
+                    <{{getChartComponent type}} data={data.chartData.{{id}} || []}>
+                      {{#if (eq type 'pie')}}
+                      <Tooltip />
+                      <Legend />
+                      <Pie
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                      />
+                      {{else}}
+                      <CartesianGrid strokeDasharray="3 3" />
+                      {{#if xAxis}}
+                      <XAxis dataKey="{{xAxis}}" />
+                      {{/if}}
+                      {{#if yAxis}}
+                      <YAxis />
+                      {{/if}}
+                      <Tooltip />
+                      <Legend />
+                      {{#if (eq type 'line')}}
+                      <Line
+                        type="monotone"
+                        dataKey="{{yAxis}}"
+                        stroke="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                        strokeWidth={2}
+                      />
+                      {{else if (eq type 'bar')}}
+                      <Bar
+                        dataKey="{{yAxis}}"
+                        fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                      />
+                      {{else if (eq type 'area')}}
+                      <Area
+                        type="monotone"
+                        dataKey="{{yAxis}}"
+                        stroke="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                        fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                      />
+                      {{/if}}
+                      {{/if}}
+                    </{{getChartComponent type}}>
+                  </ResponsiveContainer>
+                </Card>
+              </Grid.Col>
+              {{/each}}
+            </Grid>
+            {{/if}}
+
+            {{#if (hasTables tables)}}
+            {/* Tables */}
+            {{#each tables}}
+            <Card withBorder>
+              <Group justify="space-between" className="mb-4">
+                <Text size="lg" className="font-bold">{{title}}</Text>
+              </Group>
+              <ArchbaseDataGrid
+                data={data.tableData.{{id}} || []}
+                {{#if pagination}}
+                enablePagination={true}
+                {{/if}}
+                {{#if searchable}}
+                enableGlobalFilter={true}
+                {{/if}}
+                height={300}
+              >
+                {{#each columns}}
+                <ArchbaseDataGridColumn
+                  accessorKey="{{field}}"
+                  header="{{title}}"
+                  {{#if (eq type 'number')}}
+                  meta={{ isNumeric: true }}
+                  {{/if}}
+                  {{#if sortable}}
+                  enableSorting={true}
+                  {{/if}}
+                />
+                {{/each}}
+              </ArchbaseDataGrid>
+            </Card>
+            {{/each}}
+            {{/if}}
+          </Stack>
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+export default {{name}};

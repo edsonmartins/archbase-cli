@@ -19,6 +19,7 @@ import { NavigationGenerator } from '../generators/NavigationGenerator';
 import { DomainGenerator } from '../generators/DomainGenerator';
 import { SecurityGenerator } from '../generators/SecurityGenerator';
 import { createGenerateServiceCommand } from './generate-service';
+import { createGenerateDashboardCommand } from './generate-dashboard';
 
 export const generateCommand = new Command('generate')
   .description('Generate code based on Archbase templates')
@@ -471,7 +472,8 @@ export const generateCommand = new Command('generate')
         }
       })
   )
-  .addCommand(createGenerateServiceCommand());
+  .addCommand(createGenerateServiceCommand())
+  .addCommand(createGenerateDashboardCommand());
 
 async function promptFormConfig(name: string, initialOptions: any) {
   const questions = [

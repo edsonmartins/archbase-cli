@@ -1,0 +1,325 @@
+{{#each imports}}
+{{{this}}}
+{{/each}}
+import { Tabs } from '@mantine/core';
+
+{{#each interfaces}}
+{{{this}}}
+{{/each}}
+
+export function {{name}}() {
+  const [data, setData] = useState<{{name}}State>({
+    loading: true,
+    error: undefined,
+    {{#if (hasKPIs kpis)}}
+    kpis: {},
+    {{/if}}
+    {{#if (hasCharts charts)}}
+    chartData: {},
+    {{/if}}
+    {{#if (hasTables tables)}}
+    tableData: {}
+    {{/if}}
+  });
+
+  const [activeTab, setActiveTab] = useState<string>('overview');
+
+  {{#if withNavigation}}
+  const { closeAllowed } = useArchbaseNavigationListener('{{generateRoute category feature}}', () => {
+    closeAllowed();
+  });
+  {{/if}}
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setData(prev => ({ ...prev, loading: true, error: undefined }));
+        
+        // TODO: Replace with actual API calls
+        const mockData = {
+          {{#if (hasKPIs kpis)}}
+          kpis: {
+            {{#each kpis}}
+            {{id}}: {{@index}}{{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{/if}}
+          {{#if (hasCharts charts)}}
+          chartData: {
+            {{#each charts}}
+            {{id}}: Array.from({ length: 10 }, (_, i) => ({ name: `Item ${i + 1}`, value: Math.floor(Math.random() * 100) })){{#unless @last}},{{/unless}}
+            {{/each}}
+          },
+          {{/if}}
+          {{#if (hasTables tables)}}
+          tableData: {
+            {{#each tables}}
+            {{id}}: Array.from({ length: 20 }, (_, i) => ({
+              {{#each columns}}
+              {{field}}: {{#if (eq type 'number')}}Math.floor(Math.random() * 1000){{else if (eq type 'date')}}new Date().toISOString(){{else}}`Sample {{../title}} ${i + 1}`{{/if}}{{#unless @last}},{{/unless}}
+              {{/each}}
+            })){{#unless @last}},{{/unless}}
+            {{/each}}
+          }
+          {{/if}}
+        };
+
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          ...mockData
+        }));
+      } catch (error) {
+        setData(prev => ({
+          ...prev,
+          loading: false,
+          error: error instanceof Error ? error.message : 'Erro ao carregar dados'
+        }));
+      }
+    };
+
+    loadData();
+    
+    {{#if autoRefresh}}
+    const interval = setInterval(loadData, {{autoRefresh}});
+    return () => clearInterval(interval);
+    {{/if}}
+  }, []);
+
+  if (data.loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+
+  if (data.error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Text color="red">{data.error}</Text>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-1" offsetScrollbars>
+        <div className="p-6">
+          {/* Header */}
+          <Group justify="space-between" className="mb-6">
+            <div>
+              <Text size="xl" className="font-bold">{{title}}</Text>
+              {{#if description}}
+              <Text size="sm" className="text-gray-600">{{description}}</Text>
+              {{/if}}
+            </div>
+            <Badge color="blue" leftSection={<IconDashboard size={16} />}>
+              Dashboard
+            </Badge>
+          </Group>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onChange={setActiveTab}>
+            <Tabs.List>
+              <Tabs.Tab value="overview">Visão Geral</Tabs.Tab>
+              {{#if (hasCharts charts)}}
+              <Tabs.Tab value="charts">Gráficos</Tabs.Tab>
+              {{/if}}
+              {{#if (hasTables tables)}}
+              <Tabs.Tab value="data">Dados</Tabs.Tab>
+              {{/if}}
+            </Tabs.List>
+
+            {/* Overview Tab */}
+            <Tabs.Panel value="overview" pt="md">
+              <Stack gap="lg">
+                {{#if (hasKPIs kpis)}}
+                <Grid>
+                  {{#each kpis}}
+                  <Grid.Col span={{ base: 12, md: {{getKPISpan ../kpis.length}} }}>
+                    <Card withBorder className="h-32">
+                      <Group>
+                        <RingProgress
+                          size={80}
+                          sections={[{ value: Math.min(100, data.kpis.{{id}} || 0), color: '{{color}}' }]}
+                          label={
+                            <Group justify="center">
+                              <IconDashboard size={24} />
+                            </Group>
+                          }
+                        />
+                        <div>
+                          <Text size="sm" className="text-gray-600">{{title}}</Text>
+                          <Text size="xl" className="font-bold">
+                            {{#if (eq format 'currency')}}
+                            {(data.kpis.{{id}} || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            {{else if (eq format 'percentage')}}
+                            {(data.kpis.{{id}} || 0).toFixed(1)}%
+                            {{else}}
+                            {(data.kpis.{{id}} || 0).toLocaleString()}
+                            {{/if}}
+                          </Text>
+                          {{#if description}}
+                          <Text size="xs" className="text-{{color}}">{{description}}</Text>
+                          {{/if}}
+                        </div>
+                      </Group>
+                    </Card>
+                  </Grid.Col>
+                  {{/each}}
+                </Grid>
+                {{/if}}
+
+                {{#if (hasCharts charts)}}
+                <!-- Featured Chart -->
+                {{#if charts.[0]}}
+                <Card withBorder className="h-80">
+                  <Group justify="space-between" className="mb-4">
+                    <Text size="lg" className="font-bold">{{charts.[0].title}}</Text>
+                  </Group>
+                  <ResponsiveContainer width="100%" height={{lt}}280{{gt}}>
+                    <{{getChartComponent charts.[0].type}} data={data.chartData.{{charts.[0].id}} || []}>
+                      {{#if (eq charts.[0].type 'pie')}}
+                      <Tooltip />
+                      <Legend />
+                      <Pie
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="{{#if charts.[0].colors}}{{charts.[0].colors.[0]}}{{else}}#8884d8{{/if}}"
+                      />
+                      {{else}}
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="{{#if charts.[0].xAxis}}{{charts.[0].xAxis}}{{else}}name{{/if}}" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      {{#if (eq charts.[0].type 'line')}}
+                      <Line
+                        type="monotone"
+                        dataKey="{{#if charts.[0].yAxis}}{{charts.[0].yAxis}}{{else}}value{{/if}}"
+                        stroke="{{#if charts.[0].colors}}{{charts.[0].colors.[0]}}{{else}}#8884d8{{/if}}"
+                        strokeWidth={2}
+                      />
+                      {{else if (eq charts.[0].type 'bar')}}
+                      <Bar
+                        dataKey="{{#if charts.[0].yAxis}}{{charts.[0].yAxis}}{{else}}value{{/if}}"
+                        fill="{{#if charts.[0].colors}}{{charts.[0].colors.[0]}}{{else}}#8884d8{{/if}}"
+                      />
+                      {{/if}}
+                      {{/if}}
+                    </{{getChartComponent charts.[0].type}}>
+                  </ResponsiveContainer>
+                </Card>
+                {{/if}}
+                {{/if}}
+              </Stack>
+            </Tabs.Panel>
+
+            {{#if (hasCharts charts)}}
+            {/* Charts Tab */}
+            <Tabs.Panel value="charts" pt="md">
+              <Grid>
+                {{#each charts}}
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Card withBorder className="{{#if height}}h-{{height}}{{else}}h-80{{/if}}">
+                    <Group justify="space-between" className="mb-4">
+                      <Text size="lg" className="font-bold">{{title}}</Text>
+                    </Group>
+                    <ResponsiveContainer width="100%" height={{lt}}{{#if height}}{{height}}{{else}}280{{/if}}{{gt}}>
+                      <{{getChartComponent type}} data={data.chartData.{{id}} || []}>
+                        {{#if (eq type 'pie')}}
+                        <Tooltip />
+                        <Legend />
+                        <Pie
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                        />
+                        {{else}}
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="{{#if xAxis}}{{xAxis}}{{else}}name{{/if}}" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        {{#if (eq type 'line')}}
+                        <Line
+                          type="monotone"
+                          dataKey="{{#if yAxis}}{{yAxis}}{{else}}value{{/if}}"
+                          stroke="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                          strokeWidth={2}
+                        />
+                        {{else if (eq type 'bar')}}
+                        <Bar
+                          dataKey="{{#if yAxis}}{{yAxis}}{{else}}value{{/if}}"
+                          fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                        />
+                        {{else if (eq type 'area')}}
+                        <Area
+                          type="monotone"
+                          dataKey="{{#if yAxis}}{{yAxis}}{{else}}value{{/if}}"
+                          stroke="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                          fill="{{#if colors}}{{colors.[0]}}{{else}}#8884d8{{/if}}"
+                        />
+                        {{/if}}
+                        {{/if}}
+                      </{{getChartComponent type}}>
+                    </ResponsiveContainer>
+                  </Card>
+                </Grid.Col>
+                {{/each}}
+              </Grid>
+            </Tabs.Panel>
+            {{/if}}
+
+            {{#if (hasTables tables)}}
+            {/* Data Tab */}
+            <Tabs.Panel value="data" pt="md">
+              <Stack gap="lg">
+                {{#each tables}}
+                <Card withBorder>
+                  <Group justify="space-between" className="mb-4">
+                    <Text size="lg" className="font-bold">{{title}}</Text>
+                  </Group>
+                  <ArchbaseDataGrid
+                    data={data.tableData.{{id}} || []}
+                    {{#if pagination}}
+                    enablePagination={true}
+                    {{/if}}
+                    {{#if searchable}}
+                    enableGlobalFilter={true}
+                    {{/if}}
+                    height={300}
+                  >
+                    {{#each columns}}
+                    <ArchbaseDataGridColumn
+                      accessorKey="{{field}}"
+                      header="{{title}}"
+                      {{#if (eq type 'number')}}
+                      meta={{ isNumeric: true }}
+                      {{/if}}
+                      {{#if sortable}}
+                      enableSorting={true}
+                      {{/if}}
+                    />
+                    {{/each}}
+                  </ArchbaseDataGrid>
+                </Card>
+                {{/each}}
+              </Stack>
+            </Tabs.Panel>
+            {{/if}}
+          </Tabs>
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+export default {{name}};

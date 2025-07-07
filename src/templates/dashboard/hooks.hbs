@@ -1,0 +1,146 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useArchbaseRemoteServiceApi, API_TYPE } from 'archbase-react';
+import { {{name}}State{{#if (hasKPIs kpis)}}, KPIData{{/if}}{{#if (hasCharts charts)}}, ChartData{{/if}}{{#if (hasTables tables)}}, TableData{{/if}}{{#if (hasFilters filters)}}, FilterData{{/if}} } from './{{name}}Types';
+
+export function use{{name}}Data(autoRefresh = {{autoRefresh}}) {
+  const [state, setState] = useState<{{name}}State>({
+    loading: true,
+    error: undefined,
+    {{#if (hasKPIs kpis)}}
+    kpis: {
+      {{#each kpis}}
+      {{id}}: 0{{#unless @last}},{{/unless}}
+      {{/each}}
+    },
+    {{/if}}
+    {{#if (hasCharts charts)}}
+    chartData: {
+      {{#each charts}}
+      {{id}}: []{{#unless @last}},{{/unless}}
+      {{/each}}
+    },
+    {{/if}}
+    {{#if (hasTables tables)}}
+    tableData: {
+      {{#each tables}}
+      {{id}}: []{{#unless @last}},{{/unless}}
+      {{/each}}
+    }
+    {{/if}}
+  });
+
+  // TODO: Replace with actual service
+  // const dashboardService = useArchbaseRemoteServiceApi<{{name}}Service>(API_TYPE.Dashboard);
+
+  const loadData = useCallback(async ({{#if (hasFilters filters)}}filters?: FilterData{{/if}}) => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: undefined }));
+
+      // TODO: Replace with actual API calls
+      {{#if (hasKPIs kpis)}}
+      // const kpis = await dashboardService.getKPIData();
+      const kpis = {
+        {{#each kpis}}
+        {{id}}: Math.floor(Math.random() * 1000){{#unless @last}},{{/unless}}
+        {{/each}}
+      };
+      {{/if}}
+
+      {{#if (hasCharts charts)}}
+      // Load chart data
+      const chartData = {
+        {{#each charts}}
+        {{id}}: generateMock{{capitalize id}}Data(){{#unless @last}},{{/unless}}
+        {{/each}}
+      };
+      {{/if}}
+
+      {{#if (hasTables tables)}}
+      // Load table data
+      const tableData = {
+        {{#each tables}}
+        {{id}}: generateMock{{capitalize id}}Data(){{#unless @last}},{{/unless}}
+        {{/each}}
+      };
+      {{/if}}
+
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        {{#if (hasKPIs kpis)}}
+        kpis,
+        {{/if}}
+        {{#if (hasCharts charts)}}
+        chartData,
+        {{/if}}
+        {{#if (hasTables tables)}}
+        tableData,
+        {{/if}}
+        {{#if (hasFilters filters)}}
+        filters,
+        {{/if}}
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Erro ao carregar dados do dashboard'
+      }));
+    }
+  }, []);
+
+  const refreshData = useCallback(() => {
+    loadData({{#if (hasFilters filters)}}state.filters{{/if}});
+  }, [loadData{{#if (hasFilters filters)}}, state.filters{{/if}}]);
+
+  useEffect(() => {
+    loadData();
+
+    {{#if autoRefresh}}
+    // Setup auto-refresh
+    const interval = setInterval(refreshData, autoRefresh);
+    return () => clearInterval(interval);
+    {{/if}}
+  }, [loadData{{#if autoRefresh}}, refreshData{{/if}}]);
+
+  return {
+    ...state,
+    refreshData,
+    loadData
+  };
+}
+
+{{#if (hasCharts charts)}}
+// Mock data generators for charts
+{{#each charts}}
+function generateMock{{capitalize id}}Data() {
+  // TODO: Replace with actual data structure for {{title}}
+  return Array.from({ length: 10 }, (_, i) => ({
+    {{#if ../xAxis}}
+    {{../xAxis}}: `Item ${i + 1}`,
+    {{else}}
+    name: `Item ${i + 1}`,
+    {{/if}}
+    {{#if ../yAxis}}
+    {{../yAxis}}: Math.floor(Math.random() * 100),
+    {{else}}
+    value: Math.floor(Math.random() * 100),
+    {{/if}}
+  }));
+}
+{{/each}}
+{{/if}}
+
+{{#if (hasTables tables)}}
+// Mock data generators for tables
+{{#each tables}}
+function generateMock{{capitalize id}}Data() {
+  // TODO: Replace with actual data structure for {{title}}
+  return Array.from({ length: 20 }, (_, i) => ({
+    {{#each columns}}
+    {{field}}: {{#if (eq type 'number')}}Math.floor(Math.random() * 1000){{else if (eq type 'date')}}new Date().toISOString(){{else}}`Sample {{../title}} ${i + 1}`{{/if}}{{#unless @last}},{{/unless}}
+    {{/each}}
+  }));
+}
+{{/each}}
+{{/if}}
