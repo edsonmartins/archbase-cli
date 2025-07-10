@@ -81,9 +81,15 @@
     },
     {
       "name": "apiUrl",
-      "message": "URL da API backend:",
+      "message": "URL da API backend (incluindo protocolo e porta):",
       "type": "input",
-      "default": "http://localhost:3001/api"
+      "default": "https://localhost:8443/rapidex"
+    },
+    {
+      "name": "apiTimeout",
+      "message": "Timeout da API (em ms):",
+      "type": "input",
+      "default": "30000"
     },
     {
       "name": "useDocker",
@@ -100,7 +106,7 @@
   ],
   
   "dependencies": {
-    "archbase-react": "^2.0.0",
+    "archbase-react": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.0.0",

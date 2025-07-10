@@ -1,68 +1,96 @@
 import {
   IconDashboard,
-  IconHome2,
+  IconUsers,
   IconSettings,
-  IconShieldLock,
+  {{#if (includes features "reports")}}
+  IconChartBar,
+  {{/if}}
 } from "@tabler/icons-react";
-import { HomeView } from "../views/home/HomeView";
 import { DashboardView } from "../views/dashboard/DashboardView";
-import { 
-  DASHBOARD_CATEGORY, 
-  DASHBOARD_ROUTE, 
-  TEAL_COLOR, 
-  HOME_CATEGORY, 
-  HOME_ROUTE, 
-  CONFIGURACAO_CATEGORY,
-  SEGURANCA_CATEGORY,
-  RED_COLOR 
-} from "./navigationDataConstants";
+{{#if (includes features "user-management")}}
+import { UsersView } from "../views/users/UsersView";
+import { UserDetailsView } from "../views/users/UserDetailsView";
+{{/if}}
+{{#if (includes features "reports")}}
+import { ReportsView } from "../views/reports/ReportsView";
+{{/if}}
+{{#if (includes features "settings")}}
+import { SettingsView } from "../views/settings/SettingsView";
+{{/if}}
 import { ArchbaseNavigationItem } from "archbase-react";
 
-const homeView: ArchbaseNavigationItem = {
-  label: HOME_CATEGORY,
-  icon: <IconHome2 strokeWidth={1.25} size={28} />,
-  link: HOME_ROUTE,
-  category: HOME_CATEGORY,
-  color: TEAL_COLOR,
-  component: <HomeView />,
-  showInSidebar: true,
-  disabled: false,
-};
-
-const dashBoardView: ArchbaseNavigationItem = {
-  label: DASHBOARD_CATEGORY,
+const dashboardView: ArchbaseNavigationItem = {
+  label: "{{branding.appName}}:Dashboard",
   icon: <IconDashboard strokeWidth={1.25} size={28} />,
-  link: DASHBOARD_ROUTE,
-  category: DASHBOARD_CATEGORY,
+  link: "/dashboard",
+  category: "Dashboard",
   disabled: false,
-  color: TEAL_COLOR,
+  color: "#2196F3",
   component: <DashboardView />,
   showInSidebar: true,
 };
 
-const configuracaoGroupMenu: ArchbaseNavigationItem = {
-  label: CONFIGURACAO_CATEGORY,
-  links: [],
-  icon: <IconSettings strokeWidth={1.25} size={28} />,
-  category: CONFIGURACAO_CATEGORY,
-  color: TEAL_COLOR,
+{{#if (includes features "user-management")}}
+const usersView: ArchbaseNavigationItem = {
+  label: "{{branding.appName}}:Usuários",
+  icon: <IconUsers strokeWidth={1.25} size={28} />,
+  link: "/users",
+  category: "Usuários",
+  disabled: false,
+  color: "#4CAF50",
+  component: <UsersView />,
   showInSidebar: true,
-  disabled: true,
 };
 
-const segurancaGroupMenu: ArchbaseNavigationItem = {
-  label: SEGURANCA_CATEGORY,
-  links: [],
-  icon: <IconShieldLock strokeWidth={1.25} size={28} />,
-  category: SEGURANCA_CATEGORY,
-  color: RED_COLOR,
-  disabled: true,
+const userDetailsView: ArchbaseNavigationItem = {
+  label: "{{branding.appName}}:Detalhes do Usuário",
+  icon: <IconUsers strokeWidth={1.25} size={28} />,
+  link: "/users/:id",
+  category: "Usuários",
+  color: "#4CAF50",
+  component: <UserDetailsView />,
+  showInSidebar: false,
+  redirect: "/users",
+  customTitle: "Usuário: $title"
+};
+{{/if}}
+
+{{#if (includes features "reports")}}
+const reportsView: ArchbaseNavigationItem = {
+  label: "{{branding.appName}}:Relatórios",
+  icon: <IconChartBar strokeWidth={1.25} size={28} />,
+  link: "/reports",
+  category: "Relatórios",
+  disabled: false,
+  color: "#FF9800",
+  component: <ReportsView />,
   showInSidebar: true,
 };
+{{/if}}
+
+{{#if (includes features "settings")}}
+const settingsView: ArchbaseNavigationItem = {
+  label: "{{branding.appName}}:Configurações",
+  icon: <IconSettings strokeWidth={1.25} size={28} />,
+  link: "/settings",
+  category: "Configurações",
+  disabled: false,
+  color: "#9E9E9E",
+  component: <SettingsView />,
+  showInSidebar: true,
+};
+{{/if}}
 
 export const navigationData: ArchbaseNavigationItem[] = [
-  homeView,
-  dashBoardView,
-  configuracaoGroupMenu,
-  segurancaGroupMenu,
+  dashboardView,
+  {{#if (includes features "user-management")}}
+  usersView,
+  userDetailsView,
+  {{/if}}
+  {{#if (includes features "reports")}}
+  reportsView,
+  {{/if}}
+  {{#if (includes features "settings")}}
+  settingsView,
+  {{/if}}
 ];

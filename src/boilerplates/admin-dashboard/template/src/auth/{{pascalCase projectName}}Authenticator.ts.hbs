@@ -7,12 +7,23 @@ interface RefreshToken {
 }
 
 export class {{pascalCase projectName}}User extends ArchbaseUser {
-  constructor(data) {
+  public id: string
+  public displayName: string
+  public email: string
+  public photo: string
+  public isAdmin: boolean
+  
+  constructor(data: any) {
     super(data)
+    this.id = data.id || ''
+    this.displayName = data.displayName || data.name || ''
+    this.email = data.email || ''
+    this.photo = data.photo || data.avatar || ''
+    this.isAdmin = data.isAdmin || false
   }
 
   public isAdministrator = (): boolean => {
-    return true
+    return this.isAdmin
   }
 }
 

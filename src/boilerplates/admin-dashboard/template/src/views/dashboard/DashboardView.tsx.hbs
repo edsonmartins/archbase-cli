@@ -1,22 +1,16 @@
-import { Container, Title, Text, Card, Group, Stack, Grid, Paper, Progress } from '@mantine/core'
+import { Container, Title, Text, Card, Group, Stack, Grid, Paper, Progress, ScrollArea } from '@mantine/core'
 import { IconDashboard, IconUsers, IconChartBar, IconSettings } from '@tabler/icons-react'
 import i18next from 'i18next'
 
 export function DashboardView() {
   return (
-    <Container size="xl" py="xl">
-      <Group mb="xl">
-        <IconDashboard size={32} />
-        <Title order={1}>{i18next.t('{{projectName}}:Dashboard')}</Title>
-      </Group>
-      
-      <Text c="dimmed" mb="xl">
-        {i18next.t('{{projectName}}:Painel administrativo')} - {i18next.t('{{projectName}}:Estatísticas e métricas')}
-      </Text>
+    <Container fluid p={0} h="100%">
+      <ScrollArea h="calc(100vh - 100px)" type="scroll">
+        <Container size="xl" py="xl">
       
       <Grid>
-        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Grid.Col span={{lt}}{{lt}} base: 12, md: 6, lg: 3 {{gt}}{{gt}}>
+          <Card shadow="sm" p="lg" radius="md" withBorder>
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
@@ -32,8 +26,8 @@ export function DashboardView() {
           </Card>
         </Grid.Col>
         
-        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Grid.Col span={{lt}}{{lt}} base: 12, md: 6, lg: 3 {{gt}}{{gt}}>
+          <Card shadow="sm" p="lg" radius="md" withBorder>
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
@@ -49,8 +43,8 @@ export function DashboardView() {
           </Card>
         </Grid.Col>
         
-        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Grid.Col span={{lt}}{{lt}} base: 12, md: 6, lg: 3 {{gt}}{{gt}}>
+          <Card shadow="sm" p="lg" radius="md" withBorder>
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
@@ -66,8 +60,8 @@ export function DashboardView() {
           </Card>
         </Grid.Col>
         
-        <Grid.Col span=\{{ base: 12, md: 6, lg: 3 }}>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Grid.Col span={{lt}}{{lt}} base: 12, md: 6, lg: 3 {{gt}}{{gt}}>
+          <Card shadow="sm" p="lg" radius="md" withBorder>
             <Group justify="space-between">
               <div>
                 <Text c="dimmed" size="sm" fw={500}>
@@ -85,8 +79,8 @@ export function DashboardView() {
       </Grid>
       
       <Grid mt="xl">
-        <Grid.Col span=\{{ base: 12, lg: 8 }}>
-          <Paper shadow="sm" padding="lg" radius="md" withBorder h={400}>
+        <Grid.Col span={{lt}}{{lt}} base: 12, lg: 8 {{gt}}{{gt}}>
+          <Paper shadow="sm" p="lg" radius="md" withBorder h={400}>
             <Title order={3} mb="md">
               Gráfico de Vendas
             </Title>
@@ -96,8 +90,8 @@ export function DashboardView() {
           </Paper>
         </Grid.Col>
         
-        <Grid.Col span=\{{ base: 12, lg: 4 }}>
-          <Paper shadow="sm" padding="lg" radius="md" withBorder h={400}>
+        <Grid.Col span={{lt}}{{lt}} base: 12, lg: 4 {{gt}}{{gt}}>
+          <Paper shadow="sm" p="lg" radius="md" withBorder h={400}>
             <Title order={3} mb="md">
               Atividade Recente
             </Title>
@@ -110,6 +104,8 @@ export function DashboardView() {
           </Paper>
         </Grid.Col>
       </Grid>
+        </Container>
+      </ScrollArea>
     </Container>
   )
 }

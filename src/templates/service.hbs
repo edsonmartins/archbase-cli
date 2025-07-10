@@ -4,7 +4,7 @@
 
 @injectable()
 export class {{serviceName}} extends ArchbaseRemoteApiService<{{entityType}}, {{idType}}> {
-    constructor(@inject(API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
+    constructor(@inject(ARCHBASE_IOC_API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
         super(client);
     }
 

@@ -28,9 +28,9 @@ import {
 } from 'archbase-react';
 import { useTranslation } from 'react-i18next';
 {{#if typescript}}
-import { {{entityName}}Dto } from '../domain/{{entityName}}Dto';
-import { {{entityName}}RemoteService } from '../service/{{entityName}}RemoteService';
-import { API_TYPE } from '../ioc/types';
+import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
+import { {{entityName}}Service } from '../../services/{{entityName}}Service';
+import { API_TYPE } from '../../ioc/{{pascalCase projectName}}IOCTypes';
 {{/if}}
 
 {{#if typescript}}
@@ -45,11 +45,11 @@ const ADD_ACTION = 'ADD';
 const EDIT_ACTION = 'EDIT';
 const VIEW_ACTION = 'VIEW';
 
-export function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{/if}}) {
+function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{/if}}) {
   const { t } = useTranslation();
   const loggedUser = useArchbaseGetLoggedUser();
   const templateStore = useArchbaseStore('{{toLowerCase entityName}}Store');
-  const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}RemoteService>(API_TYPE.{{entityName}});
+  const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
   const navigate = useArchbaseNavigateParams();
   const [lastError, setLastError] = useState<string>('');
   const gridRef = useRef<any>(null);
@@ -130,7 +130,7 @@ export function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{
     return (
       <Group gap={4} wrap="nowrap">
         <ActionIcon variant="transparent" color="gray" onClick={() => {
-          dataSource.locateRecord(row);
+          dataSource.gotoRecordByData(row);
           handleView();
         }}>
           <IconEye size={22} />
@@ -140,13 +140,13 @@ export function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{
         {isAdministrator() && (
           <>
             <ActionIcon variant="transparent" color="blue" onClick={() => {
-              dataSource.locateRecord(row);
+              dataSource.gotoRecordByData(row);
               handleEdit();
             }}>
               <IconEdit size={22} />
             </ActionIcon>
             <ActionIcon variant="transparent" color="red" onClick={() => {
-              dataSource.locateRecord(row);
+              dataSource.gotoRecordByData(row);
               handleRemove();
             }}>
               <IconTrash size={22} />
@@ -155,13 +155,13 @@ export function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{
         )}
         {{else}}
         <ActionIcon variant="transparent" color="blue" onClick={() => {
-          dataSource.locateRecord(row);
+          dataSource.gotoRecordByData(row);
           handleEdit();
         }}>
           <IconEdit size={22} />
         </ActionIcon>
         <ActionIcon variant="transparent" color="red" onClick={() => {
-          dataSource.locateRecord(row);
+          dataSource.gotoRecordByData(row);
           handleRemove();
         }}>
           <IconTrash size={22} />
@@ -255,4 +255,5 @@ export function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{
   );
 }
 
+export { {{componentName}} };
 export default {{componentName}};

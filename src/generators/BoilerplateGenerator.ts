@@ -87,6 +87,10 @@ export class BoilerplateGenerator {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
 
+    // Helpers for JSX object syntax in templates
+    Handlebars.registerHelper('lt', () => '{');
+    Handlebars.registerHelper('gt', () => '}');
+
     // Helper for camelCase conversion
     Handlebars.registerHelper('camelCase', function(str: string) {
       return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {

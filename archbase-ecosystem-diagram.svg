@@ -1,0 +1,186 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="devGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="claudeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891B2;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="cliGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EA580C;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="archbaseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C2D12;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A16207;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="appGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Arrow marker -->
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+      </marker>
+    </defs>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#F9FAFB"/>
+  
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" fill="#111827" font-family="Arial, sans-serif" font-size="28" font-weight="bold">
+    Archbase Ecosystem - Desenvolvimento Assistido por IA
+  </text>
+  
+  <!-- Developer -->
+  <g id="developer">
+    <rect x="50" y="150" width="150" height="120" rx="15" fill="url(#devGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="125" y="180" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">👨‍💻 Developer</text>
+    <text x="125" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Comandos</text>
+    <text x="125" y="215" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Requisições</text>
+    <text x="125" y="230" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Feedback</text>
+    <text x="125" y="250" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">Controla todo</text>
+    <text x="125" y="262" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">o processo</text>
+  </g>
+
+  <!-- Claude Code AI -->
+  <g id="claude">
+    <rect x="300" y="120" width="180" height="180" rx="15" fill="url(#claudeGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="390" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🤖 Claude Code</text>
+    <text x="390" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Assistente IA</text>
+    
+    <!-- Claude capabilities -->
+    <rect x="310" y="180" width="160" height="110" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="390" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Capacidades:</text>
+    <text x="320" y="220" fill="white" font-family="Arial, sans-serif" font-size="10">• Consulta CLI Knowledge</text>
+    <text x="320" y="235" fill="white" font-family="Arial, sans-serif" font-size="10">• Gera código inteligente</text>
+    <text x="320" y="250" fill="white" font-family="Arial, sans-serif" font-size="10">• Cria componentes</text>
+    <text x="320" y="265" fill="white" font-family="Arial, sans-serif" font-size="10">• Estrutura aplicações</text>
+    <text x="320" y="280" fill="white" font-family="Arial, sans-serif" font-size="10">• Segue padrões</text>
+  </g>
+
+  <!-- Archbase CLI -->
+  <g id="cli">
+    <rect x="580" y="120" width="180" height="180" rx="15" fill="url(#cliGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="670" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">⚡ Archbase CLI</text>
+    <text x="670" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Knowledge Base</text>
+    
+    <!-- CLI features -->
+    <rect x="590" y="180" width="160" height="110" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="670" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Funcionalidades:</text>
+    <text x="600" y="220" fill="white" font-family="Arial, sans-serif" font-size="10">• Query components</text>
+    <text x="600" y="235" fill="white" font-family="Arial, sans-serif" font-size="10">• Generate forms</text>
+    <text x="600" y="250" fill="white" font-family="Arial, sans-serif" font-size="10">• Generate services</text>
+    <text x="600" y="265" fill="white" font-family="Arial, sans-serif" font-size="10">• Generate views</text>
+    <text x="600" y="280" fill="white" font-family="Arial, sans-serif" font-size="10">• Templates & patterns</text>
+  </g>
+
+  <!-- Archbase React -->
+  <g id="archbase">
+    <rect x="850" y="120" width="180" height="180" rx="15" fill="url(#archbaseGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="940" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">📚 Archbase React</text>
+    <text x="940" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Component Library</text>
+    
+    <!-- Archbase components -->
+    <rect x="860" y="180" width="160" height="110" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="940" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Componentes:</text>
+    <text x="870" y="220" fill="white" font-family="Arial, sans-serif" font-size="10">• ArchbaseEdit</text>
+    <text x="870" y="235" fill="white" font-family="Arial, sans-serif" font-size="10">• ArchbaseDataTable</text>
+    <text x="870" y="250" fill="white" font-family="Arial, sans-serif" font-size="10">• ArchbaseForm</text>
+    <text x="870" y="265" fill="white" font-family="Arial, sans-serif" font-size="10">• ArchbaseDataSource</text>
+    <text x="870" y="280" fill="white" font-family="Arial, sans-serif" font-size="10">• +90 componentes</text>
+  </g>
+
+  <!-- Generated Application -->
+  <g id="application">
+    <rect x="400" y="450" width="400" height="280" rx="20" fill="url(#appGradient)" stroke="#374151" stroke-width="3"/>
+    <text x="600" y="485" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">🚀 Aplicação Gerada</text>
+    
+    <!-- App structure -->
+    <rect x="420" y="500" width="360" height="210" rx="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    
+    <!-- Left column -->
+    <text x="440" y="525" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">📱 Frontend (React)</text>
+    <text x="450" y="545" fill="white" font-family="Arial, sans-serif" font-size="11">• Formulários validados</text>
+    <text x="450" y="560" fill="white" font-family="Arial, sans-serif" font-size="11">• Tabelas CRUD</text>
+    <text x="450" y="575" fill="white" font-family="Arial, sans-serif" font-size="11">• Dashboards</text>
+    <text x="450" y="590" fill="white" font-family="Arial, sans-serif" font-size="11">• Navegação</text>
+    <text x="450" y="605" fill="white" font-family="Arial, sans-serif" font-size="11">• Autenticação</text>
+    <text x="450" y="620" fill="white" font-family="Arial, sans-serif" font-size="11">• Layouts responsivos</text>
+    
+    <!-- Right column -->
+    <text x="610" y="525" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">⚙️ Backend (Java)</text>
+    <text x="620" y="545" fill="white" font-family="Arial, sans-serif" font-size="11">• Controllers REST</text>
+    <text x="620" y="560" fill="white" font-family="Arial, sans-serif" font-size="11">• Services integrados</text>
+    <text x="620" y="575" fill="white" font-family="Arial, sans-serif" font-size="11">• DTOs tipados</text>
+    <text x="620" y="590" fill="white" font-family="Arial, sans-serif" font-size="11">• Validações</text>
+    <text x="620" y="605" fill="white" font-family="Arial, sans-serif" font-size="11">• APIs documentadas</text>
+    <text x="620" y="620" fill="white" font-family="Arial, sans-serif" font-size="11">• Padrões consistentes</text>
+    
+    <!-- Bottom features -->
+    <text x="600" y="650" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">✨ Características</text>
+    <text x="440" y="670" fill="white" font-family="Arial, sans-serif" font-size="10">• TypeScript + Type Safety</text>
+    <text x="580" y="670" fill="white" font-family="Arial, sans-serif" font-size="10">• Padrões Archbase</text>
+    <text x="440" y="685" fill="white" font-family="Arial, sans-serif" font-size="10">• Testes automatizados</text>
+    <text x="580" y="685" fill="white" font-family="Arial, sans-serif" font-size="10">• Código limpo</text>
+    <text x="440" y="700" fill="white" font-family="Arial, sans-serif" font-size="10">• Performance otimizada</text>
+    <text x="580" y="700" fill="white" font-family="Arial, sans-serif" font-size="10">• Deploy ready</text>
+  </g>
+
+  <!-- Flow arrows and labels -->
+  
+  <!-- Dev to Claude -->
+  <line x1="200" y1="210" x2="300" y2="210" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="250" y="200" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Comandos IA</text>
+  
+  <!-- Claude to CLI -->
+  <line x1="480" y1="210" x2="580" y2="210" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="530" y="200" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Consulta</text>
+  
+  <!-- CLI to Archbase -->
+  <line x1="760" y1="210" x2="850" y2="210" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="805" y="200" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Conhecimento</text>
+  
+  <!-- Claude to App -->
+  <line x1="390" y1="300" x2="500" y2="450" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="420" y="360" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Gera Código</text>
+  
+  <!-- CLI to App -->
+  <line x1="670" y1="300" x2="650" y2="450" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="680" y="360" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Templates</text>
+  
+  <!-- Archbase to App -->
+  <line x1="940" y1="300" x2="720" y2="450" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="850" y="360" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Componentes</text>
+
+  <!-- Workflow steps -->
+  <g id="workflow">
+    <rect x="50" y="350" width="1100" height="60" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+    <text x="600" y="375" text-anchor="middle" fill="#92400E" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🔄 Fluxo de Trabalho</text>
+    <text x="80" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="12">1. Dev solicita: "Crie um CRUD de usuários"</text>
+    <text x="320" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="12">2. Claude consulta CLI</text>
+    <text x="500" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="12">3. CLI fornece templates</text>
+    <text x="690" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="12">4. Claude gera código</text>
+    <text x="900" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="12">5. Aplicação pronta!</text>
+  </g>
+
+  <!-- Benefits box -->
+  <g id="benefits">
+    <rect x="50" y="750" width="1100" height="40" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+    <text x="600" y="770" text-anchor="middle" fill="#1E40AF" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+      ⚡ Benefícios: Desenvolvimento 10x mais rápido | Padrões consistentes | Zero configuração | IA contextualizada
+    </text>
+  </g>
+
+</svg>

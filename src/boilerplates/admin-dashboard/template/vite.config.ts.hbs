@@ -23,9 +23,11 @@ export default defineConfig(({ mode }) => {
       }),
       http2ProxyPlugin({
         '^/api': {
-          target: env.VITE_API || 'https://localhost:9080',
+          target: env.VITE_API || 'https://localhost:8443/rapidex',
           secure: false,
           timeout: 30000, // 30 segundos
+          changeOrigin: true
+          // Não faz rewrite, mantém o path /api/v1 completo
         }
       }),
       eslint({

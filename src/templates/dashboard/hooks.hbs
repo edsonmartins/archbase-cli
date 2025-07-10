@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useArchbaseRemoteServiceApi, API_TYPE } from 'archbase-react';
+import { useArchbaseRemoteServiceApi, ARCHBASE_IOC_API_TYPE } from 'archbase-react';
 import { {{name}}State{{#if (hasKPIs kpis)}}, KPIData{{/if}}{{#if (hasCharts charts)}}, ChartData{{/if}}{{#if (hasTables tables)}}, TableData{{/if}}{{#if (hasFilters filters)}}, FilterData{{/if}} } from './{{name}}Types';
 
 export function use{{name}}Data(autoRefresh = {{autoRefresh}}) {
@@ -30,7 +30,7 @@ export function use{{name}}Data(autoRefresh = {{autoRefresh}}) {
   });
 
   // TODO: Replace with actual service
-  // const dashboardService = useArchbaseRemoteServiceApi<{{name}}Service>(API_TYPE.Dashboard);
+  // const dashboardService = useArchbaseRemoteServiceApi<{{name}}Service>(ARCHBASE_IOC_API_TYPE.Dashboard);
 
   const loadData = useCallback(async ({{#if (hasFilters filters)}}filters?: FilterData{{/if}}) => {
     try {

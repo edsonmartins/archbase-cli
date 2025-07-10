@@ -95,11 +95,23 @@ export class ViewGenerator {
       } else if (config.fields) {
         fields = this.parseFields(config.fields);
       } else {
-        // Default fields if neither DTO nor fields provided
-        fields = [
-          { name: 'name', type: 'text', label: 'Name', width: 200, sortable: true, filterable: true },
-          { name: 'status', type: 'enum', label: 'Status', width: 120, sortable: true, filterable: true }
-        ];
+        // Try to auto-detect DTO based on entity name
+        const entityName = name.replace(/View$/, '');
+        const outputPath = config.output || process.cwd();
+        const possibleDtoPath = path.join(outputPath, 'src/domain', `${entityName}Dto.ts`);
+        
+        if (await fs.pathExists(possibleDtoPath)) {
+          console.log(`📄 Auto-detected DTO: ${possibleDtoPath}`);
+          fields = await this.extractFieldsFromDto(possibleDtoPath);
+        } else {
+          // Default fields if no DTO found
+          console.log(`⚠️  No DTO found for ${entityName}, using default fields`);
+          fields = [
+            { name: 'code', type: 'text', label: 'Código', width: 120, sortable: true, filterable: true },
+            { name: 'name', type: 'text', label: 'Nome', width: 200, sortable: true, filterable: true },
+            { name: 'status', type: 'enum', label: 'Status', width: 120, sortable: true, filterable: true }
+          ];
+        }
       }
       
       const context = this.buildTemplateContext(name, fields, config);
@@ -171,7 +183,7 @@ export class ViewGenerator {
         const fieldType = match[2].trim();
         
         // Skip audit and system fields for view (keep only relevant display fields)
-        if (['id', 'code', 'version', 'createEntityDate', 'updateEntityDate', 
+        if (['id', 'version', 'createEntityDate', 'updateEntityDate', 
              'createdByUser', 'lastModifiedByUser'].includes(fieldName)) {
           continue;
         }
@@ -190,7 +202,7 @@ export class ViewGenerator {
         fields.push({
           name: fieldName,
           type: columnType,
-          label: this.capitalizeFirst(fieldName),
+          label: this.getFieldLabel(fieldName),
           width,
           sortable: true,
           filterable: true
@@ -406,5 +418,29 @@ export class ViewGenerator {
   
   private capitalizeFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  private getFieldLabel(fieldName: string): string {
+    // Field name translations map
+    const translations: Record<string, string> = {
+      'code': 'Código',
+      'name': 'Nome',
+      'state': 'Estado',
+      'country': 'País',
+      'isActive': 'Ativo',
+      'boundaries': 'Limites',
+      'timezone': 'Fuso Horário',
+      'defaultCommissionRate': 'Taxa de Comissão',
+      'defaultCashbackRate': 'Taxa de Cashback',
+      'email': 'E-mail',
+      'description': 'Descrição',
+      'status': 'Status',
+      'type': 'Tipo',
+      'category': 'Categoria',
+      'createdDate': 'Data de Criação',
+      'updatedDate': 'Data de Atualização'
+    };
+
+    return translations[fieldName] || this.capitalizeFirst(fieldName);
   }
 }

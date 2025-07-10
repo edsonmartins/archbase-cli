@@ -51,7 +51,8 @@ export class ServiceGenerator {
       return str ? str.toLowerCase() : '';
     });
     this.handlebars.registerHelper('buildMethodParams', (parameters: any[]) => {
-      return parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+      const result = parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+      return new this.handlebars.SafeString(result);
     });
     this.handlebars.registerHelper('buildUrlParams', (endpoint: string, parameters: any[]) => {
       let url = endpoint;
@@ -59,7 +60,7 @@ export class ServiceGenerator {
       pathParams.forEach(param => {
         url = url.replace(`{${param.name}}`, `\${${param.name}}`);
       });
-      return url;
+      return new this.handlebars.SafeString(url);
     });
     this.handlebars.registerHelper('hasQueryParams', (parameters: any[]) => {
       return parameters.some(p => p.source === 'query');
@@ -75,7 +76,8 @@ export class ServiceGenerator {
     });
     this.handlebars.registerHelper('getBodyParam', (parameters: any[]) => {
       const bodyParam = parameters.find(p => p.source === 'body');
-      return bodyParam ? bodyParam.name : '{}';
+      const result = bodyParam ? bodyParam.name : '{}';
+      return new this.handlebars.SafeString(result);
     });
     this.handlebars.registerHelper('hasBodyParam', (parameters: any[]) => {
       return parameters.some(p => p.source === 'body');
@@ -111,6 +113,9 @@ export class ServiceGenerator {
         dtoPaths.push(dtoPath);
       }
 
+      // Auto-register service in IOC container
+      await this.registerServiceInIOC(options, outputPath);
+
       this.logger.success(`Service generated successfully at: ${servicePath}`);
       if (dtoPaths.length > 0) {
         this.logger.success(`DTOs generated at: ${dtoPaths.join(', ')}`);
@@ -136,15 +141,19 @@ export class ServiceGenerator {
   }
 
   private async prepareTemplateData(options: ServiceGeneratorOptions): Promise<any> {
+    // Extract project name from output path or use current directory name
+    const outputPath = options.outputPath || process.cwd();
+    const projectName = path.basename(outputPath);
+    
     const data: any = {
       serviceName: options.serviceName,
       entityName: options.entityName,
       entityType: options.entityType,
       idType: options.idType || 'string',
-      endpoint: options.endpoint || `/${options.entityName.toLowerCase()}s`,
+      endpoint: options.endpoint || `/api/v1/${options.entityName.toLowerCase()}s`,
       hasCustomMethods: false,
       customMethods: [],
-      imports: this.getDefaultImports()
+      imports: this.getDefaultImports(options.entityType, projectName)
     };
 
     // If Java controller provided, analyze it
@@ -303,11 +312,25 @@ export class ServiceGenerator {
     return typeMap[javaType] || javaType;
   }
 
-  private getDefaultImports(): string[] {
-    return [
+  private getDefaultImports(entityType?: string, projectName?: string): string[] {
+    const imports = [
       "import { injectable, inject } from 'inversify';",
-      "import { ArchbaseRemoteApiService, ArchbaseRemoteApiClient, API_TYPE } from 'archbase-react';"
+      "import { ArchbaseRemoteApiService, ArchbaseRemoteApiClient, ARCHBASE_IOC_API_TYPE } from 'archbase-react';"
     ];
+    
+    if (entityType) {
+      imports.push(`import { ${entityType} } from '../domain/${entityType}';`);
+    }
+
+    // Add project-specific IOC types import
+    if (projectName) {
+      const pascalCaseProjectName = projectName.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join('');
+      imports.push(`import { API_TYPE } from '../ioc/${pascalCaseProjectName}IOCTypes';`);
+    }
+    
+    return imports;
   }
 
   private updateImports(imports: string[], methods: ServiceMethod[]): string[] {
@@ -318,7 +341,7 @@ export class ServiceGenerator {
       // Extract DTO types from return types (handle arrays and generics)
       const dtoMatch = method.returnType.match(/(\w+Dto)/);
       if (dtoMatch && dtoMatch[1] !== 'ClienteDto') { // Don't re-import the main DTO
-        additionalImports.add(`import { ${dtoMatch[1]} } from '../dto/${dtoMatch[1]}';`);
+        additionalImports.add(`import { ${dtoMatch[1]} } from '../domain/${dtoMatch[1]}';`);
       }
     });
 
@@ -357,6 +380,104 @@ export class ServiceGenerator {
     await fs.writeFile(filePath, code);
     
     return filePath;
+  }
+
+  /**
+   * Automatically register the generated service in the IOC container
+   */
+  private async registerServiceInIOC(options: ServiceGeneratorOptions, outputPath: string): Promise<void> {
+    try {
+      await this.updateIOCTypes(options, outputPath);
+      await this.updateIOCContainer(options, outputPath);
+      this.logger.info(`Auto-registered ${options.serviceName} in IOC container`);
+    } catch (error) {
+      this.logger.warn(`Could not auto-register service in IOC: ${error.message}`);
+      this.logger.info(`Please manually add the service registration to your IOC container`);
+    }
+  }
+
+  /**
+   * Update IOC Types file to include the new service type
+   */
+  private async updateIOCTypes(options: ServiceGeneratorOptions, outputPath: string): Promise<void> {
+    const iocTypesPattern = path.join(outputPath, 'src/ioc/*IOCTypes.ts');
+    const glob = await import('glob');
+    const iocTypesFiles = glob.glob.sync(iocTypesPattern);
+    
+    if (iocTypesFiles.length === 0) {
+      throw new Error('IOC Types file not found');
+    }
+
+    const iocTypesPath = iocTypesFiles[0];
+    let content = await fs.readFile(iocTypesPath, 'utf-8');
+    
+    // Check if service type already exists
+    const serviceKey = options.entityName;
+    if (content.includes(`${serviceKey}:`)) {
+      this.logger.info(`Service type ${serviceKey} already exists in IOC types`);
+      return;
+    }
+
+    // Add the new service type
+    const newTypeEntry = `  ${serviceKey}: "${serviceKey}",`;
+    
+    // Find the closing brace of API_TYPE and insert before it
+    const apiTypeEndPattern = /(\n};)/;
+    if (apiTypeEndPattern.test(content)) {
+      content = content.replace(apiTypeEndPattern, `\n${newTypeEntry}$1`);
+      await fs.writeFile(iocTypesPath, content);
+      this.logger.info(`Added ${serviceKey} type to IOC types`);
+    } else {
+      throw new Error('Could not find API_TYPE object structure in IOC types file');
+    }
+  }
+
+  /**
+   * Update IOC Container file to include the new service registration
+   */
+  private async updateIOCContainer(options: ServiceGeneratorOptions, outputPath: string): Promise<void> {
+    const iocContainerPattern = path.join(outputPath, 'src/ioc/*ContainerIOC.ts');
+    const glob = await import('glob');
+    const iocContainerFiles = glob.glob.sync(iocContainerPattern);
+    
+    if (iocContainerFiles.length === 0) {
+      throw new Error('IOC Container file not found');
+    }
+
+    const iocContainerPath = iocContainerFiles[0];
+    let content = await fs.readFile(iocContainerPath, 'utf-8');
+    
+    // Check if service is already registered
+    if (content.includes(`API_TYPE.${options.entityName}`)) {
+      this.logger.info(`Service ${options.serviceName} already registered in IOC container`);
+      return;
+    }
+
+    // Add import for the service
+    const serviceImport = `import { ${options.serviceName} } from "../services/${options.serviceName}";`;
+    const importInsertPoint = content.lastIndexOf('import');
+    const importLineEnd = content.indexOf('\n', importInsertPoint);
+    content = content.slice(0, importLineEnd + 1) + serviceImport + '\n' + content.slice(importLineEnd + 1);
+
+    // Add service binding
+    const serviceBinding = `container\n  .bind<${options.serviceName}>(API_TYPE.${options.entityName})\n  .to(${options.serviceName});`;
+    
+    // Find the last container binding and add after it
+    const lastBindingPattern = /container\s*\n\s*\.bind[^;]+;/g;
+    let lastMatch;
+    let match;
+    while ((match = lastBindingPattern.exec(content)) !== null) {
+      lastMatch = match;
+    }
+    
+    if (lastMatch) {
+      const insertPoint = lastMatch.index + lastMatch[0].length;
+      content = content.slice(0, insertPoint) + '\n' + serviceBinding + content.slice(insertPoint);
+      await fs.writeFile(iocContainerPath, content);
+      this.logger.info(`Added ${options.serviceName} registration to IOC container`);
+    } else {
+      throw new Error('Could not find container bindings in IOC container file');
+    }
   }
 }
 

@@ -4,7 +4,8 @@ import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
 import '@mantine/spotlight/styles.css'
-import 'mantine-react-table/styles.css'
+import 'archbase-react/dist/cjs/index.css'
+// mantine-react-table removido no archbase-react 3.0.0
 import {
   ActionIcon,
   Menu,
@@ -192,7 +193,7 @@ function Main({ onLoginUser, onLogoutUser, user, setUser }: MainProps) {
   return (
     //@ts-ignore
     <ArchbaseErrorBoundary
-      othersProps=\{{ style: \{ backgroundColor: theme.primaryColor } }}
+      othersProps={{lt}}{{lt}} style: { backgroundColor: theme.primaryColor } {{gt}}{{gt}}
       FallbackComponent={ {{pascalCase projectName}}ErrorFallback}
       onError={logError}
     >
@@ -366,7 +367,7 @@ function Main({ onLoginUser, onLogoutUser, user, setUser }: MainProps) {
                     </Menu.Item>
                   </Fragment>
                 }
-                logo={undefined}
+                logo=""
               />
             }
           >

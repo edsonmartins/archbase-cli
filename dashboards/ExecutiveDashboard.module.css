@@ -1,0 +1,289 @@
+/* Styles for ExecutiveDashboard Dashboard */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dashboardContent {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.dashboardHeader {
+  margin-bottom: 1.5rem;
+}
+
+.dashboardTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.dashboardDescription {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.filtersCard {
+  margin-bottom: 1.5rem;
+}
+
+.filtersTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.kpiGrid {
+  margin-bottom: 1.5rem;
+}
+
+.kpiCard {
+  height: 8rem;
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+}
+
+.kpiIcon {
+  margin-right: 1rem;
+}
+
+.kpiContent {
+  flex: 1;
+}
+
+.kpiTitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.kpiValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.kpiDescription {
+  font-size: 0.75rem;
+}
+
+.chartCard {
+  height: 20rem;
+  margin-bottom: 1.5rem;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chartTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.tableCard {
+  margin-bottom: 1.5rem;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tableTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+}
+
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dashboardContent {
+    padding: 1rem;
+  }
+  
+  .kpiCard {
+    height: auto;
+    min-height: 6rem;
+  }
+  
+  .chartCard {
+    height: 16rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .dashboardDescription {
+    color: #9ca3af;
+  }
+  
+  .kpiTitle {
+    color: #9ca3af;
+  }
+  
+  .errorText {
+    color: #f87171;
+  }
+}
+
+/* Animation classes */
+.fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Custom grid layouts */
+.kpiGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.chartGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+/* Chart specific styles */
+.chartContainer {
+  position: relative;
+}
+
+.chartLegend {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* KPI color variants */
+.kpiBlue {
+  border-left: 4px solid #3b82f6;
+}
+
+.kpiGreen {
+  border-left: 4px solid #10b981;
+}
+
+.kpiYellow {
+  border-left: 4px solid #f59e0b;
+}
+
+.kpiRed {
+  border-left: 4px solid #ef4444;
+}
+
+.kpiPurple {
+  border-left: 4px solid #8b5cf6;
+}
+
+/* Table enhancements */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.tableActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Filter specific styles */
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+}
+
+.filterItem {
+  min-width: 200px;
+  flex: 1;
+}
+
+/* Utility classes */
+.textCenter {
+  text-align: center;
+}
+
+.textRight {
+  text-align: right;
+}
+
+.textLeft {
+  text-align: left;
+}
+
+.fontBold {
+  font-weight: 700;
+}
+
+.fontMedium {
+  font-weight: 500;
+}
+
+.fontNormal {
+  font-weight: 400;
+}
+
+.mb0 { margin-bottom: 0; }
+.mb1 { margin-bottom: 0.25rem; }
+.mb2 { margin-bottom: 0.5rem; }
+.mb3 { margin-bottom: 0.75rem; }
+.mb4 { margin-bottom: 1rem; }
+.mb6 { margin-bottom: 1.5rem; }
