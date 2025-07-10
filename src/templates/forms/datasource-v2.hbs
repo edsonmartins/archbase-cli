@@ -3,17 +3,21 @@ import React, { useCallback } from 'react';
 import * as {{validationLibrary}} from '{{validationLibrary}}';
 {{/if}}
 import { 
-  ArchbaseFormTemplate,
+  useArchbaseRemoteDataSource,
+  useArchbaseDataSource
+} from '@archbase/data';
+import {
   ArchbaseEdit,
   ArchbaseSelect,
   ArchbaseSelectItem,
   ArchbaseCheckbox,
   ArchbaseNumberEdit,
   ArchbasePasswordEdit,
-  ArchbaseTextArea,
-  useArchbaseRemoteDataSource,
-  useArchbaseDataSource
-} from 'archbase-react';
+  ArchbaseTextArea
+} from '@archbase/components';
+import {
+  ArchbaseFormTemplate
+} from '@archbase/template';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 {{#if typescript}}
 import { {{entityName}}Dto } from '../domain/{{entityName}}Dto';

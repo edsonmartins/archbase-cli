@@ -25,11 +25,17 @@ export interface ProjectDependencies {
  */
 export const ARCHBASE_CORE_DEPENDENCIES: DependencyConfig[] = [
   // React ecosystem (peer dependencies)
-  { name: 'react', version: '^18.3.1', required: true, category: 'core', description: 'React library' },
-  { name: 'react-dom', version: '^18.3.1', required: true, category: 'core', description: 'React DOM library' },
+  { name: 'react', version: '^18.3.0 || ^19.0.0', required: true, category: 'core', description: 'React library' },
+  { name: 'react-dom', version: '^18.3.0 || ^19.0.0', required: true, category: 'core', description: 'React DOM library' },
   
-  // Archbase main library
-  { name: 'archbase-react', version: '^2.1.3', required: true, category: 'core', description: 'Archbase React components library' },
+  // Archbase V3 modular packages
+  { name: '@archbase/admin', version: '^3.0.0', required: true, category: 'core', description: 'Archbase admin components' },
+  { name: '@archbase/components', version: '^3.0.0', required: true, category: 'core', description: 'Archbase core components' },
+  { name: '@archbase/core', version: '^3.0.0', required: true, category: 'core', description: 'Archbase core utilities' },
+  { name: '@archbase/data', version: '^3.0.0', required: true, category: 'core', description: 'Archbase data management' },
+  { name: '@archbase/layout', version: '^3.0.0', required: true, category: 'core', description: 'Archbase layout components' },
+  { name: '@archbase/security', version: '^3.0.0', required: true, category: 'core', description: 'Archbase security components' },
+  { name: '@archbase/template', version: '^3.0.0', required: true, category: 'core', description: 'Archbase template components' },
   
   // Mantine 8.x ecosystem (all required by archbase-react)
   { name: '@mantine/core', version: '8.1.2', required: true, category: 'ui', description: 'Mantine core components' },
@@ -132,6 +138,15 @@ export const ARCHBASE_DEV_DEPENDENCIES: DependencyConfig[] = [
   { name: 'postcss', version: '^8.4.38', required: true, category: 'dev', description: 'CSS processing tool' },
   { name: 'postcss-preset-mantine', version: '^1.15.0', required: true, category: 'dev', description: 'Mantine PostCSS preset' },
   { name: 'postcss-simple-vars', version: '^7.0.1', required: true, category: 'dev', description: 'PostCSS variables' },
+  
+  // Vite plugins and build tools
+  { name: 'vite-plugin-eslint', version: '^1.8.1', required: true, category: 'dev', description: 'Vite ESLint plugin' },
+  { name: 'vite-plugin-copy', version: '^0.1.6', required: true, category: 'dev', description: 'Vite copy plugin' },
+  { name: 'http2-proxy', version: '^5.0.53', required: true, category: 'dev', description: 'HTTP2 proxy for Vite dev server' },
+  
+  // Babel plugins for decorators and class properties
+  { name: '@babel/plugin-proposal-decorators', version: '^7.24.0', required: true, category: 'dev', description: 'Babel decorators plugin' },
+  { name: '@babel/plugin-transform-class-properties', version: '^7.24.0', required: true, category: 'dev', description: 'Babel class properties plugin' },
 ];
 
 /**

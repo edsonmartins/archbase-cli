@@ -17,15 +17,19 @@ import {
   ArchbaseDataGrid,
   ArchbaseDataGridColumn,
   Columns,
-  useArchbaseRemoteDataSource,
+  ArchbaseNotifications,
+  ArchbaseDialog
+} from '@archbase/components';
+import {
+  useArchbaseRemoteDataSource
+} from '@archbase/data';
+import {
   useArchbaseStore,
   useArchbaseRemoteServiceApi,
   useArchbaseGetLoggedUser,
   useArchbaseNavigateParams,
-  useArchbaseTheme,
-  ArchbaseNotifications,
-  ArchbaseDialog
-} from 'archbase-react';
+  useArchbaseTheme
+} from '@archbase/core';
 import { useTranslation } from 'react-i18next';
 {{#if typescript}}
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';

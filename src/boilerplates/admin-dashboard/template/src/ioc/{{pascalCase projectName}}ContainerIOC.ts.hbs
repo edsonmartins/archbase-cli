@@ -1,9 +1,9 @@
 import axios from "axios";
 import { API_TYPE } from "./{{pascalCase projectName}}IOCTypes";
 import { {{pascalCase projectName}}Authenticator } from "../auth/{{pascalCase projectName}}Authenticator";
-import { IOCContainer } from "archbase-react";
-import { ArchbaseAuthenticator } from "archbase-react";
-import { ArchbaseAxiosRemoteApiClient, ArchbaseRemoteApiClient } from "archbase-react";
+import { IOCContainer } from "@archbase/core";
+import { ArchbaseAuthenticator } from "@archbase/security";
+import { ArchbaseAxiosRemoteApiClient, ArchbaseRemoteApiClient } from "@archbase/data";
 
 axios.defaults.baseURL = import.meta.env.VITE_API;
 

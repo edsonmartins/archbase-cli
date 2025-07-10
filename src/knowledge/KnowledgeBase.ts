@@ -188,13 +188,13 @@ export class KnowledgeBase {
   }
   
   private async initializeDefaultComponents(): Promise<void> {
-    // Initialize with key Archbase React components
+    // Initialize with Archbase React V3 components from catalog
     const defaultComponents: Record<string, ComponentInfo> = {
       'ArchbaseEdit': {
         name: 'ArchbaseEdit',
-        description: 'Text input component with DataSource integration',
-        category: 'editors',
-        version: '2.1.4',
+        description: 'Form input editor with data binding',
+        category: 'editor',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -214,7 +214,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseTextArea', 'ArchbasePasswordEdit'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'data entry', 'user input'],
         aiHints: [
@@ -223,42 +223,47 @@ export class KnowledgeBase {
           'Consider validation for user input forms'
         ]
       },
-      'ArchbaseDataTable': {
-        name: 'ArchbaseDataTable',
-        description: 'Advanced data table with sorting, filtering, and pagination',
-        category: 'tables',
-        version: '2.1.4',
+      'ArchbaseDataGrid': {
+        name: 'ArchbaseDataGrid',
+        description: 'Data grid component for tabular data',
+        category: 'datagrid',
+        version: '3.0.0',
         status: 'stable',
         props: {
-          dataSource: { type: 'ArchbaseDataSource<T, ID>', required: true, description: 'DataSource for table data' },
-          columns: { type: 'ColumnDef[]', required: true, description: 'Table column definitions' },
-          enableSorting: { type: 'boolean', required: false, description: 'Enable column sorting', defaultValue: true },
-          enableFiltering: { type: 'boolean', required: false, description: 'Enable column filtering', defaultValue: true }
+          dataSource: { type: 'ArchbaseDataSource<T, ID>', required: true, description: 'DataSource for grid data' },
+          children: { type: 'ReactNode', required: true, description: 'Column definitions' },
+          enableRowActions: { type: 'boolean', required: false, description: 'Enable row action buttons', defaultValue: false },
+          renderRowActions: { type: '(row: T) => ReactNode', required: false, description: 'Custom row actions renderer' },
+          toolbarLeftContent: { type: 'ReactNode', required: false, description: 'Toolbar left side content' },
+          withBorder: { type: 'boolean', required: false, description: 'Show grid border', defaultValue: true },
+          striped: { type: 'boolean', required: false, description: 'Striped row styling', defaultValue: false },
+          pageSize: { type: 'number', required: false, description: 'Number of rows per page', defaultValue: 25 }
         },
         examples: [
           {
-            title: 'Data table with filtering',
-            description: 'Table with search and column filters',
-            file: 'examples/filtered-table.tsx',
-            tags: ['table', 'filtering', 'search']
+            title: 'CRUD grid with permissions',
+            description: 'Complete grid following powerview-admin pattern',
+            file: 'examples/data-grid-crud.tsx',
+            tags: ['grid', 'crud', 'permissions', 'admin']
           }
         ],
         patterns: [],
-        relatedComponents: ['ArchbaseList', 'ArchbasePagination'],
-        dependencies: ['archbase-react', '@tanstack/react-table'],
+        relatedComponents: ['ArchbaseDataGridColumn', 'ArchbaseDataGridPagination'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
-        useCases: ['data display', 'admin panels', 'search results'],
+        useCases: ['data display', 'admin panels', 'CRUD lists', 'search results'],
         aiHints: [
-          'Define columns with proper type safety',
-          'Use enableFiltering for searchable tables',
-          'Consider pagination for large datasets'
+          'Use ArchbaseDataGridColumn children for column definitions',
+          'Enable row actions for CRUD operations',
+          'Use toolbar for add/edit/delete buttons',
+          'Perfect for admin list views'
         ]
       },
       'ArchbaseFormTemplate': {
         name: 'ArchbaseFormTemplate',
-        description: 'Template-based form component with DataSource V2 integration',
-        category: 'forms',
-        version: '2.1.4',
+        description: 'Template and scaffold component',
+        category: 'template',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseRemoteDataSource<T, ID>', required: true, description: 'DataSource V2 for form data' },
@@ -277,7 +282,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseEdit', 'ArchbaseSelect', 'Button', 'useArchbaseRemoteDataSource'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/template'],
         complexity: 'medium',
         useCases: ['forms', 'data entry', 'CRUD operations', 'admin panels'],
         aiHints: [
@@ -287,47 +292,11 @@ export class KnowledgeBase {
           'Ideal for admin CRUD forms'
         ]
       },
-      'ArchbaseDataGrid': {
-        name: 'ArchbaseDataGrid',
-        description: 'Advanced data grid with CRUD operations, filtering, and permissions',
-        category: 'grids',
-        version: '2.1.4',
-        status: 'stable',
-        props: {
-          dataSource: { type: 'ArchbaseRemoteDataSource<T, ID>', required: true, description: 'DataSource for grid data' },
-          children: { type: 'ReactNode', required: true, description: 'Column definitions' },
-          enableRowActions: { type: 'boolean', required: false, description: 'Enable row action buttons', defaultValue: false },
-          renderRowActions: { type: '(row: T) => ReactNode', required: false, description: 'Custom row actions renderer' },
-          toolbarLeftContent: { type: 'ReactNode', required: false, description: 'Toolbar left side content' },
-          withBorder: { type: 'boolean', required: false, description: 'Show grid border', defaultValue: true },
-          striped: { type: 'boolean', required: false, description: 'Striped row styling', defaultValue: false },
-          pageSize: { type: 'number', required: false, description: 'Number of rows per page', defaultValue: 25 }
-        },
-        examples: [
-          {
-            title: 'CRUD grid with permissions',
-            description: 'Complete grid following powerview-admin pattern',
-            file: 'examples/data-grid-crud.tsx',
-            tags: ['grid', 'crud', 'permissions', 'admin']
-          }
-        ],
-        patterns: [],
-        relatedComponents: ['ArchbaseDataGridColumn', 'useArchbaseRemoteDataSource'],
-        dependencies: ['archbase-react'],
-        complexity: 'medium',
-        useCases: ['data display', 'admin panels', 'CRUD lists', 'search results'],
-        aiHints: [
-          'Use ArchbaseDataGridColumn children for column definitions',
-          'Enable row actions for CRUD operations',
-          'Use toolbar for add/edit/delete buttons',
-          'Perfect for admin list views'
-        ]
-      },
       'ArchbaseSelect': {
         name: 'ArchbaseSelect',
         description: 'Dropdown select component with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -349,7 +318,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseEdit', 'ArchbaseMultiSelect'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'filters', 'status selection', 'category selection'],
         aiHints: [
@@ -363,7 +332,7 @@ export class KnowledgeBase {
         name: 'Button',
         description: 'Enhanced button component with loading states and variants',
         category: 'actions',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           children: { type: 'ReactNode', required: true, description: 'Button content' },
@@ -386,7 +355,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseActionIcon', 'ButtonGroup'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'actions', 'navigation', 'toolbars'],
         aiHints: [
@@ -400,7 +369,7 @@ export class KnowledgeBase {
         name: 'ArchbaseTextArea',
         description: 'Multi-line text input component with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -422,7 +391,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseEdit', 'ArchbaseRichTextEditor'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'comments', 'descriptions', 'notes'],
         aiHints: [
@@ -436,7 +405,7 @@ export class KnowledgeBase {
         name: 'ArchbaseCheckbox',
         description: 'Checkbox component with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -457,7 +426,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseCheckboxGroup', 'ArchbaseSwitch'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'settings', 'agreements', 'boolean fields'],
         aiHints: [
@@ -471,7 +440,7 @@ export class KnowledgeBase {
         name: 'ArchbaseRadio',
         description: 'Radio button group component with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -492,7 +461,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseSelect', 'ArchbaseSegmentedControl'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'selections', 'categories', 'priorities'],
         aiHints: [
@@ -506,7 +475,7 @@ export class KnowledgeBase {
         name: 'ArchbaseDate',
         description: 'Date picker component with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -529,7 +498,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseDateTime', 'ArchbaseDateRange'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'date selection', 'scheduling', 'filtering'],
         aiHints: [
@@ -543,7 +512,7 @@ export class KnowledgeBase {
         name: 'ArchbaseNumber',
         description: 'Numeric input component with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -567,7 +536,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseEdit', 'ArchbaseCurrency'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['forms', 'numeric data', 'quantities', 'prices'],
         aiHints: [
@@ -581,7 +550,7 @@ export class KnowledgeBase {
         name: 'ArchbaseModal',
         description: 'Modal dialog component with customizable content and actions',
         category: 'overlays',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           opened: { type: 'boolean', required: true, description: 'Modal open state' },
@@ -603,7 +572,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseDialog', 'ArchbaseDrawer'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['confirmations', 'forms', 'details', 'overlays'],
         aiHints: [
@@ -617,7 +586,7 @@ export class KnowledgeBase {
         name: 'ArchbaseNotifications',
         description: 'Notification system for displaying messages and alerts',
         category: 'feedback',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           position: { type: 'top-left | top-right | bottom-left | bottom-right', required: false, description: 'Notification position', defaultValue: 'top-right' },
@@ -634,7 +603,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseAlert', 'ArchbaseToast'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['feedback', 'alerts', 'status updates', 'error handling'],
         aiHints: [
@@ -648,7 +617,7 @@ export class KnowledgeBase {
         name: 'ArchbaseNavigation',
         description: 'Navigation component for application routing and menu structure',
         category: 'navigation',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           navigationData: { type: 'ArchbaseNavigationItem[]', required: true, description: 'Navigation structure data' },
@@ -667,7 +636,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseNavigationItem', 'ArchbaseBreadcrumbs'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'high',
         useCases: ['admin panels', 'app navigation', 'menus', 'routing'],
         aiHints: [
@@ -681,7 +650,7 @@ export class KnowledgeBase {
         name: 'ArchbaseAsyncSelect',
         description: 'Async select component that loads options dynamically with pagination support',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -704,7 +673,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseSelect', 'ArchbaseAsyncMultiSelect', 'ArchbaseLookupSelect'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['remote data', 'user search', 'large datasets', 'API integration'],
         aiHints: [
@@ -718,7 +687,7 @@ export class KnowledgeBase {
         name: 'ArchbaseRichTextEdit',
         description: 'Rich text editor component with full formatting capabilities using SunEditor',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -755,7 +724,7 @@ export class KnowledgeBase {
         name: 'ArchbaseMaskEdit',
         description: 'Masked input component with predefined patterns for common formats',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -791,7 +760,7 @@ export class KnowledgeBase {
         name: 'ArchbaseLookupEdit',
         description: 'Lookup component with modal search functionality for complex selections',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -814,7 +783,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseLookupSelect', 'ArchbaseLookupNumber', 'ArchbaseAsyncSelect'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'high',
         useCases: ['complex selections', 'product search', 'customer lookup', 'modal selections'],
         aiHints: [
@@ -828,7 +797,7 @@ export class KnowledgeBase {
         name: 'ArchbaseImageEdit',
         description: 'Image upload and preview component with drag-and-drop support',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -850,7 +819,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseAvatarEdit', 'ArchbaseFileAttachment'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['profile pictures', 'product images', 'document uploads', 'galleries'],
         aiHints: [
@@ -864,7 +833,7 @@ export class KnowledgeBase {
         name: 'ArchbaseJsonEdit',
         description: 'JSON editor component with syntax highlighting and validation',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -885,7 +854,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseKeyValueEditor', 'ArchbaseRichTextEdit'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['configuration', 'API payloads', 'settings', 'debugging'],
         aiHints: [
@@ -899,7 +868,7 @@ export class KnowledgeBase {
         name: 'ArchbaseSwitch',
         description: 'Toggle switch component for boolean values with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -921,7 +890,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseCheckbox', 'ArchbaseRadio'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['feature toggles', 'settings', 'active/inactive status', 'preferences'],
         aiHints: [
@@ -935,7 +904,7 @@ export class KnowledgeBase {
         name: 'ArchbaseRating',
         description: 'Rating component with customizable icons and fractional values',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -957,7 +926,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseNumberEdit'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['product reviews', 'feedback', 'ratings', 'satisfaction scores'],
         aiHints: [
@@ -971,7 +940,7 @@ export class KnowledgeBase {
         name: 'ArchbaseCronExpressionEdit',
         description: 'Cron expression editor with visual builder and validation',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -992,7 +961,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseTimeEdit', 'ArchbaseOperationHoursEditor'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'high',
         useCases: ['job scheduling', 'task automation', 'recurring events', 'batch processing'],
         aiHints: [
@@ -1006,7 +975,7 @@ export class KnowledgeBase {
         name: 'ArchbaseKeyValueEditor',
         description: 'Key-value pair editor for dynamic property management',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1029,7 +998,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseJsonEdit'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['configuration', 'environment variables', 'metadata', 'custom properties'],
         aiHints: [
@@ -1043,7 +1012,7 @@ export class KnowledgeBase {
         name: 'ArchbaseOperationHoursEditor',
         description: 'Operation hours editor for business hours configuration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1064,7 +1033,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseTimeEdit', 'ArchbaseTimeRangeSelector'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['business hours', 'store schedules', 'availability', 'opening hours'],
         aiHints: [
@@ -1078,7 +1047,7 @@ export class KnowledgeBase {
         name: 'ArchbaseTimeRangeSelector',
         description: 'Time range selector for selecting start and end times',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1100,7 +1069,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseTimeEdit', 'ArchbaseDateTimePickerRange'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['scheduling', 'appointments', 'time slots', 'duration selection'],
         aiHints: [
@@ -1114,7 +1083,7 @@ export class KnowledgeBase {
         name: 'ArchbaseTreeSelect',
         description: 'Tree select component for hierarchical data selection',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1136,7 +1105,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseSelect', 'ArchbaseAsyncSelect'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'high',
         useCases: ['category selection', 'organization structure', 'file systems', 'hierarchies'],
         aiHints: [
@@ -1150,7 +1119,7 @@ export class KnowledgeBase {
         name: 'ArchbaseChipGroup',
         description: 'Chip group component for tag/category selection with DataSource integration',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1172,7 +1141,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseChip', 'ArchbaseChipItem', 'ArchbaseSelect'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['tag selection', 'filters', 'categories', 'skills'],
         aiHints: [
@@ -1186,7 +1155,7 @@ export class KnowledgeBase {
         name: 'ArchbaseFileAttachment',
         description: 'File attachment component with upload, preview and management capabilities',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1208,7 +1177,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseImageEdit', 'ArchbaseAvatarEdit'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['document uploads', 'attachments', 'file management', 'evidence'],
         aiHints: [
@@ -1222,7 +1191,7 @@ export class KnowledgeBase {
         name: 'ArchbasePasswordEdit',
         description: 'Password input component with strength indicator and visibility toggle',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1244,7 +1213,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseEdit', 'ArchbaseMaskEdit'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'low',
         useCases: ['authentication', 'password change', 'user registration', 'security'],
         aiHints: [
@@ -1258,7 +1227,7 @@ export class KnowledgeBase {
         name: 'ArchbaseColorPicker',
         description: 'Color picker component with various formats and swatches',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1279,7 +1248,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseSelect'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['theme customization', 'design tools', 'branding', 'preferences'],
         aiHints: [
@@ -1293,7 +1262,7 @@ export class KnowledgeBase {
         name: 'ArchbaseAvatarEdit',
         description: 'Avatar upload component with crop and preview functionality',
         category: 'editors',
-        version: '2.1.4',
+        version: '3.0.0',
         status: 'stable',
         props: {
           dataSource: { type: 'ArchbaseDataSource<T, ID>', required: false, description: 'DataSource for data binding' },
@@ -1314,7 +1283,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseImageEdit', 'ArchbaseFileAttachment'],
-        dependencies: ['archbase-react'],
+        dependencies: ['@archbase/components'],
         complexity: 'medium',
         useCases: ['user profiles', 'avatars', 'team members', 'contact photos'],
         aiHints: [
@@ -1322,6 +1291,95 @@ export class KnowledgeBase {
           'Includes crop functionality',
           'Circular or square shapes',
           'Perfect for user management'
+        ]
+      },
+      'ArchbaseAdminMainLayout': {
+        name: 'ArchbaseAdminMainLayout',
+        description: 'Admin layout and navigation component',
+        category: 'admin',
+        version: '3.0.0',
+        status: 'stable',
+        props: {
+          navigationData: { type: 'ArchbaseNavigationItem[]', required: true, description: 'Navigation structure data' },
+          collapsed: { type: 'boolean', required: false, description: 'Collapsed state', defaultValue: false },
+          onCollapse: { type: '(collapsed: boolean) => void', required: false, description: 'Collapse toggle handler' }
+        },
+        examples: [],
+        patterns: [],
+        relatedComponents: ['ArchbaseNavigationProvider', 'ArchbaseAdvancedSidebar'],
+        dependencies: ['@archbase/admin'],
+        complexity: 'high',
+        useCases: ['admin panels', 'app navigation', 'layouts'],
+        aiHints: [
+          'Main layout for admin applications',
+          'Integrates with navigation provider',
+          'Supports collapsible sidebar'
+        ]
+      },
+      'ArchbaseLogin': {
+        name: 'ArchbaseLogin',
+        description: 'Security and authentication component',
+        category: 'security',
+        version: '3.0.0',
+        status: 'stable',
+        props: {
+          onLogin: { type: '(credentials: LoginCredentials) => Promise<void>', required: true, description: 'Login handler' },
+          loading: { type: 'boolean', required: false, description: 'Loading state', defaultValue: false }
+        },
+        examples: [],
+        patterns: [],
+        relatedComponents: ['ArchbaseResetPassword', 'ArchbaseSecurityManager'],
+        dependencies: ['@archbase/security'],
+        complexity: 'medium',
+        useCases: ['authentication', 'login forms', 'security'],
+        aiHints: [
+          'Use for application authentication',
+          'Integrates with security providers',
+          'Supports password reset flow'
+        ]
+      },
+      'ArchbaseQueryProvider': {
+        name: 'ArchbaseQueryProvider',
+        description: 'Data management component',
+        category: 'data',
+        version: '3.0.0',
+        status: 'stable',
+        props: {
+          queryClient: { type: 'QueryClient', required: true, description: 'React Query client instance' },
+          children: { type: 'ReactNode', required: true, description: 'Child components' }
+        },
+        examples: [],
+        patterns: [],
+        relatedComponents: ['useArchbaseRemoteDataSource'],
+        dependencies: ['@archbase/data'],
+        complexity: 'high',
+        useCases: ['data management', 'query caching', 'remote data'],
+        aiHints: [
+          'Provides React Query integration',
+          'Essential for DataSource V2',
+          'Wrap app root with this provider'
+        ]
+      },
+      'ArchbaseThemeEditor': {
+        name: 'ArchbaseThemeEditor',
+        description: 'Theme and styling component',
+        category: 'theme',
+        version: '3.0.0',
+        status: 'stable',
+        props: {
+          theme: { type: 'ArchbaseTheme', required: true, description: 'Theme configuration' },
+          onChange: { type: '(theme: ArchbaseTheme) => void', required: true, description: 'Theme change handler' }
+        },
+        examples: [],
+        patterns: [],
+        relatedComponents: ['ArchbaseColorPicker'],
+        dependencies: ['@archbase/components'],
+        complexity: 'medium',
+        useCases: ['theme customization', 'branding', 'styling'],
+        aiHints: [
+          'Use for theme customization',
+          'Supports real-time preview',
+          'Integrates with color picker'
         ]
       }
     };

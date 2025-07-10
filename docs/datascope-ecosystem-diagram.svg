@@ -1,0 +1,232 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="scientistGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="claudeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891B2;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="cliGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DC2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EA580C;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="toolsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1F2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="redmineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C2D12;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A16207;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="outputGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Arrow marker -->
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+      </marker>
+    </defs>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="900" fill="#F8FAFC"/>
+  
+  <!-- Title -->
+  <text x="700" y="40" text-anchor="middle" fill="#111827" font-family="Arial, sans-serif" font-size="32" font-weight="bold">
+    DataStack CLI - Ecossistema de Ciência de Dados Assistido por IA
+  </text>
+  
+  <!-- Data Scientist -->
+  <g id="scientist">
+    <rect x="50" y="150" width="180" height="140" rx="15" fill="url(#scientistGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="140" y="180" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">👨‍🔬 Data Scientist</text>
+    <text x="140" y="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Comandos CLI</text>
+    <text x="140" y="215" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Análises</text>
+    <text x="140" y="230" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Experimentos</text>
+    <text x="140" y="250" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">Foco nos dados</text>
+    <text x="140" y="265" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">e algoritmos</text>
+    <text x="140" y="280" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">não na infraestrutura</text>
+  </g>
+
+  <!-- Claude Code AI -->
+  <g id="claude">
+    <rect x="320" y="120" width="200" height="200" rx="15" fill="url(#claudeGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="420" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🤖 Claude Code</text>
+    <text x="420" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">AI Especialista DS/ML</text>
+    
+    <!-- Claude capabilities -->
+    <rect x="330" y="185" width="180" height="125" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="420" y="205" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Conhecimento Especializado:</text>
+    <text x="340" y="225" fill="white" font-family="Arial, sans-serif" font-size="10">• Pandas, NumPy, Scikit-learn</text>
+    <text x="340" y="240" fill="white" font-family="Arial, sans-serif" font-size="10">• PyTorch, TensorFlow, Keras</text>
+    <text x="340" y="255" fill="white" font-family="Arial, sans-serif" font-size="10">• MLflow, Wandb, Neptune</text>
+    <text x="340" y="270" fill="white" font-family="Arial, sans-serif" font-size="10">• Sugere algoritmos e métricas</text>
+    <text x="340" y="285" fill="white" font-family="Arial, sans-serif" font-size="10">• Debug de pipelines ML</text>
+    <text x="340" y="300" fill="white" font-family="Arial, sans-serif" font-size="10">• Best practices automáticas</text>
+  </g>
+
+  <!-- DataScope CLI -->
+  <g id="cli">
+    <rect x="600" y="120" width="200" height="200" rx="15" fill="url(#cliGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="700" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">⚡ DataStack CLI</text>
+    <text x="700" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Orquestração Inteligente</text>
+    
+    <!-- CLI features -->
+    <rect x="610" y="185" width="180" height="125" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="700" y="205" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Funcionalidades:</text>
+    <text x="620" y="225" fill="white" font-family="Arial, sans-serif" font-size="10">• Spark pipeline orchestration</text>
+    <text x="620" y="240" fill="white" font-family="Arial, sans-serif" font-size="10">• Airflow workflow generation</text>
+    <text x="620" y="255" fill="white" font-family="Arial, sans-serif" font-size="10">• Dremio query automation</text>
+    <text x="620" y="270" fill="white" font-family="Arial, sans-serif" font-size="10">• Nessie version control</text>
+    <text x="620" y="285" fill="white" font-family="Arial, sans-serif" font-size="10">• Iceberg table management</text>
+    <text x="620" y="300" fill="white" font-family="Arial, sans-serif" font-size="10">• MinIO storage automation</text>
+  </g>
+
+  <!-- ML/DS Tools -->
+  <g id="tools">
+    <rect x="880" y="120" width="200" height="200" rx="15" fill="url(#toolsGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="980" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🔧 Data Stack</text>
+    <text x="980" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Stack Integrada</text>
+    
+    <!-- Tools components -->
+    <rect x="890" y="185" width="180" height="125" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="980" y="205" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Tecnologias:</text>
+    <text x="900" y="225" fill="white" font-family="Arial, sans-serif" font-size="10">• Apache Spark</text>
+    <text x="900" y="240" fill="white" font-family="Arial, sans-serif" font-size="10">• Apache Airflow</text>
+    <text x="900" y="255" fill="white" font-family="Arial, sans-serif" font-size="10">• Dremio SQL Engine</text>
+    <text x="900" y="270" fill="white" font-family="Arial, sans-serif" font-size="10">• Apache Iceberg</text>
+    <text x="900" y="285" fill="white" font-family="Arial, sans-serif" font-size="10">• MinIO Object Storage</text>
+    <text x="900" y="300" fill="white" font-family="Arial, sans-serif" font-size="10">• Nessie Catalog + Embulk</text>
+  </g>
+
+  <!-- Redmine/Jira Integration -->
+  <g id="redmine">
+    <rect x="1160" y="120" width="180" height="200" rx="15" fill="url(#redmineGradient)" stroke="#374151" stroke-width="2"/>
+    <text x="1250" y="150" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🎫 Issue Management</text>
+    <text x="1250" y="170" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Redmine + Jira</text>
+    
+    <!-- Redmine features -->
+    <rect x="1170" y="185" width="160" height="125" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    <text x="1250" y="205" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Integração:</text>
+    <text x="1180" y="225" fill="white" font-family="Arial, sans-serif" font-size="10">• Sync automático</text>
+    <text x="1180" y="240" fill="white" font-family="Arial, sans-serif" font-size="10">• Branch por demanda</text>
+    <text x="1180" y="255" fill="white" font-family="Arial, sans-serif" font-size="10">• Templates por tipo</text>
+    <text x="1180" y="270" fill="white" font-family="Arial, sans-serif" font-size="10">• Relatórios auto</text>
+    <text x="1180" y="285" fill="white" font-family="Arial, sans-serif" font-size="10">• Status tracking</text>
+    <text x="1180" y="300" fill="white" font-family="Arial, sans-serif" font-size="10">• Approval workflows</text>
+  </g>
+
+  <!-- Generated Output -->
+  <g id="output">
+    <rect x="400" y="500" width="600" height="320" rx="20" fill="url(#outputGradient)" stroke="#374151" stroke-width="3"/>
+    <text x="700" y="535" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">🚀 Projetos de Ciência de Dados Gerados</text>
+    
+    <!-- Output structure -->
+    <rect x="420" y="550" width="560" height="250" rx="10" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)"/>
+    
+    <!-- Left column -->
+    <text x="440" y="575" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">📊 Pipelines de Dados</text>
+    <text x="450" y="595" fill="white" font-family="Arial, sans-serif" font-size="11">• Embulk data ingestion automático</text>
+    <text x="450" y="610" fill="white" font-family="Arial, sans-serif" font-size="11">• Spark ETL pipelines gerados</text>
+    <text x="450" y="625" fill="white" font-family="Arial, sans-serif" font-size="11">• Dremio query optimization</text>
+    <text x="450" y="640" fill="white" font-family="Arial, sans-serif" font-size="11">• Iceberg table evolution</text>
+    <text x="450" y="655" fill="white" font-family="Arial, sans-serif" font-size="11">• Airflow DAGs automatizados</text>
+    <text x="450" y="670" fill="white" font-family="Arial, sans-serif" font-size="11">• Nessie version control</text>
+    
+    <!-- Right column -->
+    <text x="720" y="575" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">🔄 Análise & ML</text>
+    <text x="730" y="595" fill="white" font-family="Arial, sans-serif" font-size="11">• Notebooks Jupyter integrados</text>
+    <text x="730" y="610" fill="white" font-family="Arial, sans-serif" font-size="11">• Spark ML pipelines</text>
+    <text x="730" y="625" fill="white" font-family="Arial, sans-serif" font-size="11">• Feature stores em Iceberg</text>
+    <text x="730" y="640" fill="white" font-family="Arial, sans-serif" font-size="11">• Model registry automático</text>
+    <text x="730" y="655" fill="white" font-family="Arial, sans-serif" font-size="11">• Data quality monitoring</text>
+    <text x="730" y="670" fill="white" font-family="Arial, sans-serif" font-size="11">• MinIO model storage</text>
+    
+    <!-- Bottom features -->
+    <text x="700" y="700" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">✨ Características Principais</text>
+    <text x="440" y="720" fill="white" font-family="Arial, sans-serif" font-size="10">• Templates para diferentes domínios (NLP, Computer Vision, Time Series)</text>
+    <text x="730" y="720" fill="white" font-family="Arial, sans-serif" font-size="10">• Reprodutibilidade garantida</text>
+    <text x="440" y="735" fill="white" font-family="Arial, sans-serif" font-size="10">• Integração com cloud providers (AWS, GCP, Azure)</text>
+    <text x="730" y="735" fill="white" font-family="Arial, sans-serif" font-size="10">• Collaboration features</text>
+    <text x="440" y="750" fill="white" font-family="Arial, sans-serif" font-size="10">• Auto-scaling e cost optimization</text>
+    <text x="730" y="750" fill="white" font-family="Arial, sans-serif" font-size="10">• Compliance e governance</text>
+    <text x="440" y="765" fill="white" font-family="Arial, sans-serif" font-size="10">• Model interpretability e explainability</text>
+    <text x="730" y="765" fill="white" font-family="Arial, sans-serif" font-size="10">• Performance monitoring</text>
+    <text x="440" y="780" fill="white" font-family="Arial, sans-serif" font-size="10">• A/B testing framework para modelos</text>
+    <text x="730" y="780" fill="white" font-family="Arial, sans-serif" font-size="10">• Automated reporting</text>
+  </g>
+
+  <!-- Flow arrows and labels -->
+  
+  <!-- Scientist to Claude -->
+  <line x1="230" y1="220" x2="320" y2="220" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="275" y="210" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Comandos + Contexto</text>
+  
+  <!-- Claude to CLI -->
+  <line x1="520" y1="220" x2="600" y2="220" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="560" y="210" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">IA Guidance</text>
+  
+  <!-- CLI to Tools -->
+  <line x1="800" y1="220" x2="880" y2="220" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="840" y="210" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Orquestração</text>
+  
+  <!-- Tools to Redmine -->
+  <line x1="1080" y1="220" x2="1160" y2="220" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="1120" y="210" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Integration</text>
+  
+  <!-- Scientist to Output -->
+  <line x1="140" y1="290" x2="450" y2="500" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="270" y="380" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Projetos</text>
+  
+  <!-- Claude to Output -->
+  <line x1="420" y1="320" x2="550" y2="500" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="470" y="400" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Código Inteligente</text>
+  
+  <!-- CLI to Output -->
+  <line x1="700" y1="320" x2="700" y2="500" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="730" y="400" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Automação</text>
+  
+  <!-- Tools to Output -->
+  <line x1="980" y1="320" x2="850" y2="500" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="930" y="400" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Stack Integrada</text>
+
+  <!-- Redmine to Output -->
+  <line x1="1250" y1="320" x2="950" y2="500" stroke="#374151" stroke-width="3" marker-end="url(#arrowhead)"/>
+  <text x="1120" y="400" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Demandas</text>
+
+  <!-- Workflow examples -->
+  <g id="workflow">
+    <rect x="50" y="350" width="1290" height="80" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+    <text x="700" y="375" text-anchor="middle" fill="#92400E" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🔄 Exemplos de Fluxo de Trabalho</text>
+    
+    <text x="70" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="11" font-weight="bold">1. Novo Projeto:</text>
+    <text x="70" y="410" fill="#92400E" font-family="Arial, sans-serif" font-size="10">datastack init churn-analysis --template spark-ml --setup-airflow</text>
+    
+    <text x="450" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="11" font-weight="bold">2. Pipeline de Dados:</text>
+    <text x="450" y="410" fill="#92400E" font-family="Arial, sans-serif" font-size="10">datastack generate etl --source db --target iceberg --schedule daily</text>
+    
+    <text x="850" y="395" fill="#92400E" font-family="Arial, sans-serif" font-size="11" font-weight="bold">3. Deploy & Monitor:</text>
+    <text x="850" y="410" fill="#92400E" font-family="Arial, sans-serif" font-size="10">datastack deploy pipeline --environment prod --monitor-quality</text>
+  </g>
+
+  <!-- Benefits box -->
+  <g id="benefits">
+    <rect x="50" y="850" width="1290" height="40" rx="10" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+    <text x="700" y="870" text-anchor="middle" fill="#1E40AF" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+      ⚡ Benefícios: Stack integrada | Pipelines automatizados | Spark otimizado | Airflow simplificado | Iceberg versionado | Dremio acelerado
+    </text>
+  </g>
+
+</svg>

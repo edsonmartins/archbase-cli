@@ -220,7 +220,7 @@ export class DashboardGenerator {
 
     // Add table imports if needed
     if (options.tables && options.tables.length > 0) {
-      imports.push("import { ArchbaseDataGrid, ArchbaseDataGridColumn } from 'archbase-react';");
+      imports.push("import { ArchbaseDataGrid, ArchbaseDataGridColumn } from '@archbase/components';");
     }
 
     // Add filter imports if needed
@@ -230,12 +230,12 @@ export class DashboardGenerator {
 
     // Add navigation imports if needed
     if (options.withNavigation) {
-      imports.push("import { useArchbaseNavigationListener } from 'archbase-react';");
+      imports.push("import { useArchbaseNavigationListener } from '@archbase/core';");
     }
 
     // Add service imports if needed
     if (options.serviceIntegration) {
-      imports.push("import { useArchbaseRemoteServiceApi, API_TYPE } from 'archbase-react';");
+      imports.push("import { useArchbaseRemoteServiceApi, API_TYPE } from '@archbase/data';");
     }
 
     return imports;

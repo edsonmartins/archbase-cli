@@ -4,7 +4,7 @@ import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
 import '@mantine/spotlight/styles.css'
-import 'archbase-react/dist/cjs/index.css'
+import '@archbase/components/dist/index.css'
 // mantine-react-table removido no archbase-react 3.0.0
 import {
   ActionIcon,
@@ -45,25 +45,29 @@ import { {{pascalCase projectName}}ErrorFallback } from './utils/{{pascalCase pr
 import { {{pascalCase projectName}}User } from './auth/{{pascalCase projectName}}Authenticator'
 import { API_TYPE } from './ioc/{{pascalCase projectName}}IOCTypes'
 import {
-  useArchbaseAdminStore,
-  useArchbaseAuthenticationManager,
   useArchbaseRemoteServiceApi,
   useArchbaseTheme,
   processErrorMessage,
   ArchbaseAppProvider,
   ArchbaseGlobalProvider,
+  useArchbaseDataSource,
+  ArchbaseUserService,
+  ArchbaseErrorBoundary,
+  defaultAvatar,
+  useArchbaseStore,
+} from '@archbase/core';
+import {
+  useArchbaseAdminStore,
   ArchbaseAdminLayoutHeader,
   ArchbaseAdminMainLayout,
   ArchbaseAdminTabContainer,
   ArchbaseTabItem,
-  useArchbaseDataSource,
-  ArchbaseUserService,
-  ArchbaseErrorBoundary,
   CommandPaletteButton,
-  defaultAvatar,
   ArchbaseMyProfileModal,
-  useArchbaseStore,
-} from 'archbase-react'
+} from '@archbase/admin';
+import {
+  useArchbaseAuthenticationManager,
+} from '@archbase/security';
 import { LoginMobileView } from './views/login/LoginMobileView'
 
 type MainProps = {

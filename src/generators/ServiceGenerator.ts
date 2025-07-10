@@ -315,7 +315,7 @@ export class ServiceGenerator {
   private getDefaultImports(entityType?: string, projectName?: string): string[] {
     const imports = [
       "import { injectable, inject } from 'inversify';",
-      "import { ArchbaseRemoteApiService, ArchbaseRemoteApiClient, ARCHBASE_IOC_API_TYPE } from 'archbase-react';"
+      "import { ArchbaseRemoteApiService, ArchbaseRemoteApiClient, ARCHBASE_IOC_API_TYPE } from '@archbase/data';"
     ];
     
     if (entityType) {
