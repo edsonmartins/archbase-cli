@@ -16,12 +16,19 @@
   "Conta": "Cuenta",
   "Suporte": "Soporte",
   "Tela cheia": "Pantalla completa",
-  "Notificações": "Notificaciones",
+  "Notificaciones": "Notificaciones",
   "Sair": "Salir",
   "DESENVOLVIMENTO": "DESARROLLO",
   "HOMOLOGAÇÃO": "PRUEBAS",
   "Bem-vindo ao {{titleCase projectName}}": "Bienvenido a {{titleCase projectName}}",
-  "Esta é sua página inicial": "Esta es tu página de inicio",
+  "Esta es tu página de inicio": "Esta es tu página de inicio",
   "Painel administrativo": "Panel administrativo",
-  "Estatísticas e métricas": "Estadísticas y métricas"
+  "Estatísticas e métricas": "Estadísticas y métricas",
+  "{{projectName}}:Dashboard": "Panel de control",
+  {{#if (includes features "security-management")}}
+  "{{projectName}}:Gerenciar Usuários": "Administrar Usuarios",
+  {{/if}}
+  {{#if (includes features "api-token-management")}}
+  "{{projectName}}:Tokens de API": "Tokens de API"
+  {{/if}}
 }

@@ -23,5 +23,12 @@
   "Bem-vindo ao {{titleCase projectName}}": "Bem-vindo ao {{titleCase projectName}}",
   "Esta é sua página inicial": "Esta é sua página inicial",
   "Painel administrativo": "Painel administrativo",
-  "Estatísticas e métricas": "Estatísticas e métricas"
+  "Estatísticas e métricas": "Estatísticas e métricas",
+  "{{projectName}}:Dashboard": "Dashboard",
+  {{#if (includes features "security-management")}}
+  "{{projectName}}:Gerenciar Usuários": "Gerenciar Usuários",
+  {{/if}}
+  {{#if (includes features "api-token-management")}}
+  "{{projectName}}:Tokens de API": "Tokens de API"
+  {{/if}}
 }

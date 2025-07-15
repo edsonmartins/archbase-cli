@@ -1,30 +1,33 @@
 # Archbase CLI
 
-> AI-friendly CLI tool for Archbase ecosystem component querying and code generation
+> AI-friendly CLI tool for Archbase React V3 ecosystem component querying and code generation
 
 ## Overview
 
 Archbase CLI is a powerful, AI-friendly development tool that bridges the gap between Java backend development and modern TypeScript/React frontends. It solves the problem of AI assistants not knowing custom libraries by providing a structured interface for querying component information and generating production-ready code based on tested patterns from real projects.
 
-**Key Innovation**: Complete domain-driven development workflow from Java classes to production-ready React components, following established patterns from powerview-admin.
+**Key Innovation**: Complete domain-driven development workflow from Java classes to production-ready React components using Archbase React V3 modular architecture, following established patterns from powerview-admin.
+
+**V3 Architecture**: Built on Archbase React V3's modular package system (@archbase/core, @archbase/components, @archbase/security, etc.) for better tree-shaking, reduced bundle sizes, and improved maintainability.
 
 ## Features
 
-- 🔍 **Component Query** - Search and get detailed information about Archbase components
-- 🏗️ **Code Generation** - Generate forms, views, pages, components, navigation and security components from templates
+- 🔍 **Component Query** - Search and get detailed information about Archbase V3 components
+- 🏗️ **Code Generation** - Generate forms, views, pages, components, navigation and security components from V3 templates
 - 🎯 **Domain-Driven Development** - Generate TypeScript DTOs from Java classes with full type safety
 - 🔄 **Java-to-TypeScript** - Automatic conversion with validation decorators and enum support
 - 📊 **DTO-Based Generation** - Create forms and views directly from existing DTOs
-- 🔒 **Security Components** - Generate login views, user management, API tokens, and authentication infrastructure
-- 🔧 **Service Generation** - Generate remote services with Java controller analysis
-- 🚀 **Project Scaffolding** - Create complete projects from boilerplates (local and remote)
+- 🔒 **Security Components** - Generate login views, user management, API tokens using @archbase/security
+- 🔧 **Service Generation** - Generate remote services with Java controller analysis using @archbase/data
+- 🚀 **Project Scaffolding** - Create complete V3 projects from boilerplates (local and remote)
 - 🤖 **AI-Friendly** - Optimized outputs for AI consumption and integration
-- 📚 **Knowledge Base** - Automatic component analysis with manual curation support
-- 🎯 **Production Patterns** - Templates based on real powerview-admin patterns
-- 📱 **ArchbaseDataSource V2** - Full support for modern data source patterns
-- 🔍 **Advanced Scanning** - Real-time component analysis and pattern detection
-- 🔄 **Migration Tools** - Automated V1→V2 migration with AST transformations
+- 📚 **Knowledge Base** - V3 component analysis with manual curation support
+- 🎯 **Production Patterns** - Templates based on real powerview-admin V3 patterns
+- 📱 **ArchbaseDataSource V2** - Full support for modern data source patterns with @archbase/data
+- 🔍 **Advanced Scanning** - Real-time V3 component analysis and pattern detection
+- 🔄 **Migration Tools** - Automated V1→V2→V3 migration with AST transformations
 - 🔌 **Plugin System** - Extensible architecture for custom generators, commands, and analyzers
+- ⚡ **Modular Packages** - V3 architecture with @archbase/* packages for optimal tree-shaking
 
 ## Installation
 
@@ -117,15 +120,17 @@ archbase generate domain ProdutoDto --java-text /path/to/Produto.java --output .
 archbase generate service ClienteRemoteService --entity Cliente --type ClienteDto --java ./ClienteController.java
 archbase generate service ProdutoRemoteService --entity Produto --type ProdutoDto --endpoint /api/produtos
 
-# Generate security components
+# Generate security components (V3)
 archbase generate security AdminLogin --type=login --with-mobile --with-branding
 archbase generate security UserManager --type=user-management --features=user-activation,user-roles
+archbase generate security SecurityView --type=security-management --features=custom-permissions,audit-log
+archbase generate security ApiTokenView --type=api-token-management --features=token-regeneration
 
 # Use interactive wizard for guided setup (NEW!)
 archbase create project MyApp --wizard
 
-# Create a project with automatic dependencies
-archbase create project MyApp --project-type=admin --features=auth,data-grid,file-export --author="Your Name"
+# Create a project with V3 packages and security features
+archbase create project MyApp --project-type=admin --features=auth,data-grid,file-export,security-management,api-token-management --author="Your Name"
 
 # Create a basic project with core dependencies only
 archbase create project BasicApp --project-type=basic
@@ -242,6 +247,8 @@ archbase create list-boilerplates [--category=admin]
 - `image-crop` - Image cropping and processing
 - `input-mask` - Input masking for phones, documents
 - `color-picker` - Color selection components
+- `security-management` - Complete user management using @archbase/security (V3)
+- `api-token-management` - API token generation and management using @archbase/security (V3)
 
 ### Interactive Wizard (NEW!)
 
@@ -681,8 +688,8 @@ export class ClienteRemoteService extends ArchbaseRemoteApiService<ClienteDto, s
 - `services/[ServiceName].ts` - The remote service class
 - `dto/[EntityName]Dto.ts` - Basic DTO (if --dto flag used)
 
-### SecurityGenerator
-Generate complete security infrastructure including login views, user management, API tokens, and authentication components.
+### SecurityGenerator (V3)
+Generate complete security infrastructure using Archbase React V3 @archbase/security package, including login views, user management, API tokens, and authentication components.
 
 **Login Views:**
 ```bash
@@ -735,7 +742,9 @@ archbase generate security CustomAuth \
 - **Tokens**: `ApiTokenManagementView.tsx` with secure token handling
 - **Auth**: `Authenticator.ts`, `SecurityContainer.tsx` with IoC setup
 
-**Features:**
+**V3 Security Features:**
+- **ArchbaseSecurityView**: Complete user management interface from @archbase/security
+- **ArchbaseApiTokenView**: API token management with generation and revocation
 - **JWT Authentication**: Complete implementation with refresh tokens
 - **Role-based Security**: Permission checking throughout all views
 - **Mobile Support**: Dedicated responsive mobile login views
@@ -745,6 +754,26 @@ archbase generate security CustomAuth \
 - **IoC Integration**: Proper dependency injection with Inversify
 - **Audit Support**: User action logging and export capabilities
 - **Modern UI**: Mantine components with consistent styling
+- **Modular Architecture**: Tree-shakable @archbase/security package
+
+**Boilerplate Integration:**
+The admin-dashboard boilerplate now includes optional security features that can be enabled during project creation:
+
+```bash
+# Create admin project with security features
+archbase create project MyAdminApp --boilerplate admin-dashboard --features security-management,api-token-management,authentication,dashboard
+
+# Generated navigation automatically includes:
+# - Gerenciar Usuários (ArchbaseSecurityView)
+# - Tokens de API (ArchbaseApiTokenView)
+# - Proper routing and icons
+```
+
+**Generated Security Components:**
+- `SecurityView.tsx` - Uses ArchbaseSecurityView for complete user management
+- `ApiTokenView.tsx` - Uses ArchbaseApiTokenView for token lifecycle management
+- Navigation items with proper icons (IconShield, IconKey)
+- Category-based organization in "Segurança" section
 
 ## Production-Ready Templates
 
@@ -1046,7 +1075,52 @@ archbase knowledge update
 
 ## Changelog
 
-### v0.1.5 - Service Generation with Java Controller Analysis (Latest)
+### v0.1.6 - Archbase React V3 Migration with Security Features (Latest)
+
+**Major V3 Migration:**
+- ✅ **Complete V3 Architecture**: Migrated from monolithic archbase-react to modular @archbase/* packages
+- ✅ **Modular Packages**: @archbase/core, @archbase/components, @archbase/data, @archbase/security, @archbase/admin, @archbase/layout, @archbase/template
+- ✅ **React 19 Support**: Updated to React 19 with backward compatibility for React 18
+- ✅ **Vite 6**: Upgraded build system to Vite 6 for improved performance
+- ✅ **Tree-shaking Optimization**: Reduced bundle sizes through modular architecture
+
+**New Security Features:**
+- ✅ **ArchbaseSecurityView Integration**: Complete user management using @archbase/security component
+- ✅ **ArchbaseApiTokenView Integration**: API token management with existing V3 component
+- ✅ **Security Boilerplate Options**: Admin-dashboard boilerplate now includes optional security features
+- ✅ **Conditional Security Generation**: Security views generated only when features are selected
+- ✅ **Navigation Integration**: Automatic security navigation with proper icons and routing
+
+**Updated Dependencies:**
+- 🔄 **@archbase/core**: Core utilities and types
+- 🔄 **@archbase/components**: UI components (forms, grids, editors)
+- 🔄 **@archbase/data**: Data management and remote services
+- 🔄 **@archbase/security**: Security components and authentication
+- 🔄 **@archbase/admin**: Admin dashboard layouts and navigation
+- 🔄 **@archbase/layout**: Layout components and templates
+- 🔄 **@archbase/template**: Template system for forms and views
+- 🔄 **@mantine/spotlight**: Search and command palette (added)
+- ❌ **mantine-react-table**: Removed in favor of integrated solutions
+
+**Template Updates:**
+- 🔄 **All Templates**: Updated to use V3 modular imports
+- 🔄 **Security Templates**: New templates for SecurityView and ApiTokenView
+- 🔄 **Navigation Templates**: Enhanced with conditional security features
+- 🔄 **Dependency Templates**: Updated package.json generation for V3 packages
+
+**CLI Enhancements:**
+- ✅ **Feature-based Generation**: Proper --features handling for boilerplate creation
+- ✅ **Security Generators**: New generators for security views using existing V3 components
+- ✅ **Enhanced Validation**: Better error handling and TypeScript compliance
+
+**Migration Benefits:**
+- 📦 **Smaller Bundles**: Tree-shaking eliminates unused components
+- ⚡ **Better Performance**: Optimized imports and reduced load times
+- 🔧 **Improved Maintainability**: Cleaner package separation and dependencies
+- 🛡️ **Enhanced Security**: Built-in security components with established patterns
+- 🔄 **Future-ready**: Prepared for continued V3 ecosystem evolution
+
+### v0.1.5 - Service Generation with Java Controller Analysis
 
 **New Features:**
 - ✅ **ServiceGenerator**: Complete remote service generation following Archbase patterns
@@ -1126,11 +1200,13 @@ archbase generate service UserRemoteService --wizard
 - 📄 **Auto-Generated Documentation**: PROJECT-SUMMARY.md with all configuration details
 - 🚀 **Working Project**: Complete React app with Archbase components ready to run
 
-**Dependencies Included:**
-- **Core**: archbase-react, @mantine/core 8.x ecosystem, React 18, TypeScript
-- **Admin Features**: @mui/x-data-grid, mantine-react-table, JWT auth, file export
+**Dependencies Included (V3):**
+- **Core**: @archbase/core, @archbase/components, @mantine/core 8.x ecosystem, React 19, TypeScript
+- **Admin Features**: @archbase/admin, @archbase/data, @mui/x-data-grid, mantine-react-table, JWT auth, file export
+- **Security Features**: @archbase/security with ArchbaseSecurityView and ArchbaseApiTokenView components
+- **Layout & Templates**: @archbase/layout, @archbase/template for structured admin interfaces
 - **Full Features**: Rich text editing, charts (D3), PDF generation, image processing, color picker
-- **Build Tools**: Vite, ESLint, TypeScript compiler, PostCSS with Mantine preset
+- **Build Tools**: Vite 6, ESLint, TypeScript compiler, PostCSS with Mantine preset
 
 **New Commands:**
 ```bash

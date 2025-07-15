@@ -1,0 +1,6 @@
+import React from 'react';
+import { ArchbaseApiTokenView } from '@archbase/security';
+
+export function ApiTokenView() {
+  return <ArchbaseApiTokenView height="100%" />;
+}

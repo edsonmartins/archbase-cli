@@ -35,12 +35,15 @@ export const createCommand = new Command('create')
       .option('--config <file>', 'Configuration file path')
       .option('--dry-run', 'Show what would be created without executing')
       .action(async (name: string, options) => {
+        // Extract project name from path
+        const projectName = path.basename(name);
+        
         // Check if wizard mode is requested
         if (options.wizard) {
-          return await handleWizardMode(name, options);
+          return await handleWizardMode(projectName, options);
         }
         
-        console.log(chalk.blue(`🚀 Creating project: ${name}`));
+        console.log(chalk.blue(`🚀 Creating project: ${projectName}`));
         
         // Validate boilerplate source
         const hasLocal = !!options.boilerplate;
@@ -75,19 +78,20 @@ export const createCommand = new Command('create')
             spinner.text = `Generating project from ${options.boilerplate} boilerplate...`;
             
             // Use default answers if not interactive
+            const features = options.features ? options.features.split(',').map(f => f.trim()) : ['authentication', 'dashboard', 'security-management', 'api-token-management'];
             const answers = options.interactive 
               ? undefined 
               : {
-                  projectName: name,
-                  projectDescription: `Project generated with Archbase CLI`,
-                  features: ['authentication', 'user-management', 'dashboard', 'settings'],
+                  projectName,
+                  projectDescription: options.description || `Project generated with Archbase CLI`,
+                  features,
                   database: 'postgresql',
                   apiUrl: 'http://localhost:3001/api',
                   useDocker: true,
                   useTests: true
                 };
             
-            result = await generator.generateFromAnySource(options.boilerplate, name, outputDir, answers);
+            result = await generator.generateFromAnySource(options.boilerplate, projectName, outputDir, answers);
             
           } else if (options.git) {
             // Git repository
@@ -101,7 +105,7 @@ export const createCommand = new Command('create')
               cache: true
             };
             
-            result = await generator.generateFromRemote(name, remoteOptions, outputDir);
+            result = await generator.generateFromRemote(projectName, remoteOptions, outputDir);
             
           } else if (options.npm) {
             // npm package
@@ -115,75 +119,104 @@ export const createCommand = new Command('create')
               cache: true
             };
             
-            result = await generator.generateFromRemote(name, remoteOptions, outputDir);
+            result = await generator.generateFromRemote(projectName, remoteOptions, outputDir);
           }
           
           if (result.success) {
-            // Generate package.json with proper dependencies
-            spinner.text = 'Setting up Archbase dependencies...';
-            
-            const packageGenerator = new PackageJsonGenerator();
-            const features = options.features ? options.features.split(',').map(f => f.trim()) : [];
-            
-            try {
-              const packageResult = await packageGenerator.generate({
-                name,
-                description: options.description || `Archbase React application - ${name}`,
-                author: options.author || '',
-                projectType: options.projectType as 'basic' | 'admin' | 'full',
-                features,
-                outputDir: result.projectPath,
-                typescript: true
-              });
+            // Skip package.json generation for admin-dashboard as it already has the correct package.json
+            if (options.boilerplate !== 'admin-dashboard') {
+              // Generate package.json with proper dependencies
+              spinner.text = 'Setting up Archbase dependencies...';
               
-              if (packageResult.success) {
-                spinner.succeed(chalk.green(`✅ Project '${name}' created with Archbase dependencies!`));
-                console.log(chalk.cyan(`📁 Location: ${result.projectPath}`));
-                
-                // Show project info
-                console.log(chalk.yellow('\n📋 Project Configuration:'));
-                console.log(chalk.gray(`  Type: ${options.projectType}`));
-                if (features.length > 0) {
-                  console.log(chalk.gray(`  Features: ${features.join(', ')}`));
-                }
-                
-                console.log(chalk.yellow('\n📦 Dependencies:'));
-                console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
-                console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
-                console.log(chalk.gray('  ✅ TypeScript configuration'));
-                console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
-                console.log(chalk.gray('  ✅ Vite build configuration'));
-                
-                console.log(chalk.yellow('\n📋 Next steps:'));
-                console.log(chalk.gray(`  cd ${name}`));
-                console.log(chalk.gray('  npm install'));
-                console.log(chalk.gray('  npm run dev'));
-                
-                // Generate installation instructions
-                const instructions = packageGenerator.generateInstallationInstructions({
-                  name,
+              const packageGenerator = new PackageJsonGenerator();
+              const features = options.features ? options.features.split(',').map(f => f.trim()) : [];
+              
+              try {
+                const packageResult = await packageGenerator.generate({
+                  name: projectName,
+                  description: options.description || `Archbase React application - ${projectName}`,
+                  author: options.author || '',
                   projectType: options.projectType as 'basic' | 'admin' | 'full',
                   features,
-                  outputDir: result.projectPath
+                  outputDir: result.projectPath,
+                  typescript: true
                 });
                 
-                // Write README with instructions
-                const readmePath = path.join(result.projectPath, 'README.md');
-                await require('fs-extra').writeFile(readmePath, instructions);
+                if (packageResult.success) {
+                  spinner.succeed(chalk.green(`✅ Project '${projectName}' created with Archbase dependencies!`));
+                  console.log(chalk.cyan(`📁 Location: ${result.projectPath}`));
+                  
+                  // Show project info
+                  console.log(chalk.yellow('\n📋 Project Configuration:'));
+                  console.log(chalk.gray(`  Type: ${options.projectType}`));
+                  if (features.length > 0) {
+                    console.log(chalk.gray(`  Features: ${features.join(', ')}`));
+                  }
+                  
+                  console.log(chalk.yellow('\n📦 Dependencies:'));
+                  console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
+                  console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+                  console.log(chalk.gray('  ✅ TypeScript configuration'));
+                  console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
+                  console.log(chalk.gray('  ✅ Vite build configuration'));
+                  
+                  console.log(chalk.yellow('\n📋 Next steps:'));
+                  console.log(chalk.gray(`  cd ${projectName}`));
+                  console.log(chalk.gray('  npm install'));
+                  console.log(chalk.gray('  npm run dev'));
+                  
+                  // Generate installation instructions
+                  const instructions = packageGenerator.generateInstallationInstructions({
+                    name: projectName,
+                    projectType: options.projectType as 'basic' | 'admin' | 'full',
+                    features,
+                    outputDir: result.projectPath
+                  });
+                  
+                  // Write README with instructions
+                  const readmePath = path.join(result.projectPath, 'README.md');
+                  await require('fs-extra').writeFile(readmePath, instructions);
+                  
+                  console.log(chalk.green(`\n📖 Installation guide written to README.md`));
+                  
+                } else {
+                  console.warn(chalk.yellow('⚠️  Project created but failed to setup dependencies'));
+                  console.warn(chalk.gray('You may need to manually install Archbase dependencies'));
+                  packageResult.errors?.forEach(error => {
+                    console.error(chalk.red(`   ${error}`));
+                  });
+                }
                 
-                console.log(chalk.green(`\n📖 Installation guide written to README.md`));
-                
-              } else {
+              } catch (error) {
                 console.warn(chalk.yellow('⚠️  Project created but failed to setup dependencies'));
-                console.warn(chalk.gray('You may need to manually install Archbase dependencies'));
-                packageResult.errors?.forEach(error => {
-                  console.error(chalk.red(`   ${error}`));
-                });
+                console.warn(chalk.gray(`Error: ${error.message}`));
+              }
+            } else {
+              // For admin-dashboard, just show success message as package.json is already correct
+              spinner.succeed(chalk.green(`✅ Project '${projectName}' created with Archbase dependencies!`));
+              console.log(chalk.cyan(`📁 Location: ${result.projectPath}`));
+              
+              // Show project info
+              console.log(chalk.yellow('\n📋 Project Configuration:'));
+              console.log(chalk.gray(`  Type: ${options.projectType}`));
+              const features = options.features ? options.features.split(',').map(f => f.trim()) : [];
+              if (features.length > 0) {
+                console.log(chalk.gray(`  Features: ${features.join(', ')}`));
               }
               
-            } catch (error) {
-              console.warn(chalk.yellow('⚠️  Project created but failed to setup dependencies'));
-              console.warn(chalk.gray(`Error: ${error.message}`));
+              console.log(chalk.yellow('\n📦 Dependencies:'));
+              console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
+              console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+              console.log(chalk.gray('  ✅ TypeScript configuration'));
+              console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
+              console.log(chalk.gray('  ✅ Vite build configuration'));
+              
+              console.log(chalk.yellow('\n📋 Next steps:'));
+              console.log(chalk.gray(`  cd ${projectName}`));
+              console.log(chalk.gray('  npm install'));
+              console.log(chalk.gray('  npm run dev'));
+              
+              console.log(chalk.green(`\n📖 Installation guide written to README.md`));
             }
           } else {
             spinner.fail(chalk.red('❌ Failed to create project'));

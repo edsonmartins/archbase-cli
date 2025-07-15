@@ -1,26 +1,23 @@
 import {
   IconDashboard,
-  IconUsers,
-  IconSettings,
-  {{#if (includes features "reports")}}
-  IconChartBar,
+  {{#if (includes features "security-management")}}
+  IconShield,
+  {{/if}}
+  {{#if (includes features "api-token-management")}}
+  IconKey,
   {{/if}}
 } from "@tabler/icons-react";
 import { DashboardView } from "../views/dashboard/DashboardView";
-{{#if (includes features "user-management")}}
-import { UsersView } from "../views/users/UsersView";
-import { UserDetailsView } from "../views/users/UserDetailsView";
+{{#if (includes features "security-management")}}
+import { SecurityView } from "../views/security/SecurityView";
 {{/if}}
-{{#if (includes features "reports")}}
-import { ReportsView } from "../views/reports/ReportsView";
-{{/if}}
-{{#if (includes features "settings")}}
-import { SettingsView } from "../views/settings/SettingsView";
+{{#if (includes features "api-token-management")}}
+import { ApiTokenView } from "../views/security/ApiTokenView";
 {{/if}}
 import { ArchbaseNavigationItem } from "@archbase/admin";
 
 const dashboardView: ArchbaseNavigationItem = {
-  label: "{{branding.appName}}:Dashboard",
+  label: "{{projectName}}:Dashboard",
   icon: <IconDashboard strokeWidth={1.25} size={28} />,
   link: "/dashboard",
   category: "Dashboard",
@@ -30,67 +27,40 @@ const dashboardView: ArchbaseNavigationItem = {
   showInSidebar: true,
 };
 
-{{#if (includes features "user-management")}}
-const usersView: ArchbaseNavigationItem = {
-  label: "{{branding.appName}}:Usuários",
-  icon: <IconUsers strokeWidth={1.25} size={28} />,
-  link: "/users",
-  category: "Usuários",
+
+{{#if (includes features "security-management")}}
+const securityView: ArchbaseNavigationItem = {
+  label: "{{projectName}}:Gerenciar Usuários",
+  icon: <IconShield strokeWidth={1.25} size={28} />,
+  link: "/security/users",
+  category: "Segurança",
   disabled: false,
   color: "#4CAF50",
-  component: <UsersView />,
+  component: <SecurityView />,
   showInSidebar: true,
 };
+{{/if}}
 
-const userDetailsView: ArchbaseNavigationItem = {
-  label: "{{branding.appName}}:Detalhes do Usuário",
-  icon: <IconUsers strokeWidth={1.25} size={28} />,
-  link: "/users/:id",
-  category: "Usuários",
+{{#if (includes features "api-token-management")}}
+const apiTokenView: ArchbaseNavigationItem = {
+  label: "{{projectName}}:Tokens de API",
+  icon: <IconKey strokeWidth={1.25} size={28} />,
+  link: "/security/api-tokens",
+  category: "Segurança",
+  disabled: false,
   color: "#4CAF50",
-  component: <UserDetailsView />,
-  showInSidebar: false,
-  redirect: "/users",
-  customTitle: "Usuário: $title"
-};
-{{/if}}
-
-{{#if (includes features "reports")}}
-const reportsView: ArchbaseNavigationItem = {
-  label: "{{branding.appName}}:Relatórios",
-  icon: <IconChartBar strokeWidth={1.25} size={28} />,
-  link: "/reports",
-  category: "Relatórios",
-  disabled: false,
-  color: "#FF9800",
-  component: <ReportsView />,
+  component: <ApiTokenView />,
   showInSidebar: true,
 };
 {{/if}}
 
-{{#if (includes features "settings")}}
-const settingsView: ArchbaseNavigationItem = {
-  label: "{{branding.appName}}:Configurações",
-  icon: <IconSettings strokeWidth={1.25} size={28} />,
-  link: "/settings",
-  category: "Configurações",
-  disabled: false,
-  color: "#9E9E9E",
-  component: <SettingsView />,
-  showInSidebar: true,
-};
-{{/if}}
 
 export const navigationData: ArchbaseNavigationItem[] = [
   dashboardView,
-  {{#if (includes features "user-management")}}
-  usersView,
-  userDetailsView,
+  {{#if (includes features "security-management")}}
+  securityView,
   {{/if}}
-  {{#if (includes features "reports")}}
-  reportsView,
-  {{/if}}
-  {{#if (includes features "settings")}}
-  settingsView,
+  {{#if (includes features "api-token-management")}}
+  apiTokenView,
   {{/if}}
 ];

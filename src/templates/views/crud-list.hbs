@@ -25,11 +25,13 @@ import {
 } from '@archbase/data';
 import {
   useArchbaseStore,
-  useArchbaseRemoteServiceApi,
   useArchbaseGetLoggedUser,
   useArchbaseNavigateParams,
   useArchbaseTheme
 } from '@archbase/core';
+import {
+  useArchbaseRemoteServiceApi,
+} from '@archbase/data';
 import { useTranslation } from 'react-i18next';
 {{#if typescript}}
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';

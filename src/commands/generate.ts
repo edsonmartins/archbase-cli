@@ -11,6 +11,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import { FormGenerator } from '../generators/FormGenerator';
 import { ViewGenerator } from '../generators/ViewGenerator';
 import { PageGenerator } from '../generators/PageGenerator';
@@ -435,7 +436,7 @@ export const generateCommand = new Command('generate')
           
           if (result.success) {
             console.log(chalk.green(`✅ Security component generated successfully!`));
-            result.files.forEach((file: string) => {
+            result.files?.forEach((file: string) => {
               console.log(chalk.gray(`  📄 ${file}`));
             });
             

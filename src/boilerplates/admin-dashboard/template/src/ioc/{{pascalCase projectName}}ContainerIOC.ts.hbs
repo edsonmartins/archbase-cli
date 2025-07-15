@@ -1,18 +1,39 @@
 import axios from "axios";
 import { API_TYPE } from "./{{pascalCase projectName}}IOCTypes";
 import { {{pascalCase projectName}}Authenticator } from "../auth/{{pascalCase projectName}}Authenticator";
-import { IOCContainer } from "@archbase/core";
+import { IOCContainer, ARCHBASE_IOC_API_TYPE } from "@archbase/core";
 import { ArchbaseAuthenticator } from "@archbase/security";
 import { ArchbaseAxiosRemoteApiClient, ArchbaseRemoteApiClient } from "@archbase/data";
+import { 
+  DefaultArchbaseTokenManager, 
+  ArchbaseUserService,
+  ArchbaseProfileService,
+  ArchbaseGroupService,
+  ArchbaseResourceService
+} from "@archbase/security";
 
 axios.defaults.baseURL = import.meta.env.VITE_API;
 
-IOCContainer.registerDefaultContainers();
 const container = IOCContainer.getContainer(); 
 
-container
-  .bind<ArchbaseAuthenticator>(API_TYPE.Authenticator)
-  .to({{pascalCase projectName}}Authenticator);
+// Registra o token manager padrão
+IOCContainer.registerTokenManager(DefaultArchbaseTokenManager);
+
+// Registra os serviços de segurança
+IOCContainer.registerSecurityServices({
+  userService: ArchbaseUserService,
+  profileService: ArchbaseProfileService,
+  groupService: ArchbaseGroupService,
+  resourceService: ArchbaseResourceService
+});
+
+// Registra autenticador customizado - remove o existente primeiro para evitar conflito
+if (IOCContainer.hasService(ARCHBASE_IOC_API_TYPE.Authenticator)) {
+  IOCContainer.unbindService(ARCHBASE_IOC_API_TYPE.Authenticator);
+}
+IOCContainer.registerService(ARCHBASE_IOC_API_TYPE.Authenticator, {{pascalCase projectName}}Authenticator);
+
+// Registra client API customizado
 container
   .bind<ArchbaseRemoteApiClient>(API_TYPE.ApiClient)
   .to(ArchbaseAxiosRemoteApiClient);

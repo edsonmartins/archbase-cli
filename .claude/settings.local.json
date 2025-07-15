@@ -44,7 +44,8 @@
       "Bash(git commit:*)",
       "Bash(npm run dev:*)",
       "Bash(npm uninstall:*)",
-      "Bash(/Users/edsonmartins/tmp/archbase-cli/dist/bin/archbase.js generate service TenantService --entity Tenant --type TenantDto --java /Users/edsonmartins/relevant/mentorstec/rapidex-api/rapidex-api-rest/src/main/java/app/rapidex/api/rest/in/TenantController.java)"
+      "Bash(/Users/edsonmartins/tmp/archbase-cli/dist/bin/archbase.js generate service TenantService --entity Tenant --type TenantDto --java /Users/edsonmartins/relevant/mentorstec/rapidex-api/rapidex-api-rest/src/main/java/app/rapidex/api/rest/in/TenantController.java)",
+      "Bash(npx ts-node:*)"
     ],
     "deny": []
   }

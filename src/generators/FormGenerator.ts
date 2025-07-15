@@ -367,7 +367,7 @@ export class FormGenerator {
 {{#if useValidation}}
 import * as {{validationLibrary}} from '{{validationLibrary}}';
 {{/if}}
-import { ArchbaseEdit } from 'archbase-react';
+import { ArchbaseEdit } from '@archbase/components';
 import { Button } from '@mantine/core';
 
 {{#if typescript}}

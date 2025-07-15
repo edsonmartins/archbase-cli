@@ -1,240 +1,155 @@
 /**
- * SecurityGenerator - Generates security-related views and components
- * 
- * Based on patterns from powerview-admin project:
- * - Login views (desktop/mobile)
- * - Security management views
- * - Authentication components
- * - User management interfaces
- * - API token management
+ * SecurityGenerator - Generate security-related views and components
  */
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as Handlebars from 'handlebars';
+import Handlebars from 'handlebars';
+import { Logger } from '../utils/logger';
+import { TranslationHelper } from '../utils/TranslationHelper';
 
-export interface SecurityConfig {
-  type: 'login' | 'security-management' | 'user-management' | 'api-tokens' | 'authenticator';
+interface SecurityGeneratorOptions {
   name: string;
+  type: 'security-view' | 'api-token-view' | 'login' | 'security-management' | 'user-management' | 'api-tokens' | 'authenticator';
   output?: string;
+  outputPath?: string;
   typescript?: boolean;
   features?: string[];
   withMobile?: boolean;
   withBranding?: boolean;
   withPasswordRemember?: boolean;
-  authenticatorClass?: string;
-  userClass?: string;
-  apiTokenClass?: string;
   brandName?: string;
   logoPath?: string;
+  userClass?: string;
+  apiTokenClass?: string;
+  authenticatorClass?: string;
   baseURL?: string;
+  projectName?: string;
+  projectPath?: string;
 }
 
 export class SecurityGenerator {
-  private templateDir: string;
+  private templatesPath: string;
 
   constructor() {
-    this.templateDir = path.join(__dirname, '../templates/security');
-    this.registerHandlebarsHelpers();
+    this.templatesPath = path.join(__dirname, '../templates/security');
   }
 
-  async generate(config: SecurityConfig): Promise<{ success: boolean; files: string[]; errors?: string[] }> {
-    console.log(`🔒 Generating security component: ${config.name}`);
-
-    const files: string[] = [];
-    const errors: string[] = [];
-
+  async generate(options: SecurityGeneratorOptions): Promise<{ success: boolean; files?: string[]; errors?: string[] }> {
     try {
-      switch (config.type) {
-        case 'login':
-          files.push(...await this.generateLoginViews(config));
-          break;
-        case 'security-management':
-          files.push(...await this.generateSecurityManagement(config));
-          break;
-        case 'user-management':
-          files.push(...await this.generateUserManagement(config));
-          break;
-        case 'api-tokens':
-          files.push(...await this.generateApiTokens(config));
-          break;
-        case 'authenticator':
-          files.push(...await this.generateAuthenticator(config));
-          break;
-        default:
-          throw new Error(`Unknown security type: ${config.type}`);
+      const { name, type, outputPath, output } = options;
+      const finalOutputPath = outputPath || output || './src/security';
+      
+      // Ensure output directory exists
+      await fs.ensureDir(finalOutputPath);
+      
+      // Select template based on type
+      const templateFile = `${type}.hbs`;
+      const templatePath = path.join(this.templatesPath, templateFile);
+      
+      if (!await fs.pathExists(templatePath)) {
+        throw new Error(`Template not found: ${templateFile}`);
       }
-
-      console.log(`✅ Generated ${config.type} for ${config.name}`);
-      return { success: true, files };
+      
+      // Read template
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+      const template = Handlebars.compile(templateContent);
+      
+      // Generate component name (PascalCase)
+      const componentName = this.toPascalCase(name);
+      
+      // Render template
+      const renderedContent = template({
+        componentName,
+        ...options
+      });
+      
+      // Write file
+      const outputFile = path.join(finalOutputPath, `${componentName}.tsx`);
+      await fs.writeFile(outputFile, renderedContent);
+      
+      Logger.getInstance().info(`✅ Generated ${type}: ${outputFile}`);
+      
+      // Add translations if project path and name are provided
+      if (options.projectPath && options.projectName) {
+        await this.addSecurityTranslations(options);
+      }
+      
+      return {
+        success: true,
+        files: [outputFile]
+      };
     } catch (error) {
-      errors.push(error.message);
-      return { success: false, files, errors };
+      Logger.getInstance().error(`❌ Error generating security component: ${error.message}`);
+      return {
+        success: false,
+        errors: [error.message]
+      };
     }
   }
 
-  private async generateLoginViews(config: SecurityConfig): Promise<string[]> {
-    const context = this.buildLoginContext(config);
-    const files: string[] = [];
-    
-    // Generate simple login view first (for testing)
-    files.push(await this.generateFromTemplate('SimpleLogin.tsx.hbs', `${config.name}View.tsx`, context, config.output));
-    
-    // Generate mobile login view if requested (skip for now)
-    // if (config.withMobile) {
-    //   files.push(await this.generateFromTemplate('LoginMobileView.tsx.hbs', `${config.name}MobileView.tsx`, context, config.output));
-    // }
-    
-    // Generate CSS module (skip for now)
-    // files.push(await this.generateFromTemplate('Login.module.css.hbs', `${config.name}.module.css`, context, config.output));
-    
-    return files;
+  private toPascalCase(str: string): string {
+    return str
+      .replace(/[-_\s]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ''))
+      .replace(/^(.)/, (c) => c.toUpperCase());
   }
-
-  private async generateSecurityManagement(config: SecurityConfig): Promise<string[]> {
-    const context = this.buildSecurityContext(config);
-    const files: string[] = [];
-    
-    // Main security view
-    files.push(await this.generateFromTemplate('SecurityView.tsx.hbs', `${config.name}View.tsx`, context, config.output));
-    
-    // Navigation item
-    files.push(await this.generateFromTemplate('SecurityNavigation.tsx.hbs', `${config.name}Navigation.tsx`, context, config.output));
-    
-    // Route constants
-    files.push(await this.generateFromTemplate('SecurityRoutes.tsx.hbs', `${config.name}Routes.tsx`, context, config.output));
-    
-    return files;
+  
+  /**
+   * Add security-related translations to locale files
+   */
+  private async addSecurityTranslations(options: SecurityGeneratorOptions): Promise<void> {
+    try {
+      const translationHelper = new TranslationHelper(options.projectPath!);
+      
+      // Check if project has locale files
+      if (!(await translationHelper.hasLocaleFiles())) {
+        Logger.getInstance().info('📝 No locale files found, skipping translation updates');
+        return;
+      }
+      
+      // Get translations based on security type
+      const translations = this.getSecurityTranslations(options.type);
+      
+      if (translations.length === 0) {
+        return;
+      }
+      
+      // Create translation entries
+      const entries = TranslationHelper.createNavigationEntries(options.projectName!, translations);
+      
+      // Add translations to all locale files
+      await translationHelper.addNavigationTranslations(entries);
+      
+      Logger.getInstance().info('📝 Security translations added to locale files');
+      
+    } catch (error) {
+      Logger.getInstance().error(`Error adding security translations: ${error.message}`);
+    }
   }
-
-  private async generateUserManagement(config: SecurityConfig): Promise<string[]> {
-    const context = this.buildUserManagementContext(config);
-    const files: string[] = [];
-    
-    // User management view
-    files.push(await this.generateFromTemplate('UserManagementView.tsx.hbs', `${config.name}View.tsx`, context, config.output));
-    
-    return files;
-  }
-
-  private async generateApiTokens(config: SecurityConfig): Promise<string[]> {
-    const context = this.buildApiTokenContext(config);
-    const files: string[] = [];
-    
-    // API Token management view
-    files.push(await this.generateFromTemplate('ApiTokenManagementView.tsx.hbs', `${config.name}View.tsx`, context, config.output));
-    
-    return files;
-  }
-
-  private async generateAuthenticator(config: SecurityConfig): Promise<string[]> {
-    const context = this.buildAuthenticatorContext(config);
-    const files: string[] = [];
-    
-    // Simple authenticator class
-    files.push(await this.generateFromTemplate('SimpleAuthenticator.ts.hbs', `${config.authenticatorClass || config.name + 'Authenticator'}.ts`, context, config.output));
-    
-    // Simple IOC container setup
-    files.push(await this.generateFromTemplate('SimpleContainer.tsx.hbs', `${config.name}Container.tsx`, context, config.output));
-    
-    return files;
-  }
-
-  private buildLoginContext(config: SecurityConfig): any {
-    return {
-      componentName: config.name,
-      withMobile: config.withMobile,
-      withBranding: config.withBranding,
-      withPasswordRemember: config.withPasswordRemember,
-      brandName: config.brandName || 'Your App',
-      logoPath: config.logoPath || '/assets/logo.png',
-      features: config.features || [],
-      hasFeature: (feature: string) => config.features?.includes(feature) || false
+  
+  /**
+   * Get translations for different security types
+   */
+  private getSecurityTranslations(type: string): Array<{ key: string; ptBR: string; en: string; es: string }> {
+    const translations: Record<string, Array<{ key: string; ptBR: string; en: string; es: string }>> = {
+      'security-management': [
+        { key: 'Gerenciar Usuários', ptBR: 'Gerenciar Usuários', en: 'Manage Users', es: 'Administrar Usuarios' },
+        { key: 'Segurança', ptBR: 'Segurança', en: 'Security', es: 'Seguridad' }
+      ],
+      'api-token-management': [
+        { key: 'Tokens de API', ptBR: 'Tokens de API', en: 'API Tokens', es: 'Tokens de API' },
+        { key: 'Segurança', ptBR: 'Segurança', en: 'Security', es: 'Seguridad' }
+      ],
+      'user-management': [
+        { key: 'Usuários', ptBR: 'Usuários', en: 'Users', es: 'Usuarios' },
+        { key: 'Segurança', ptBR: 'Segurança', en: 'Security', es: 'Seguridad' }
+      ],
+      'api-tokens': [
+        { key: 'Tokens de API', ptBR: 'Tokens de API', en: 'API Tokens', es: 'Tokens de API' },
+        { key: 'Segurança', ptBR: 'Segurança', en: 'Security', es: 'Seguridad' }
+      ]
     };
-  }
-
-  private buildSecurityContext(config: SecurityConfig): any {
-    return {
-      componentName: config.name,
-      features: config.features || ['users', 'groups', 'permissions'],
-      routeName: `${config.name.toUpperCase()}_ROUTE`,
-      categoryName: `${config.name.toUpperCase()}_CATEGORY`,
-      hasFeature: (feature: string) => config.features?.includes(feature) || false
-    };
-  }
-
-  private buildUserManagementContext(config: SecurityConfig): any {
-    return {
-      componentName: config.name,
-      userClass: config.userClass || 'User',
-      features: config.features || ['custom-permissions', 'user-activation', 'user-roles'],
-      hasFeature: (feature: string) => config.features?.includes(feature) || false
-    };
-  }
-
-  private buildApiTokenContext(config: SecurityConfig): any {
-    return {
-      componentName: config.name,
-      apiTokenClass: config.apiTokenClass || 'ApiToken',
-      features: config.features || ['custom-permissions', 'token-regeneration'],
-      hasFeature: (feature: string) => config.features?.includes(feature) || false
-    };
-  }
-
-  private buildAuthenticatorContext(config: SecurityConfig): any {
-    const features = config.features || ['jwt', 'refresh-token', 'password-reset'];
-    return {
-      componentName: config.name,
-      authenticatorClass: config.authenticatorClass || `${config.name}Authenticator`,
-      userClass: config.userClass || `${config.name}User`,
-      apiTokenClass: config.apiTokenClass || `${config.name}ApiToken`,
-      brandName: config.brandName || 'YourApp',
-      baseURL: config.baseURL || 'http://localhost:8080',
-      features,
-      hasFeature: (feature: string) => features.includes(feature),
-      'password-reset': features.includes('password-reset'),
-      'logout': features.includes('logout'),
-      'change-password': features.includes('change-password'),
-      'custom-endpoints': features.includes('custom-endpoints'),
-      'custom-services': features.includes('custom-services')
-    };
-  }
-
-  private async generateFromTemplate(
-    templateName: string,
-    outputFileName: string,
-    context: any,
-    outputDir?: string
-  ): Promise<string> {
-    const templatePath = path.join(this.templateDir, templateName);
-    const template = await fs.readFile(templatePath, 'utf-8');
-    const compiled = Handlebars.compile(template);
-    const content = compiled(context);
-
-    const finalOutputDir = outputDir || './src/security';
-    const outputPath = path.join(finalOutputDir, outputFileName);
     
-    await fs.ensureDir(path.dirname(outputPath));
-    await fs.writeFile(outputPath, content);
-    
-    return outputPath;
-  }
-
-  private registerHandlebarsHelpers(): void {
-    Handlebars.registerHelper('eq', (a, b) => a === b);
-    Handlebars.registerHelper('capitalizeFirst', (str) => 
-      str.charAt(0).toUpperCase() + str.slice(1)
-    );
-    Handlebars.registerHelper('toLowerCase', (str) => str.toLowerCase());
-    Handlebars.registerHelper('toUpperCase', (str) => str.toUpperCase());
-    Handlebars.registerHelper('concat', (...args) => {
-      args.pop(); // Remove options object
-      return args.join('');
-    });
-    Handlebars.registerHelper('hasFeature', function(this: any, feature: string) {
-      return this.features && this.features.includes(feature);
-    });
-    Handlebars.registerHelper('lt', () => '{');
-    Handlebars.registerHelper('gt', () => '}');
+    return translations[type] || [];
   }
 }

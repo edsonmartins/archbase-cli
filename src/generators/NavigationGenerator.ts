@@ -8,6 +8,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
+import { TranslationHelper } from '../utils/TranslationHelper';
 
 interface NavigationConfig {
   name: string;
@@ -22,6 +23,8 @@ interface NavigationConfig {
   withForm: boolean;
   withView: boolean;
   group?: string;
+  projectName?: string;
+  projectPath?: string;
 }
 
 interface GenerationResult {
@@ -87,6 +90,11 @@ export class NavigationGenerator {
       // Generate route constants
       const routeFile = await this.generateRouteConstants(config.name, context, config);
       files.push(routeFile);
+      
+      // Add translations if project path is provided
+      if (config.projectPath && config.projectName) {
+        await this.addNavigationTranslations(config, context);
+      }
       
       return { files, success: true };
       
@@ -216,5 +224,105 @@ export class NavigationGenerator {
   
   private capitalizeFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  
+  /**
+   * Add navigation translations to locale files
+   */
+  private async addNavigationTranslations(config: NavigationConfig, context: any): Promise<void> {
+    try {
+      const translationHelper = new TranslationHelper(config.projectPath!);
+      
+      // Check if project has locale files
+      if (!(await translationHelper.hasLocaleFiles())) {
+        console.log('  📝 No locale files found, skipping translation updates');
+        return;
+      }
+      
+      // Create translation entries
+      const entries = TranslationHelper.createNavigationEntries(config.projectName!, [
+        {
+          key: config.label,
+          ptBR: this.getPortugueseTranslation(config.label),
+          en: this.getEnglishTranslation(config.label),
+          es: this.getSpanishTranslation(config.label)
+        },
+        {
+          key: config.category,
+          ptBR: this.getPortugueseTranslation(config.category),
+          en: this.getEnglishTranslation(config.category),
+          es: this.getSpanishTranslation(config.category)
+        }
+      ]);
+      
+      // Add translations to all locale files
+      await translationHelper.addNavigationTranslations(entries);
+      
+    } catch (error) {
+      console.error('Error adding navigation translations:', error.message);
+    }
+  }
+  
+  /**
+   * Get Portuguese translation for a key
+   */
+  private getPortugueseTranslation(key: string): string {
+    const translations: Record<string, string> = {
+      'Dashboard': 'Dashboard',
+      'Gerenciar Usuários': 'Gerenciar Usuários',
+      'Tokens de API': 'Tokens de API',
+      'Segurança': 'Segurança',
+      'Configurações': 'Configurações',
+      'Usuários': 'Usuários',
+      'Perfis': 'Perfis',
+      'Grupos': 'Grupos',
+      'Recursos': 'Recursos',
+      'Auditoria': 'Auditoria',
+      'Relatórios': 'Relatórios'
+    };
+    
+    return translations[key] || key;
+  }
+  
+  /**
+   * Get English translation for a key
+   */
+  private getEnglishTranslation(key: string): string {
+    const translations: Record<string, string> = {
+      'Dashboard': 'Dashboard',
+      'Gerenciar Usuários': 'Manage Users',
+      'Tokens de API': 'API Tokens',
+      'Segurança': 'Security',
+      'Configurações': 'Settings',
+      'Usuários': 'Users',
+      'Perfis': 'Profiles',
+      'Grupos': 'Groups',
+      'Recursos': 'Resources',
+      'Auditoria': 'Audit',
+      'Relatórios': 'Reports'
+    };
+    
+    return translations[key] || key;
+  }
+  
+  /**
+   * Get Spanish translation for a key
+   */
+  private getSpanishTranslation(key: string): string {
+    const translations: Record<string, string> = {
+      'Dashboard': 'Panel de control',
+      'Gerenciar Usuários': 'Administrar Usuarios',
+      'Tokens de API': 'Tokens de API',
+      'Segurança': 'Seguridad',
+      'Configurações': 'Configuraciones',
+      'Usuários': 'Usuarios',
+      'Perfis': 'Perfiles',
+      'Grupos': 'Grupos',
+      'Recursos': 'Recursos',
+      'Auditoria': 'Auditoría',
+      'Relatórios': 'Reportes'
+    };
+    
+    return translations[key] || key;
   }
 }

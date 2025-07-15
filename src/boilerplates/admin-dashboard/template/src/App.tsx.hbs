@@ -5,6 +5,7 @@ import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
 import '@mantine/spotlight/styles.css'
 import '@archbase/components/dist/index.css'
+// import '@archbase/layout/dist/layout.css' // CSS file exists but not in package.json exports
 // mantine-react-table removido no archbase-react 3.0.0
 import {
   ActionIcon,
@@ -20,8 +21,8 @@ import {
   Indicator,
   Avatar
 } from '@mantine/core'
-import { useForceUpdate, useFullscreen, useHotkeys, useLocalStorage, useMediaQuery, useUncontrolled } from '@mantine/hooks'
-import { Dispatch, ErrorInfo, Fragment, ReactNode, SetStateAction, useEffect, useMemo, useState } from 'react'
+import { useFullscreen, useHotkeys, useLocalStorage, useMediaQuery } from '@mantine/hooks'
+import { Dispatch, ErrorInfo, Fragment, ReactNode, SetStateAction, useEffect, useState, useCallback } from 'react'
 import i18next from 'i18next'
 import {
   IconArrowsMaximize,
@@ -29,11 +30,9 @@ import {
   IconBrandMessenger,
   IconLogout,
   IconMoonStars,
-  IconSettings,
   IconSun,
   IconUserCircle
 } from '@tabler/icons-react'
-import { LoginView } from './views/login/LoginView'
 import { Login } from './views/login/Login'
 import translation_en from './locales/en/translation.json'
 import translation_ptbr from './locales/pt-BR/translation.json'
@@ -44,19 +43,30 @@ import { navigationData } from './navigation/navigationData'
 import { {{pascalCase projectName}}ErrorFallback } from './utils/{{pascalCase projectName}}ErrorFallback'
 import { {{pascalCase projectName}}User } from './auth/{{pascalCase projectName}}Authenticator'
 import { API_TYPE } from './ioc/{{pascalCase projectName}}IOCTypes'
+// Do pacote core
 import {
-  useArchbaseRemoteServiceApi,
   useArchbaseTheme,
   processErrorMessage,
   ArchbaseAppProvider,
   ArchbaseGlobalProvider,
   useArchbaseDataSource,
-  ArchbaseUserService,
   ArchbaseErrorBoundary,
-  defaultAvatar,
-  useArchbaseStore,
+  ARCHBASE_IOC_API_TYPE
 } from '@archbase/core';
+
+// Do pacote data  
 import {
+  useArchbaseRemoteServiceApi,
+  useArchbaseStore
+} from '@archbase/data';
+
+// Do pacote security
+import {
+  ArchbaseUserService,
+  useArchbaseAuthenticationManager,
+} from '@archbase/security';
+import {
+  defaultAvatar,
   useArchbaseAdminStore,
   ArchbaseAdminLayoutHeader,
   ArchbaseAdminMainLayout,
@@ -65,10 +75,6 @@ import {
   CommandPaletteButton,
   ArchbaseMyProfileModal,
 } from '@archbase/admin';
-import {
-  useArchbaseAuthenticationManager,
-} from '@archbase/security';
-import { LoginMobileView } from './views/login/LoginMobileView'
 
 type MainProps = {
   onLoginUser: (user: {{pascalCase projectName}}User) => void
@@ -86,42 +92,42 @@ function Main({ onLoginUser, onLogoutUser, user, setUser }: MainProps) {
   const templateStore = useArchbaseStore()
   const [isCollapsed, setCollapsed] = useState<boolean>(false)
   const [isHidden, setHidden] = useState<boolean>(false)
-  const usuarioServiceApi = useArchbaseRemoteServiceApi<ArchbaseUserService>(API_TYPE.Usuario)
+  const usuarioServiceApi = useArchbaseRemoteServiceApi<ArchbaseUserService>(ARCHBASE_IOC_API_TYPE.User)
   const [showMyProfile, setShowMyProfile] = useState<boolean>(false)
   const api = import.meta.env.VITE_API
 
   const { login, logout, username, isAuthenticated, error, accessToken } =
     useArchbaseAuthenticationManager({})
 
-  useEffect(() => {
-    const getUserInfo = async () => {
-      if (accessToken && accessToken != null) {
-        try {
-          const usuario = await usuarioServiceApi.getUserByEmail(username)
-          onLoginUser(
-            new {{pascalCase projectName}}User({
-              id: usuario.id,
-              displayName: usuario.name,
-              email: usuario.email,
-              photo: usuario.avatar ? atob(usuario.avatar) : undefined,
-              isAdmin: true
-            })
-          )
-        } catch (err) {
-          const error = processErrorMessage(err)
-          if (error.includes('401')) {
-            logout()
-            onLogoutUser()
-          }
+  const getUserInfo = useCallback(async () => {
+    if (accessToken && accessToken != null) {
+      try {
+        const usuario = await usuarioServiceApi.getUserByEmail(username)
+        onLoginUser(
+          new {{pascalCase projectName}}User({
+            id: usuario.id,
+            displayName: usuario.name,
+            email: usuario.email,
+            photo: usuario.avatar ? atob(usuario.avatar) : undefined,
+            isAdmin: true
+          })
+        )
+      } catch (err) {
+        const error = processErrorMessage(err)
+        if (error.includes('401')) {
+          logout()
+          onLogoutUser()
         }
       }
     }
+  }, [accessToken, username, onLoginUser, logout, onLogoutUser])
 
-    if (isAuthenticated) {
-      getUserInfo().catch((res) => {
+  useEffect(() => {
+    if (isAuthenticated && accessToken) {
+      getUserInfo().catch(() => {
       })
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, accessToken])
 
   const handleLogin = (username: string, password: string, rememberMe: boolean) => {
     login(username, password, rememberMe)
@@ -145,7 +151,7 @@ function Main({ onLoginUser, onLogoutUser, user, setUser }: MainProps) {
     } else if (api && api.includes('homolog')) {
       result.push(
         <Badge size="lg" variant="gradient" gradient=\{{ from: '#2f3eeb', to: '#5b63f0', deg: 90 }}>
-          'HOMOLOGAÇÃO'
+          HOMOLOGAÇÃO
         </Badge>
       )
     }
@@ -385,16 +391,18 @@ function Main({ onLoginUser, onLogoutUser, user, setUser }: MainProps) {
               navigationData={navigationData}
             />
           </ArchbaseAdminMainLayout>
-          <ArchbaseMyProfileModal
-            opened={showMyProfile} 
-            handleClose={handleCloseMyProfileModal} 
-            userId={user.id} 
-            updateUser={handleUpdateUser} 
-            options=\{{
-              showNickname: false,
-              avatarMaxSizeKB: 100
-            }}
-           />
+          {user && (
+            <ArchbaseMyProfileModal
+              opened={showMyProfile} 
+              handleClose={handleCloseMyProfileModal} 
+              userId={user.id} 
+              updateUser={handleUpdateUser} 
+              options=\{{
+                showNickname: false,
+                avatarMaxSizeKB: 100
+              }}
+             />
+          )}
         </Fragment>
       ) : (loginView)}{' '}
     </ArchbaseErrorBoundary>

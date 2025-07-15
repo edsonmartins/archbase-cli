@@ -235,7 +235,7 @@ export class DashboardGenerator {
 
     // Add service imports if needed
     if (options.serviceIntegration) {
-      imports.push("import { useArchbaseRemoteServiceApi, API_TYPE } from '@archbase/data';");
+      imports.push("import { useArchbaseRemoteServiceApi } from '@archbase/data';", "import { API_TYPE } from '../ioc/IOCTypes';");
     }
 
     return imports;

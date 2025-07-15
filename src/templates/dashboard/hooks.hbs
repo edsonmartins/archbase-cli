@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useArchbaseRemoteServiceApi, ARCHBASE_IOC_API_TYPE } from 'archbase-react';
+import { useArchbaseRemoteServiceApi } from '@archbase/data';
+import { ARCHBASE_IOC_API_TYPE } from '@archbase/data';
 import { {{name}}State{{#if (hasKPIs kpis)}}, KPIData{{/if}}{{#if (hasCharts charts)}}, ChartData{{/if}}{{#if (hasTables tables)}}, TableData{{/if}}{{#if (hasFilters filters)}}, FilterData{{/if}} } from './{{name}}Types';
 
 export function use{{name}}Data(autoRefresh = {{autoRefresh}}) {

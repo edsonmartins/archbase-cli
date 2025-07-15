@@ -45,6 +45,7 @@ export const ARCHBASE_CORE_DEPENDENCIES: DependencyConfig[] = [
   { name: '@mantine/dropzone', version: '8.1.2', required: true, category: 'ui', description: 'Mantine dropzone component' },
   { name: '@mantine/modals', version: '8.1.2', required: true, category: 'ui', description: 'Mantine modal system' },
   { name: '@mantine/notifications', version: '8.1.2', required: true, category: 'ui', description: 'Mantine notifications' },
+  { name: '@mantine/spotlight', version: '8.1.2', required: true, category: 'ui', description: 'Mantine spotlight search' },
   
   // Icons and UI utilities
   { name: '@tabler/icons-react', version: '^2.47.0', required: true, category: 'ui', description: 'Tabler icons for React' },
@@ -91,7 +92,6 @@ export const ARCHBASE_OPTIONAL_DEPENDENCIES: DependencyConfig[] = [
   
   // Advanced data components
   { name: '@mui/x-data-grid', version: '^7.28.3', required: false, category: 'ui', description: 'Material-UI DataGrid' },
-  { name: 'mantine-react-table', version: '2.0.0-beta.8', required: false, category: 'ui', description: 'Mantine React Table' },
   
   // Authentication
   { name: 'jwt-decode', version: '^3.1.2', required: false, category: 'utils', description: 'JWT token decoding' },
@@ -127,9 +127,9 @@ export const ARCHBASE_OPTIONAL_DEPENDENCIES: DependencyConfig[] = [
  */
 export const ARCHBASE_DEV_DEPENDENCIES: DependencyConfig[] = [
   // TypeScript
-  { name: 'typescript', version: '^5.6.3', required: true, category: 'dev', description: 'TypeScript compiler' },
-  { name: '@types/react', version: '^18.3.3', required: true, category: 'dev', description: 'React type definitions' },
-  { name: '@types/react-dom', version: '^18.3.0', required: true, category: 'dev', description: 'React DOM type definitions' },
+  { name: 'typescript', version: '^5.3.3', required: true, category: 'dev', description: 'TypeScript compiler' },
+  { name: '@types/react', version: '^19.0.4', required: true, category: 'dev', description: 'React type definitions' },
+  { name: '@types/react-dom', version: '^19.0.2', required: true, category: 'dev', description: 'React DOM type definitions' },
   { name: '@types/node', version: '^20.14.2', required: true, category: 'dev', description: 'Node.js type definitions' },
   { name: '@types/uuid', version: '^9.0.1', required: true, category: 'dev', description: 'UUID type definitions' },
   { name: '@types/lodash', version: '^4.17.7', required: true, category: 'dev', description: 'Lodash type definitions' },
@@ -139,7 +139,9 @@ export const ARCHBASE_DEV_DEPENDENCIES: DependencyConfig[] = [
   { name: 'postcss-preset-mantine', version: '^1.15.0', required: true, category: 'dev', description: 'Mantine PostCSS preset' },
   { name: 'postcss-simple-vars', version: '^7.0.1', required: true, category: 'dev', description: 'PostCSS variables' },
   
-  // Vite plugins and build tools
+  // Vite build tool and plugins
+  { name: 'vite', version: '^6.0.3', required: true, category: 'dev', description: 'Vite build tool' },
+  { name: '@vitejs/plugin-react', version: '^4.2.1', required: true, category: 'dev', description: 'Vite React plugin' },
   { name: 'vite-plugin-eslint', version: '^1.8.1', required: true, category: 'dev', description: 'Vite ESLint plugin' },
   { name: 'vite-plugin-copy', version: '^0.1.6', required: true, category: 'dev', description: 'Vite copy plugin' },
   { name: 'http2-proxy', version: '^5.0.53', required: true, category: 'dev', description: 'HTTP2 proxy for Vite dev server' },
@@ -246,10 +248,10 @@ export function generatePackageJsonDependencies(
 }
 
 /**
- * Get PostCSS configuration for Mantine 8
+ * Get PostCSS configuration for Mantine 8 (ES modules)
  */
 export function getMantinePostCSSConfig(): string {
-  return `module.exports = {
+  return `export default {
   plugins: {
     'postcss-preset-mantine': {},
     'postcss-simple-vars': {

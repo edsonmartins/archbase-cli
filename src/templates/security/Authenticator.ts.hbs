@@ -3,9 +3,9 @@ import { injectable } from 'inversify';
 import {
   ArchbaseAccessToken,
   ArchbaseAuthenticator,
-  ArchbaseRemoteApiDataSource,
   ArchbaseUser
-} from 'archbase-react';
+} from '@archbase/security';
+import { ArchbaseRemoteApiDataSource } from '@archbase/data';
 import { {{userClass}} } from './{{userClass}}';
 
 export interface {{authenticatorClass}}Config {
