@@ -1099,7 +1099,33 @@ archbase knowledge export --format=markdown
 
 ## Changelog
 
-### v0.1.6 - Archbase React V3 Migration with Security Features (Latest)
+### v0.2.0 - V3 Import Standardization, Canonical Generators & Test Suite (Latest)
+
+**Build & tooling:**
+- ✅ **Unblocked install/build**: removed the broken local `archbase-react` file dependency (the CLI only references it inside generated code, never at runtime)
+- ✅ **Migrated Jest → Vitest**: `vitest.config.ts`, shared `tests/helpers.ts`, `npm test` / `test:watch` / `test:coverage`
+- ✅ **Dependency stack aligned to real V3 projects**: `@archbase/*` `4.0.30`, **Mantine 9.3.1**, added `@archbase/security-ui`, `@tabler/icons-react` v3, Inversify 6.2, React Router 6.28
+
+**V3 import standardization:**
+- ✅ **Central resolver** (`src/utils/archbasePackages.ts`) backed by a 961-symbol map derived from the V3 catalog + the real reference projects — generated code now emits `@archbase/*` exclusively (zero `archbase-react`)
+- ✅ Fixed V3 project detection in `ProjectScanner` and `CodeValidator` (accept `@archbase/*`)
+
+**Generators realigned to canonical reference patterns:**
+- ✅ **Forms**: `forms/basic.hbs` rewritten to `ArchbaseFormTemplate` + DataSource (replaced the non-existent `FormBuilder`)
+- ✅ **Views**: `views/crud-list.hbs` rewritten to `ArchbaseGridTemplate` + `ArchbaseViewSecurityProvider` + `useArchbaseSecureForm`
+- ✅ **Domain**: `--style=class|interface` flag (+ `dto-interface.hbs`), `isNew` factory flag, `tsType` fixes (`email` → `string`)
+- ✅ **Security**: fixed type→template mapping and registered helpers; repaired the security view templates (feature flags + JSX brace escaping) so all `--type`s render
+- ✅ Fixed dashboard number-column JSX escaping and the Component Storybook helper
+
+**Features completed:**
+- ✅ `create module` now scaffolds a full feature slice (domain + service + view + form) with `--fields/--endpoint/--dto-style/--output`
+- ✅ `knowledge validate --fix` backfills missing metadata (with backup)
+- ✅ **KnowledgeBase** augmented with the full 900+ component V3 catalog (mapped to packages), on top of the curated core
+
+**Tests:**
+- ✅ **80 Vitest tests across 15 files** (resolver, all generators, KnowledgeBase, analyzers, CodeValidator, `create module` smoke), all green; assertions enforce `@archbase/*` imports and the canonical shape
+
+### v0.1.6 - Archbase React V3 Migration with Security Features
 
 **Major V3 Migration:**
 - ✅ **Complete V3 Architecture**: Migrated from monolithic archbase-react to modular @archbase/* packages
