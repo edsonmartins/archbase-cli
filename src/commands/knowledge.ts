@@ -183,8 +183,10 @@ knowledgeCommand
               comp.category = 'uncategorized';
               fixedCount++;
             }
-            if (!comp.props || Object.keys(comp.props).length === 0) {
-              comp.props = comp.props || {};
+            if (comp.props === undefined) {
+              // Normalize missing props to an empty object so the schema is consistent.
+              comp.props = {};
+              fixedCount++;
             }
           });
 

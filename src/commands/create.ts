@@ -18,6 +18,7 @@ import { DomainGenerator } from '../generators/DomainGenerator';
 import { ServiceGenerator } from '../generators/ServiceGenerator';
 import { ViewGenerator } from '../generators/ViewGenerator';
 import { FormGenerator } from '../generators/FormGenerator';
+import { parseFieldSpecs } from '../utils/fields';
 
 export const createCommand = new Command('create')
   .description('Create projects and modules from boilerplates')
@@ -298,7 +299,7 @@ export const createCommand = new Command('create')
       .description('Scaffold a feature module (domain + service + view + form) following V3 patterns')
       .argument('<name>', 'Entity/module name (e.g., Product)')
       .option('--with <components>', 'Comma-separated parts (crud|lists|forms|details)', 'crud')
-      .option('--fields <fields>', 'Comma-separated field list (name:type,price:number)', 'name:text,description:textarea')
+      .option('--fields <fields>', 'Comma-separated field list (name:type[:required], e.g. name:text:required,price:number)', 'name:text,description:textarea')
       .option('--output <dir>', 'Base source directory', './src')
       .option('--endpoint <path>', 'REST endpoint for the service')
       .option('--dto-style <style>', 'DTO style: class|interface', 'class')
@@ -313,10 +314,7 @@ export const createCommand = new Command('create')
           const wantList = parts.includes('crud') || parts.includes('lists');
           const wantForm = parts.includes('crud') || parts.includes('forms') || parts.includes('details');
           const fieldsCsv: string = options.fields;
-          const fieldsArray = fieldsCsv.split(',').map((f) => {
-            const [fieldName, fieldType = 'text'] = f.trim().split(':');
-            return { name: fieldName.trim(), type: fieldType.trim(), required: false };
-          });
+          const fieldsArray = parseFieldSpecs(fieldsCsv);
           const created: string[] = [];
 
           // 1. Domain DTO
@@ -334,7 +332,9 @@ export const createCommand = new Command('create')
           if (domainResult.success) created.push(...domainResult.files);
 
           // 2. Remote service
-          const servicePath = await new ServiceGenerator().generate({
+          // ServiceGenerator.generate() returns the rendered source (not a path)
+          // and writes to <outputPath>/services/<serviceName>.ts.
+          await new ServiceGenerator().generate({
             serviceName: `${entity}Service`,
             entityName: entity,
             entityType: `${entity}Dto`,
@@ -343,7 +343,7 @@ export const createCommand = new Command('create')
             outputPath: base,
             generateDto: false,
           });
-          if (servicePath) created.push(servicePath);
+          created.push(path.join(base, 'services', `${entity}Service.ts`));
 
           // 3. CRUD list view
           if (wantList) {

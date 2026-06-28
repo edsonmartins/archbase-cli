@@ -7,7 +7,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
-import { buildArchbaseImports } from '../utils/archbasePackages';
+import { resolveCommonTemplateFallback } from '../utils/templates';
 
 interface FormConfig {
   fields?: string;
@@ -42,6 +42,7 @@ interface GenerationResult {
 }
 
 export class FormGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
   
   constructor(templatesPath: string = path.join(__dirname, '../../src/templates')) {
@@ -51,12 +52,12 @@ export class FormGenerator {
   
   private registerHandlebarsHelpers() {
     // Register equality helper
-    Handlebars.registerHelper('eq', (a: any, b: any) => {
+    this.handlebars.registerHelper('eq', (a: any, b: any) => {
       return a === b;
     });
     
     // Register conditional helpers
-    Handlebars.registerHelper('if_eq', (a: any, b: any, options: any) => {
+    this.handlebars.registerHelper('if_eq', (a: any, b: any, options: any) => {
       if (a === b) {
         return options.fn(options.data?.root || {});
       }
@@ -64,22 +65,22 @@ export class FormGenerator {
     });
     
     // Register array includes helper
-    Handlebars.registerHelper('includes', (array: any[], item: any) => {
+    this.handlebars.registerHelper('includes', (array: any[], item: any) => {
       return array && array.includes(item);
     });
     
     // Register capitalize first helper
-    Handlebars.registerHelper('capitalizeFirst', (str: string) => {
+    this.handlebars.registerHelper('capitalizeFirst', (str: string) => {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
     
     // Register lowercase helper
-    Handlebars.registerHelper('toLowerCase', (str: string) => {
+    this.handlebars.registerHelper('toLowerCase', (str: string) => {
       return str.toLowerCase();
     });
     
     // Register TypeScript type helper for forms
-    Handlebars.registerHelper('tsType', (inputType: string) => {
+    this.handlebars.registerHelper('tsType', (inputType: string) => {
       const typeMapping: { [key: string]: string } = {
         'text': 'string',
         'email': 'string',
@@ -98,8 +99,8 @@ export class FormGenerator {
     });
     
     // Register helpers for template literals
-    Handlebars.registerHelper('lt', () => '{');
-    Handlebars.registerHelper('gt', () => '}');
+    this.handlebars.registerHelper('lt', () => '{');
+    this.handlebars.registerHelper('gt', () => '}');
   }
   
   async generate(name: string, config: FormConfig): Promise<GenerationResult> {
@@ -191,11 +192,11 @@ export class FormGenerator {
           continue;
         }
         
-        // Skip the new record flag
-        if (fieldName.startsWith('isNovo')) {
+        // Skip the new record flag (DomainGenerator emits `isNew`; legacy DTOs used `isNovo*`)
+        if (fieldName === 'isNew' || fieldName.startsWith('isNovo')) {
           continue;
         }
-        
+
         // Convert TypeScript type to form input type
         const inputType = this.convertTypeScriptToInputType(fieldType);
         
@@ -261,9 +262,6 @@ export class FormGenerator {
       useValidation: config.validation !== 'none',
       validationLibrary: config.validation,
       typescript: config.typescript,
-      hasRequiredFields: fields.some(f => f.required),
-      imports: this.generateImports(fields, config),
-      validationSchema: this.generateValidationSchema(fields, config.validation),
       // DataSource V2 support
       dataSourceVersion: config.dataSourceVersion || config.datasourceVersion || 'v2',
       withArrayFields: config.withArrayFields || false,
@@ -293,7 +291,7 @@ export class FormGenerator {
     }
     
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const ext = config.typescript ? '.tsx' : '.jsx';
@@ -309,7 +307,7 @@ export class FormGenerator {
   
   private async generateTest(name: string, context: any, config: FormConfig): Promise<string> {
     const template = await this.loadTemplate('forms/test.hbs');
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const ext = config.typescript ? '.test.tsx' : '.test.jsx';
@@ -324,7 +322,7 @@ export class FormGenerator {
   
   private async generateStory(name: string, context: any, config: FormConfig): Promise<string> {
     const template = await this.loadTemplate('forms/story.hbs');
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${name}.stories.tsx`;
@@ -344,12 +342,9 @@ export class FormGenerator {
     }
 
     // Test/story templates fall back to the shared common templates.
-    if (templateName.endsWith('test.hbs') || templateName.endsWith('story.hbs')) {
-      const commonName = templateName.endsWith('test.hbs') ? 'common/test.hbs' : 'common/story.hbs';
-      const commonPath = path.join(this.templatesPath, commonName);
-      if (await fs.pathExists(commonPath)) {
-        return fs.readFile(commonPath, 'utf-8');
-      }
+    const common = await resolveCommonTemplateFallback(this.templatesPath, templateName);
+    if (common !== null) {
+      return common;
     }
 
     // Return default template if specific template not found
@@ -537,64 +532,6 @@ export const WithInitialValues: Story = {
     },
   },
 };`;
-  }
-  
-  private generateImports(fields: FieldDefinition[], config: FormConfig): string[] {
-    // Map field types to the Archbase V3 input component they require.
-    const fieldComponentByType: Record<string, string> = {
-      string: 'ArchbaseEdit',
-      text: 'ArchbaseEdit',
-      email: 'ArchbaseEdit',
-      password: 'ArchbasePasswordEdit',
-      number: 'ArchbaseNumberEdit',
-      select: 'ArchbaseSelect',
-      textarea: 'ArchbaseTextArea',
-      checkbox: 'ArchbaseCheckbox',
-      switch: 'ArchbaseSwitch',
-      date: 'ArchbaseDateTimePickerEdit',
-      boolean: 'ArchbaseSwitch',
-    };
-
-    const archbaseSymbols = new Set<string>(['ArchbaseEdit', 'ArchbaseFormTemplate']);
-    fields.forEach(field => {
-      const component = fieldComponentByType[field.type];
-      if (component) archbaseSymbols.add(component);
-    });
-
-    const mantineComponents = ['Button'];
-
-    return [
-      "import React from 'react';",
-      // Imports grouped by @archbase/* package via the central resolver.
-      ...buildArchbaseImports([...archbaseSymbols]),
-      `import { ${[...new Set(mantineComponents)].join(', ')} } from '@mantine/core';`,
-      config.validation !== 'none' ? `import * as ${config.validation} from '${config.validation}';` : ''
-    ].filter(Boolean);
-  }
-  
-  private generateValidationSchema(fields: FieldDefinition[], library: string): string {
-    if (library === 'none') return '';
-    
-    const validations = fields.map(field => {
-      let validation = `${field.name}: ${library}.string()`;
-      
-      if (field.required) {
-        validation += '.required()';
-      }
-      
-      if (field.type === 'email') {
-        validation += '.email()';
-      }
-      
-      if (field.type === 'number') {
-        validation = `${field.name}: ${library}.number()`;
-        if (field.required) validation += '.required()';
-      }
-      
-      return validation;
-    });
-    
-    return validations.join(',\n  ');
   }
   
   private getValidationForType(type: string): string {

@@ -55,6 +55,7 @@ interface GenerationResult {
 }
 
 export class DomainGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
   
   constructor(templatesPath: string = path.join(__dirname, '../../src/templates')) {
@@ -64,46 +65,46 @@ export class DomainGenerator {
   
   private registerHandlebarsHelpers() {
     // Register equality helper
-    Handlebars.registerHelper('eq', (a: any, b: any) => {
+    this.handlebars.registerHelper('eq', (a: any, b: any) => {
       return a === b;
     });
     
     // Register capitalize first helper
-    Handlebars.registerHelper('capitalizeFirst', (str: string) => {
+    this.handlebars.registerHelper('capitalizeFirst', (str: string) => {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
     
     // Register lowercase helper
-    Handlebars.registerHelper('toLowerCase', (str: string) => {
+    this.handlebars.registerHelper('toLowerCase', (str: string) => {
       return str.toLowerCase();
     });
     
     // Register uppercase helper
-    Handlebars.registerHelper('toUpperCase', (str: string) => {
+    this.handlebars.registerHelper('toUpperCase', (str: string) => {
       return str.toUpperCase();
     });
     
     // Register camelCase helper
-    Handlebars.registerHelper('toCamelCase', (str: string) => {
+    this.handlebars.registerHelper('toCamelCase', (str: string) => {
       return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
         return index === 0 ? word.toLowerCase() : word.toUpperCase();
       }).replace(/\s+/g, '');
     });
     
     // Register validation message helper
-    Handlebars.registerHelper('validationMessage', (fieldName: string, entityName: string) => {
+    this.handlebars.registerHelper('validationMessage', (fieldName: string, entityName: string) => {
       return `mentors:${fieldName} ${entityName.toLowerCase()} dever ser informado`;
     });
     
     // Register concat helper
-    Handlebars.registerHelper('concat', (...args: any[]) => {
+    this.handlebars.registerHelper('concat', (...args: any[]) => {
       // Remove the options object (last argument)
       const values = args.slice(0, -1);
       return values.join('');
     });
     
     // Register TypeScript type helper
-    Handlebars.registerHelper('tsType', (javaType: string) => {
+    this.handlebars.registerHelper('tsType', (javaType: string) => {
       const typeMapping: { [key: string]: string } = {
         // Java types
         'String': 'string',
@@ -364,7 +365,7 @@ export class DomainGenerator {
       ? 'domain/dto-interface.hbs'
       : 'domain/dto.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${context.dtoName}.ts`;
@@ -380,7 +381,7 @@ export class DomainGenerator {
   private async generateEnum(enumConfig: EnumConfig, context: any, config: DomainConfig): Promise<string> {
     const templateName = 'domain/enum.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled({
       ...context,
       enumName: enumConfig.name,
@@ -406,7 +407,7 @@ export class DomainGenerator {
     
     const templateName = 'domain/status-values.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${context.entityName}StatusValues.ts`;

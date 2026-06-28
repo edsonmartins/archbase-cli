@@ -34,6 +34,7 @@ interface GenerationResult {
 }
 
 export class NavigationGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
   
   constructor(templatesPath: string = path.join(__dirname, '../../src/templates')) {
@@ -43,12 +44,12 @@ export class NavigationGenerator {
   
   private registerHandlebarsHelpers() {
     // Register equality helper
-    Handlebars.registerHelper('eq', (a: any, b: any) => {
+    this.handlebars.registerHelper('eq', (a: any, b: any) => {
       return a === b;
     });
     
     // Register conditional helpers
-    Handlebars.registerHelper('if_eq', (a: any, b: any, options: any) => {
+    this.handlebars.registerHelper('if_eq', (a: any, b: any, options: any) => {
       if (a === b) {
         return options.fn(options.data?.root || {});
       }
@@ -56,22 +57,22 @@ export class NavigationGenerator {
     });
     
     // Register capitalize first helper
-    Handlebars.registerHelper('capitalizeFirst', (str: string) => {
+    this.handlebars.registerHelper('capitalizeFirst', (str: string) => {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
     
     // Register lowercase helper
-    Handlebars.registerHelper('toLowerCase', (str: string) => {
+    this.handlebars.registerHelper('toLowerCase', (str: string) => {
       return str.toLowerCase();
     });
     
     // Register uppercase helper
-    Handlebars.registerHelper('toUpperCase', (str: string) => {
+    this.handlebars.registerHelper('toUpperCase', (str: string) => {
       return str.toUpperCase();
     });
     
     // Register kebab case helper
-    Handlebars.registerHelper('toKebabCase', (str: string) => {
+    this.handlebars.registerHelper('toKebabCase', (str: string) => {
       return str.replace(/([A-Z])/g, (match, letter, index) => 
         index === 0 ? letter.toLowerCase() : `-${letter.toLowerCase()}`
       );
@@ -152,7 +153,7 @@ export class NavigationGenerator {
   private async generateNavigationItem(name: string, context: any, config: NavigationConfig): Promise<string> {
     const templateName = 'navigation/navigation-item.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const ext = config.typescript ? '.tsx' : '.jsx';
@@ -169,7 +170,7 @@ export class NavigationGenerator {
   private async generateRouteConstants(name: string, context: any, config: NavigationConfig): Promise<string> {
     const templateName = 'navigation/route-constants.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${name}Routes.ts`;

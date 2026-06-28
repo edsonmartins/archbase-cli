@@ -55,6 +55,7 @@ export class KnowledgeBase {
   private knowledgePath: string;
   private componentsCache: Map<string, ComponentInfo> = new Map();
   private patternsCache: PatternInfo[] = [];
+  private componentsLoaded = false;
   
   constructor(knowledgePath: string = path.join(__dirname, '../../knowledge')) {
     this.knowledgePath = knowledgePath;
@@ -147,6 +148,10 @@ export class KnowledgeBase {
   }
   
   private async loadComponents(): Promise<void> {
+    // The full V3 catalog is ~400KB; only parse it once per process.
+    if (this.componentsLoaded) {
+      return;
+    }
     try {
       const componentsFile = path.join(this.knowledgePath, 'components.json');
 
@@ -166,10 +171,12 @@ export class KnowledgeBase {
       // Augment with the full V3 catalog (916 components) for breadth, without
       // overwriting the curated entries above.
       await this.loadV3Catalog();
+      this.componentsLoaded = true;
     } catch (error) {
       console.warn('Failed to load components knowledge base:', error.message);
       await this.initializeDefaultComponents();
       await this.loadV3Catalog();
+      this.componentsLoaded = true;
     }
   }
 

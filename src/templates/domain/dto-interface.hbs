@@ -15,14 +15,7 @@ export interface {{dtoName}} {
   {{/each}}
 }
 
-export interface {{entityName}}CreateDTO {
-  {{#each fields}}
-  {{name}}{{#unless required}}?{{/unless}}: {{tsType type}};
-  {{/each}}
-}
+// Derived from {{dtoName}} to avoid duplicating field definitions.
+export type {{entityName}}CreateDTO = Omit<{{dtoName}}, 'id'>;
 
-export interface {{entityName}}UpdateDTO {
-  {{#each fields}}
-  {{name}}?: {{tsType type}};
-  {{/each}}
-}
+export type {{entityName}}UpdateDTO = Partial<{{dtoName}}>;

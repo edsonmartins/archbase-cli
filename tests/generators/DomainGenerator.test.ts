@@ -73,8 +73,9 @@ describe('DomainGenerator', () => {
       expect(result.success).toBe(true);
       const content = await readGenerated(result.files[0]);
       expect(content).toContain('export interface ProductDto');
-      expect(content).toContain('export interface ProductCreateDTO');
-      expect(content).toContain('export interface ProductUpdateDTO');
+      // Create/Update DTOs are derived from the base interface to avoid duplication.
+      expect(content).toContain("export type ProductCreateDTO = Omit<ProductDto, 'id'>");
+      expect(content).toContain('export type ProductUpdateDTO = Partial<ProductDto>');
       expect(content).not.toContain('export class');
     });
 

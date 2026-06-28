@@ -1,7 +1,4 @@
 import React, { useCallback } from 'react';
-{{#if useValidation}}
-import * as {{validationLibrary}} from '{{validationLibrary}}';
-{{/if}}
 import {
   ArchbaseEdit,
   ArchbaseSelect,
@@ -24,13 +21,8 @@ import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
 import { API_TYPE } from '../../ioc/IOCTypes';
 
-{{#if useValidation}}
-const formValidator = {{validationLibrary}}.object({
-  {{#each fields}}
-  {{name}}: {{#if (eq type 'email')}}{{../validationLibrary}}.string().email(){{else if (eq type 'number')}}{{../validationLibrary}}.number(){{else if (eq type 'boolean')}}{{../validationLibrary}}.boolean(){{else}}{{../validationLibrary}}.string(){{/if}}{{#if required}}.required(){{/if}},
-  {{/each}}
-});
-{{/if}}
+// Validation is driven by the DTO's class-validator decorators via
+// useArchbaseValidator() below (the V3 pattern), not a standalone schema.
 
 export function {{componentName}}() {
   const { {{toLowerCase entityName}}Id } = useParams{{#if typescript}}<{ {{toLowerCase entityName}}Id: string }>{{/if}}();
@@ -112,9 +104,7 @@ export function {{componentName}}() {
         dataField="{{name}}"
         {{#if required}}required{{/if}}
       >
-        {{#each options}}
-        <ArchbaseSelectItem key="{{this}}" value="{{this}}" label="{{this}}" />
-        {{/each}}
+        {/* TODO: add <ArchbaseSelectItem value="..." label="..." /> options for "{{name}}" */}
       </ArchbaseSelect>
       {{else if (eq type 'email')}}
       <ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}

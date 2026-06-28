@@ -29,6 +29,7 @@ interface SecurityGeneratorOptions {
 }
 
 export class SecurityGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
 
   /** Maps a security component type to its actual template file. */
@@ -48,14 +49,14 @@ export class SecurityGenerator {
   }
 
   private registerHelpers(): void {
-    Handlebars.registerHelper('toUpperCase', (str: string) => String(str ?? '').toUpperCase());
-    Handlebars.registerHelper('toLowerCase', (str: string) => String(str ?? '').toLowerCase());
-    Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
+    this.handlebars.registerHelper('toUpperCase', (str: string) => String(str ?? '').toUpperCase());
+    this.handlebars.registerHelper('toLowerCase', (str: string) => String(str ?? '').toLowerCase());
+    this.handlebars.registerHelper('eq', (a: any, b: any) => a === b);
     // Template-literal escape helpers used by some templates ({{lt}}...{{gt}}).
-    Handlebars.registerHelper('lt', () => '{');
-    Handlebars.registerHelper('gt', () => '}');
+    this.handlebars.registerHelper('lt', () => '{');
+    this.handlebars.registerHelper('gt', () => '}');
     // Resolves feature flags from the `features` array passed in the render context.
-    Handlebars.registerHelper('hasFeature', function (this: any, feature: string) {
+    this.handlebars.registerHelper('hasFeature', function (this: any, feature: string) {
       const features = (this && this.features) || [];
       return Array.isArray(features) && features.includes(feature);
     });
@@ -80,7 +81,7 @@ export class SecurityGenerator {
       
       // Read template
       const templateContent = await fs.readFile(templatePath, 'utf-8');
-      const template = Handlebars.compile(templateContent);
+      const template = this.handlebars.compile(templateContent);
       
       // Generate component name (PascalCase)
       const componentName = this.toPascalCase(name);

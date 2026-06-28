@@ -104,41 +104,20 @@ export class PageGenerator {
   
   private getRequiredImports(config: PageConfig, components: ComponentDefinition[]): string[] {
     const imports = [
-      "import React from 'react';"
+      "import React from 'react';",
+      "import { Container, Stack, Title } from '@mantine/core';",
     ];
-    
-    // Layout-specific imports (resolved to the correct @archbase/* packages)
-    switch (config.layout) {
-      case 'sidebar':
-        imports.push(...buildArchbaseImports(['ArchbaseAdminMainLayout', 'ArchbaseNavigationItem']));
-        break;
-      case 'header':
-        imports.push(...buildArchbaseImports(['ArchbaseAdminMainLayout']));
-        break;
-      case 'dashboard':
-        imports.push(...buildArchbaseImports(['ArchbaseAdminMainLayout']));
-        imports.push("import { Card } from '@mantine/core';");
-        break;
-      case 'blank':
-        imports.push("import { Container } from '@mantine/core';");
-        break;
-    }
 
-    // Authentication imports
+    // Authentication wrapper (resolved via the @archbase/* resolver).
     if (config.withAuth) {
       imports.push(...buildArchbaseImports(['ArchbaseViewSecurityProvider']));
     }
 
-    // Navigation imports
-    if (config.withNavigation) {
-      imports.push(...buildArchbaseImports(['useArchbaseNavigationListener']));
-    }
-    
     // Component-specific imports
     const componentImports = components.map(comp => {
       return `import ${comp.name} from '../components/${comp.name}';`;
     });
-    
+
     return [...imports, ...componentImports];
   }
   
@@ -190,145 +169,21 @@ export class PageGenerator {
   }
   
   private getInlineTemplate(templateName: string): HandlebarsTemplateDelegate {
+    // All page layouts share one real Mantine scaffold; the `layout` option is
+    // a hint for composition rather than distinct (previously fictional) shells.
     const templates: { [key: string]: string } = {
-      sidebar: this.getSidebarTemplate(),
-      header: this.getHeaderTemplate(),
-      blank: this.getBlankTemplate(),
-      dashboard: this.getDashboardTemplate(),
+      sidebar: this.getPageTemplate(),
+      header: this.getPageTemplate(),
+      blank: this.getPageTemplate(),
+      dashboard: this.getPageTemplate(),
       test: this.getTestTemplate(),
       story: this.getStoryTemplate()
     };
-    
+
     return Handlebars.compile(templates[templateName] || templates.blank);
   }
-  
-  private getSidebarTemplate(): string {
-    return `{{#each imports}}
-{{{this}}}
-{{/each}}
 
-{{#if typescript}}
-{{{interfaces}}}
-{{/if}}
-
-const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if}} = ({
-  title = '{{pageTitle}}',
-  children
-}) => {
-  const sidebarItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
-    { label: 'Usuários', path: '/users', icon: 'users' },
-    { label: 'Configurações', path: '/settings', icon: 'settings' },
-  ];
-
-  return (
-    {{#if withAuth}}
-    <ProtectedRoute>
-    {{/if}}
-      <ArchbaseLayout>
-        <ArchbaseSidebar
-          items={sidebarItems}
-          title="{{pageTitle}}"
-          collapsible
-        />
-        
-        <div className="{{componentName}}__content">
-          {{#if withNavigation}}
-          <ArchbaseBreadcrumb />
-          {{/if}}
-          
-          <div className="{{componentName}}__header">
-            <h1>{title}</h1>
-          </div>
-          
-          <div className="{{componentName}}__main">
-            {{#each components}}
-            <{{name}} />
-            {{/each}}
-            {children}
-          </div>
-          
-          {{#if withFooter}}
-          <footer className="{{componentName}}__footer">
-            <p>&copy; 2024 {{pageTitle}}. Todos os direitos reservados.</p>
-          </footer>
-          {{/if}}
-        </div>
-      </ArchbaseLayout>
-    {{#if withAuth}}
-    </ProtectedRoute>
-    {{/if}}
-  );
-};
-
-export default {{componentName}};`;
-  }
-  
-  private getHeaderTemplate(): string {
-    return `{{#each imports}}
-{{{this}}}
-{{/each}}
-
-{{#if typescript}}
-{{{interfaces}}}
-{{/if}}
-
-const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if}} = ({
-  title = '{{pageTitle}}',
-  children
-}) => {
-  const headerActions = [
-    { label: 'Perfil', action: () => console.log('Profile') },
-    { label: 'Sair', action: () => console.log('Logout') },
-  ];
-
-  return (
-    {{#if withAuth}}
-    <ProtectedRoute>
-    {{/if}}
-      <ArchbaseLayout>
-        <ArchbaseHeader
-          title="{{pageTitle}}"
-          actions={headerActions}
-          showSearch
-        />
-        
-        <div className="{{componentName}}__content">
-          {{#if withNavigation}}
-          <ArchbaseNavigation />
-          <ArchbaseBreadcrumb />
-          {{/if}}
-          
-          <main className="{{componentName}}__main">
-            <div className="{{componentName}}__header">
-              <h1>{title}</h1>
-            </div>
-            
-            <div className="{{componentName}}__body">
-              {{#each components}}
-              <{{name}} />
-              {{/each}}
-              {children}
-            </div>
-          </main>
-          
-          {{#if withFooter}}
-          <footer className="{{componentName}}__footer">
-            <p>&copy; 2024 {{pageTitle}}. Todos os direitos reservados.</p>
-          </footer>
-          {{/if}}
-        </div>
-      </ArchbaseLayout>
-    {{#if withAuth}}
-    </ProtectedRoute>
-    {{/if}}
-  );
-};
-
-export default {{componentName}};`;
-  }
-  
-  private getBlankTemplate(): string {
+  private getPageTemplate(): string {
     return `{{#each imports}}
 {{{this}}}
 {{/each}}
@@ -343,116 +198,19 @@ const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if
 }) => {
   return (
     {{#if withAuth}}
-    <ProtectedRoute>
+    <ArchbaseViewSecurityProvider resourceName="{{componentName}}" resourceDescription="{{pageTitle}}">
     {{/if}}
-      <ArchbaseContainer className="{{componentName}}">
-        {{#if withNavigation}}
-        <ArchbaseBreadcrumb />
-        {{/if}}
-        
-        <div className="{{componentName}}__header">
-          <h1>{title}</h1>
-        </div>
-        
-        <div className="{{componentName}}__main">
+      <Container className="{{componentName}}">
+        <Stack gap="md">
+          <Title order={2}>{title}</Title>
           {{#each components}}
           <{{name}} />
           {{/each}}
           {children}
-        </div>
-        
-        {{#if withFooter}}
-        <footer className="{{componentName}}__footer">
-          <p>&copy; 2024 {{pageTitle}}. Todos os direitos reservados.</p>
-        </footer>
-        {{/if}}
-      </ArchbaseContainer>
+        </Stack>
+      </Container>
     {{#if withAuth}}
-    </ProtectedRoute>
-    {{/if}}
-  );
-};
-
-export default {{componentName}};`;
-  }
-  
-  private getDashboardTemplate(): string {
-    return `{{#each imports}}
-{{{this}}}
-{{/each}}
-
-{{#if typescript}}
-{{{interfaces}}}
-
-interface DashboardMetrics {
-  totalUsers: number;
-  totalSales: number;
-  revenue: number;
-  growth: number;
-}
-{{/if}}
-
-const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if}} = ({
-  title = '{{pageTitle}}',
-  children
-}) => {
-  {{#if typescript}}
-  const metrics: DashboardMetrics = {
-  {{else}}
-  const metrics = {
-  {{/if}}
-    totalUsers: 1250,
-    totalSales: 350,
-    revenue: 45000,
-    growth: 12.5
-  };
-
-  return (
-    {{#if withAuth}}
-    <ProtectedRoute>
-    {{/if}}
-      <ArchbaseDashboard>
-        {{#if withNavigation}}
-        <ArchbaseBreadcrumb />
-        {{/if}}
-        
-        <div className="{{componentName}}__header">
-          <h1>{title}</h1>
-        </div>
-        
-        <div className="{{componentName}}__metrics">
-          <ArchbaseCard title="Total de Usuários">
-            <div className="metric-value">{metrics.totalUsers}</div>
-          </ArchbaseCard>
-          
-          <ArchbaseCard title="Vendas">
-            <div className="metric-value">{metrics.totalSales}</div>
-          </ArchbaseCard>
-          
-          <ArchbaseCard title="Receita">
-            <div className="metric-value">R$ {metrics.revenue.toLocaleString()}</div>
-          </ArchbaseCard>
-          
-          <ArchbaseCard title="Crescimento">
-            <div className="metric-value">{metrics.growth}%</div>
-          </ArchbaseCard>
-        </div>
-        
-        <div className="{{componentName}}__content">
-          {{#each components}}
-          <{{name}} />
-          {{/each}}
-          {children}
-        </div>
-        
-        {{#if withFooter}}
-        <footer className="{{componentName}}__footer">
-          <p>&copy; 2024 {{pageTitle}}. Todos os direitos reservados.</p>
-        </footer>
-        {{/if}}
-      </ArchbaseDashboard>
-    {{#if withAuth}}
-    </ProtectedRoute>
+    </ArchbaseViewSecurityProvider>
     {{/if}}
   );
 };
