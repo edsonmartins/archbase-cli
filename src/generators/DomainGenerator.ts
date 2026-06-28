@@ -31,6 +31,7 @@ interface DomainField {
 interface DomainConfig {
   name: string;
   output: string;
+  style?: 'class' | 'interface';
   typescript: boolean;
   fields: DomainField[];
   enums?: EnumConfig[];
@@ -123,12 +124,19 @@ export class DomainGenerator {
         'UUID': 'string',
         'BigDecimal': 'number',
         // CLI field types
+        'string': 'string',
         'text': 'string',
+        'email': 'string',
+        'password': 'string',
+        'textarea': 'string',
+        'select': 'string',
         'number': 'number',
         'decimal': 'number',
         'date': 'string',
         'datetime': 'string',
         'bool': 'boolean',
+        'checkbox': 'boolean',
+        'switch': 'boolean',
         'enum': 'string' // Default to string, will be overridden by specific enum types
       };
       
@@ -340,8 +348,11 @@ export class DomainGenerator {
       
       // Naming
       camelCaseName: this.toCamelCase(entityName),
-      newInstanceFlag: `isNovo${entityName}`,
-      
+      newInstanceFlag: 'isNew',
+
+      // Style: 'class' (decorators + constructor + newInstance) or 'interface'
+      style: config.style || 'class',
+
       // Imports
       needsValidation: config.withValidation && processedFields.some(f => f.required),
       needsUuid: config.withFactory || config.withAuditFields
@@ -349,7 +360,9 @@ export class DomainGenerator {
   }
   
   private async generateDto(name: string, context: any, config: DomainConfig): Promise<string> {
-    const templateName = 'domain/dto.hbs';
+    const templateName = (config.style === 'interface')
+      ? 'domain/dto-interface.hbs'
+      : 'domain/dto.hbs';
     const template = await this.loadTemplate(templateName);
     const compiled = Handlebars.compile(template);
     const content = compiled(context);

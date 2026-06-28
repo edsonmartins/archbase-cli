@@ -14,7 +14,8 @@ import {
   Stack
 } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
-import { useArchbasePasswordRemember, useArchbaseForceUpdate } from 'archbase-react';
+import { useArchbasePasswordRemember } from '@archbase/core';
+import { useArchbaseForceUpdate } from '@archbase/data';
 import classes from './{{componentName}}.module.css';
 
 export interface {{componentName}}ViewProps {
@@ -59,7 +60,7 @@ export function {{componentName}}View({ onAuthenticate, isLoading = false, error
     <div className={classes.wrapper}>
       <Grid className={classes.container}>
         {{#if withBranding}}
-        <Grid.Col span={{lt}}{{ base: 12, md: 6 }}{{gt}} className={classes.brandingSection}>
+        <Grid.Col span={{lt}}{ base: 12, md: 6 }{{gt}} className={classes.brandingSection}>
           <div className={classes.brandingContent}>
             <Image
               src="{{logoPath}}"
@@ -77,9 +78,9 @@ export function {{componentName}}View({ onAuthenticate, isLoading = false, error
         {{/if}}
         
         {{#if withBranding}}
-        <Grid.Col span={{lt}}{{ base: 12, md: 6 }}{{gt}} className={classes.loginSection}>
+        <Grid.Col span={{lt}}{ base: 12, md: 6 }{{gt}} className={classes.loginSection}>
         {{else}}
-        <Grid.Col span={{lt}}{{ base: 12, md: 12 }}{{gt}} className={classes.loginSection}>
+        <Grid.Col span={{lt}}{ base: 12, md: 12 }{{gt}} className={classes.loginSection}>
         {{/if}}
           <Card className={classes.loginCard} shadow="xl" padding="xl" radius="md">
             <FocusTrap active>
@@ -147,7 +148,7 @@ export function {{componentName}}View({ onAuthenticate, isLoading = false, error
                     Entrar
                   </Button>
 
-                  {{#if hasFeature "forgot-password"}}
+                  {{#if (hasFeature "forgot-password")}}
                   <Text ta="center" size="sm">
                     <a href="#" className={classes.forgotPassword}>
                       Esqueceu sua senha?

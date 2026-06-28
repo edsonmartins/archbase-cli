@@ -1,58 +1,140 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 {{#if useValidation}}
 import * as {{validationLibrary}} from '{{validationLibrary}}';
 {{/if}}
-import { ArchbaseEdit } from '@archbase/components';
-import { Button } from '@mantine/core';
-
-{{#if typescript}}
-interface {{componentName}}Props {
-  onSubmit: (values: {{entityName}}) => Promise<void>;
-  {{#if initialValues}}initialValues?: Partial<{{entityName}}>;{{/if}}
-}
-
-interface {{entityName}} {
-  {{#each fields}}
-  {{name}}: {{tsType type}};
-  {{/each}}
-}
-{{/if}}
+import {
+  ArchbaseEdit,
+  ArchbaseSelect,
+  ArchbaseSelectItem,
+  ArchbaseCheckbox,
+  ArchbaseSwitch,
+  ArchbaseNumberEdit,
+  ArchbasePasswordEdit,
+  ArchbaseTextArea
+} from '@archbase/components';
+import { ArchbaseFormTemplate } from '@archbase/template';
+import {
+  useArchbaseRemoteDataSource,
+  useArchbaseRemoteServiceApi,
+  useArchbaseStore
+} from '@archbase/data';
+import { useArchbaseValidator } from '@archbase/core';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
+import { {{entityName}}Service } from '../../services/{{entityName}}Service';
+import { API_TYPE } from '../../ioc/IOCTypes';
 
 {{#if useValidation}}
-const validationSchema = yup.object({
+const formValidator = {{validationLibrary}}.object({
   {{#each fields}}
-  {{#if validation}}
-  {{name}}: {{validation}},
-  {{/if}}
+  {{name}}: {{#if (eq type 'email')}}{{../validationLibrary}}.string().email(){{else if (eq type 'number')}}{{../validationLibrary}}.number(){{else if (eq type 'boolean')}}{{../validationLibrary}}.boolean(){{else}}{{../validationLibrary}}.string(){{/if}}{{#if required}}.required(){{/if}},
   {{/each}}
 });
 {{/if}}
 
-const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if}} = ({
-  onSubmit,
-  {{#if initialValues}}initialValues{{/if}}
-}) => {
-  const fields{{#if typescript}}: FieldConfig[]{{/if}} = [
-    {{#each fields}}
-    {
-      name: '{{name}}',
-      label: '{{label}}',
-      type: '{{type}}',
-      {{#if required}}required: true,{{/if}}
-      {{#if placeholder}}placeholder: '{{placeholder}}',{{/if}}
-    },
-    {{/each}}
-  ];
+export function {{componentName}}() {
+  const { {{toLowerCase entityName}}Id } = useParams{{#if typescript}}<{ {{toLowerCase entityName}}Id: string }>{{/if}}();
+  const [searchParamsUrl] = useSearchParams();
+  const action = (searchParamsUrl.get('action') ?? 'ADD').toUpperCase();
+  const isAddAction = action === 'ADD';
+  const isViewAction = action === 'VIEW';
+
+  const templateStore = useArchbaseStore(`{{toLowerCase entityName}}Form${ {{toLowerCase entityName}}Id }Store`);
+  const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
+  const validator = useArchbaseValidator();
+
+  const { dataSource, isLoading } = useArchbaseRemoteDataSource<{{entityName}}Dto, string>({
+    name: `ds{{entityName}}${ {{toLowerCase entityName}}Id }`,
+    label: '{{entityName}}',
+    service: serviceApi,
+    store: templateStore,
+    pageSize: 50,
+    loadOnStart: !isAddAction,
+    validator,
+    id: action === 'EDIT' || isViewAction ? {{toLowerCase entityName}}Id : undefined,
+    onLoadComplete: (ds) => {
+      if (isAddAction) {
+        ds.insert({{entityName}}Dto.newInstance());
+      }
+    }
+  });
+
+  const handleAfterSave = useCallback(() => {
+    templateStore.clearAllValues();
+  }, [templateStore]);
 
   return (
-    <FormBuilder
-      fields={fields}
-      {{#if useValidation}}validation={validationSchema}{{/if}}
-      onSubmit={onSubmit}
-      {{#if initialValues}}initialValues={initialValues}{{/if}}
-    />
+    <ArchbaseFormTemplate
+      title={isAddAction ? 'Novo {{entityName}}' : isViewAction ? 'Visualizar {{entityName}}' : 'Editar {{entityName}}'}
+      dataSource={dataSource}
+      onAfterSave={handleAfterSave}
+      isLoading={isLoading}
+      readOnly={isViewAction}
+    >
+      {{#each fields}}
+      {{#if (eq type 'password')}}
+      <ArchbasePasswordEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        {{#if required}}required{{/if}}
+      />
+      {{else if (eq type 'number')}}
+      <ArchbaseNumberEdit{{#if ../typescript}}<{{../entityName}}Dto, number>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        {{#if required}}required{{/if}}
+      />
+      {{else if (eq type 'textarea')}}
+      <ArchbaseTextArea{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        {{#if required}}required{{/if}}
+      />
+      {{else if (eq type 'boolean')}}
+      <ArchbaseSwitch{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+      />
+      {{else if (eq type 'checkbox')}}
+      <ArchbaseCheckbox{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+      />
+      {{else if (eq type 'select')}}
+      <ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, string, string>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        {{#if required}}required{{/if}}
+      >
+        {{#each options}}
+        <ArchbaseSelectItem key="{{this}}" value="{{this}}" label="{{this}}" />
+        {{/each}}
+      </ArchbaseSelect>
+      {{else if (eq type 'email')}}
+      <ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        type="email"
+        {{#if required}}required{{/if}}
+      />
+      {{else}}
+      <ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        {{#if required}}required{{/if}}
+      />
+      {{/if}}
+      {{/each}}
+    </ArchbaseFormTemplate>
   );
-};
+}
 
-export { {{componentName}} };
 export default {{componentName}};

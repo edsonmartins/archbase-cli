@@ -14,6 +14,10 @@ import * as path from 'path';
 import { BoilerplateGenerator } from '../generators/BoilerplateGenerator';
 import { PackageJsonGenerator } from '../generators/PackageJsonGenerator';
 import { ProjectWizard } from '../utils/wizard';
+import { DomainGenerator } from '../generators/DomainGenerator';
+import { ServiceGenerator } from '../generators/ServiceGenerator';
+import { ViewGenerator } from '../generators/ViewGenerator';
+import { FormGenerator } from '../generators/FormGenerator';
 
 export const createCommand = new Command('create')
   .description('Create projects and modules from boilerplates')
@@ -154,8 +158,8 @@ export const createCommand = new Command('create')
                   }
                   
                   console.log(chalk.yellow('\n📦 Dependencies:'));
-                  console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
-                  console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+                  console.log(chalk.gray('  ✅ @archbase/* V3 packages + all required dependencies'));
+                  console.log(chalk.gray('  ✅ @mantine/core 9.x ecosystem'));
                   console.log(chalk.gray('  ✅ TypeScript configuration'));
                   console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
                   console.log(chalk.gray('  ✅ Vite build configuration'));
@@ -205,8 +209,8 @@ export const createCommand = new Command('create')
               }
               
               console.log(chalk.yellow('\n📦 Dependencies:'));
-              console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
-              console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+              console.log(chalk.gray('  ✅ @archbase/* V3 packages + all required dependencies'));
+              console.log(chalk.gray('  ✅ @mantine/core 9.x ecosystem'));
               console.log(chalk.gray('  ✅ TypeScript configuration'));
               console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
               console.log(chalk.gray('  ✅ Vite build configuration'));
@@ -291,18 +295,94 @@ export const createCommand = new Command('create')
   )
   .addCommand(
     new Command('module')
-      .description('Create a new module with components')
-      .argument('<name>', 'Module name')
-      .option('--with <components>', 'Comma-separated component list (forms|lists|details|crud)')
+      .description('Scaffold a feature module (domain + service + view + form) following V3 patterns')
+      .argument('<name>', 'Entity/module name (e.g., Product)')
+      .option('--with <components>', 'Comma-separated parts (crud|lists|forms|details)', 'crud')
+      .option('--fields <fields>', 'Comma-separated field list (name:type,price:number)', 'name:text,description:textarea')
+      .option('--output <dir>', 'Base source directory', './src')
+      .option('--endpoint <path>', 'REST endpoint for the service')
+      .option('--dto-style <style>', 'DTO style: class|interface', 'class')
       .action(async (name: string, options) => {
         console.log(chalk.blue(`🧩 Creating module: ${name}`));
-        
+
         try {
-          // TODO: Implement module creation
-          console.log(chalk.yellow('🚧 Module creation coming soon...'));
-          console.log(chalk.gray(`  Name: ${name}`));
-          console.log(chalk.gray(`  Components: ${options.with || 'default'}`));
-          
+          const entity = name.charAt(0).toUpperCase() + name.slice(1);
+          const feature = entity.toLowerCase();
+          const base = options.output;
+          const parts = String(options.with).split(',').map((p: string) => p.trim().toLowerCase());
+          const wantList = parts.includes('crud') || parts.includes('lists');
+          const wantForm = parts.includes('crud') || parts.includes('forms') || parts.includes('details');
+          const fieldsCsv: string = options.fields;
+          const fieldsArray = fieldsCsv.split(',').map((f) => {
+            const [fieldName, fieldType = 'text'] = f.trim().split(':');
+            return { name: fieldName.trim(), type: fieldType.trim(), required: false };
+          });
+          const created: string[] = [];
+
+          // 1. Domain DTO
+          const domainResult = await new DomainGenerator().generate({
+            name: `${entity}Dto`,
+            output: path.join(base, 'domain'),
+            style: options.dtoStyle === 'interface' ? 'interface' : 'class',
+            typescript: true,
+            fields: fieldsArray,
+            withValidation: true,
+            withConstructor: true,
+            withFactory: true,
+            withAuditFields: true,
+          });
+          if (domainResult.success) created.push(...domainResult.files);
+
+          // 2. Remote service
+          const servicePath = await new ServiceGenerator().generate({
+            serviceName: `${entity}Service`,
+            entityName: entity,
+            entityType: `${entity}Dto`,
+            idType: 'string',
+            endpoint: options.endpoint || `/api/v1/${feature}`,
+            outputPath: base,
+            generateDto: false,
+          });
+          if (servicePath) created.push(servicePath);
+
+          // 3. CRUD list view
+          if (wantList) {
+            const viewResult = await new ViewGenerator().generate(`${entity}View`, {
+              fields: fieldsCsv,
+              output: path.join(base, 'views', feature),
+              typescript: true,
+              test: false,
+              story: false,
+              feature,
+              withPermissions: true,
+              withFilters: true,
+              withPagination: true,
+              withSorting: true,
+            });
+            if (viewResult.success) created.push(...viewResult.files);
+          }
+
+          // 4. Form view
+          if (wantForm) {
+            const formResult = await new FormGenerator().generate(`${entity}Form`, {
+              fields: fieldsCsv,
+              validation: 'yup',
+              template: 'basic',
+              output: path.join(base, 'views', feature),
+              typescript: true,
+              test: false,
+              story: false,
+              feature,
+            } as any);
+            if (formResult.success) created.push(...formResult.files);
+          }
+
+          console.log(chalk.green(`\n✅ Module '${entity}' created with ${created.length} file(s):`));
+          created.forEach((file) => console.log(chalk.gray(`  📄 ${file}`)));
+          console.log(chalk.yellow('\n💡 Next steps:'));
+          console.log(chalk.gray(`  • Register ${entity}Service in your IOC container (API_TYPE.${entity})`));
+          console.log(chalk.gray(`  • Add navigation entries: archbase generate navigation ${entity} --feature ${feature}`));
+
         } catch (error) {
           console.error(chalk.red(`❌ Error creating module: ${error.message}`));
           process.exit(1);
@@ -542,8 +622,8 @@ function showProjectInfo(result: any, projectName: string) {
   }
   
   console.log(chalk.yellow('\n📦 Dependencies:'));
-  console.log(chalk.gray('  ✅ archbase-react + all required dependencies'));
-  console.log(chalk.gray('  ✅ @mantine/core 8.x ecosystem'));
+  console.log(chalk.gray('  ✅ @archbase/* V3 packages + all required dependencies'));
+  console.log(chalk.gray('  ✅ @mantine/core 9.x ecosystem'));
   console.log(chalk.gray('  ✅ TypeScript configuration'));
   console.log(chalk.gray('  ✅ PostCSS + Mantine preset'));
   console.log(chalk.gray('  ✅ Vite build configuration'));

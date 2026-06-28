@@ -6,12 +6,12 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { 
+import {
   IsNotEmpty,
   IsEmail,
   ValidateNested,
   IsOptional
-} from 'archbase-react';
+} from '@archbase/core';
 
 import { ProductStatus } from './ProductStatus';
 

@@ -1,7 +1,8 @@
 /**
  * PackageJsonGenerator - Generate package.json with Archbase dependencies
  * 
- * Automatically includes all required dependencies based on archbase-react v2.1.3
+ * Automatically includes all required dependencies for the Archbase React V3
+ * (@archbase/* v4.x) ecosystem.
  */
 
 import * as fs from 'fs-extra';
@@ -264,9 +265,9 @@ npm run build
 This project includes all necessary dependencies for Archbase React development:
 
 ### Core Dependencies
-- **archbase-react**: Component library
-- **@mantine/core**: UI components (v8.x)
-- **React**: ^18.3.1
+- **@archbase/***: Modular component library (v4.x)
+- **@mantine/core**: UI components (v9.x)
+- **React**: ^18.3 || ^19
 - **TypeScript**: Full type safety
 - **Vite**: Fast build tool
 
@@ -333,7 +334,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 2. Start using Archbase components:
 
 \`\`\`tsx
-import { ArchbaseEdit } from 'archbase-react';
+import { ArchbaseEdit } from '@archbase/components';
 import { Button } from '@mantine/core'
 
 function MyComponent() {

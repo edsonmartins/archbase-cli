@@ -1,5 +1,7 @@
 import React from 'react';
-import { ArchbaseSecurityView, useArchbaseNavigationListener, useArchbaseStore } from 'archbase-react';
+import { ArchbaseSecurityView } from '@archbase/security-ui';
+import { useArchbaseNavigationListener } from '@archbase/admin';
+import { useArchbaseStore } from '@archbase/data';
 import { {{toUpperCase componentName}}_ROUTE } from './{{componentName}}Routes';
 
 export function {{componentName}}View() {
@@ -13,7 +15,7 @@ export function {{componentName}}View() {
   return (
     <ArchbaseSecurityView 
       store={store}
-      {{#if hasFeature "custom-permissions"}}
+      {{#if (hasFeature "custom-permissions")}}
       customPermissions={{lt}}{
         // Define permissões customizadas aqui
         canManageUsers: true,
@@ -22,13 +24,13 @@ export function {{componentName}}View() {
         canViewAuditLog: true
       }{{gt}}
       {{/if}}
-      {{#if hasFeature "custom-styling"}}
+      {{#if (hasFeature "custom-styling")}}
       styles={{lt}}{
         header: { backgroundColor: 'var(--mantine-color-blue-6)' },
         sidebar: { backgroundColor: 'var(--mantine-color-gray-0)' }
       }{{gt}}
       {{/if}}
-      {{#if hasFeature "custom-actions"}}
+      {{#if (hasFeature "custom-actions")}}
       customActions={{lt}}{
         onUserCreated: (user) => {
           console.log('Usuário criado:', user);
@@ -44,13 +46,13 @@ export function {{componentName}}View() {
         }
       }{{gt}}
       {{/if}}
-      {{#if hasFeature "audit-log"}}
+      {{#if (hasFeature "audit-log")}}
       enableAuditLog={true}
       {{/if}}
-      {{#if hasFeature "export-users"}}
+      {{#if (hasFeature "export-users")}}
       enableUserExport={true}
       {{/if}}
-      {{#if hasFeature "bulk-operations"}}
+      {{#if (hasFeature "bulk-operations")}}
       enableBulkOperations={true}
       {{/if}}
     />

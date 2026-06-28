@@ -153,13 +153,13 @@ export class ComponentGenerator {
     // Type-specific imports
     switch (config.type) {
       case 'input':
-        imports.push("import { ArchbaseEdit, ArchbaseSelect, ArchbaseCheckbox } from 'archbase-react';");
+        imports.push("import { ArchbaseEdit, ArchbaseSelect, ArchbaseCheckbox } from '@archbase/components';");
         break;
       case 'display':
-        imports.push("import { ArchbaseCard, ArchbaseText, ArchbaseImage } from 'archbase-react';");
+        imports.push("import { Card, Text, Image } from '@mantine/core';");
         break;
       case 'layout':
-        imports.push("import { ArchbaseContainer, ArchbaseRow, ArchbaseCol } from 'archbase-react';");
+        imports.push("import { Container, Grid } from '@mantine/core';");
         break;
     }
     
@@ -540,7 +540,7 @@ export const Default: Story = {
 };
 
 {{#each props}}
-export const With{{@root.capitalizeFirst name}}: Story = {
+export const With{{capitalizeFirst name}}: Story = {
   args: {
     ...Default.args,
     {{name}}: {{#if (eq type "string")}}'Custom {{name}} value'{{else}}{{#if (eq type "number")}}999{{else}}{{#if (eq type "boolean")}}false{{else}}'custom'{{/if}}{{/if}}{{/if}},

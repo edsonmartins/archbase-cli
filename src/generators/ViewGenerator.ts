@@ -342,15 +342,24 @@ export class ViewGenerator {
   
   private async loadTemplate(templateName: string): Promise<string> {
     const templatePath = path.join(this.templatesPath, templateName);
-    
+
     if (await fs.pathExists(templatePath)) {
       return fs.readFile(templatePath, 'utf-8');
     }
-    
+
+    // Test/story templates fall back to the shared common templates.
+    if (templateName.endsWith('test.hbs') || templateName.endsWith('story.hbs')) {
+      const commonName = templateName.endsWith('test.hbs') ? 'common/test.hbs' : 'common/story.hbs';
+      const commonPath = path.join(this.templatesPath, commonName);
+      if (await fs.pathExists(commonPath)) {
+        return fs.readFile(commonPath, 'utf-8');
+      }
+    }
+
     // Return default template if specific template not found
     return this.getDefaultTemplate(templateName);
   }
-  
+
   private getDefaultTemplate(templateName: string): string {
     if (templateName.includes('crud-list')) {
       return this.getCrudListTemplate();

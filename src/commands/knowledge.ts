@@ -171,9 +171,34 @@ knowledgeCommand
         }
         
         if (options.fix && errors.length === 0) {
-          // Apply fixes for warnings
+          // Apply fixes for warnings: backfill missing metadata with safe defaults.
           console.log(chalk.blue('\n🔧 Applying fixes...'));
-          // TODO: Implement fix logic
+          let fixedCount = 0;
+          Object.entries(data.components || {}).forEach(([name, comp]: [string, any]) => {
+            if (!comp.description) {
+              comp.description = `${name} component`;
+              fixedCount++;
+            }
+            if (!comp.category) {
+              comp.category = 'uncategorized';
+              fixedCount++;
+            }
+            if (!comp.props || Object.keys(comp.props).length === 0) {
+              comp.props = comp.props || {};
+            }
+          });
+
+          if (fixedCount > 0) {
+            // Back up the original before overwriting.
+            await fs.copy(file, `${file}.bak`, { overwrite: true });
+            data.lastUpdated = new Date().toISOString().split('T')[0];
+            await fs.writeJson(file, data, { spaces: 2 });
+            console.log(chalk.green(`  ✅ Applied ${fixedCount} fix(es). Backup saved to ${file}.bak`));
+          } else {
+            console.log(chalk.gray('  Nothing to fix automatically.'));
+          }
+        } else if (options.fix && errors.length > 0) {
+          console.log(chalk.yellow('\n⚠️  Fix skipped: resolve structural errors first.'));
         }
       }
       
