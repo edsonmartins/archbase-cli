@@ -269,6 +269,7 @@ export const generateCommand = new Command('generate')
       .argument('<name>', 'DTO name (e.g., UserDto, Cliente)')
       .option('--fields <fields>', 'Comma-separated field list (name:type,email:String)')
       .option('--output <dir>', 'Output directory', './src/domain')
+      .option('--style <style>', 'DTO style: class (decorators + newInstance) or interface', 'class')
       .option('--typescript', 'Generate TypeScript (default)', true)
       .option('--with-audit-fields', 'Include audit fields (id, dates, users)', true)
       .option('--with-validation', 'Include validation decorators', true)
@@ -338,6 +339,7 @@ export const generateCommand = new Command('generate')
           const result = await generator.generate({
             name,
             output: options.output,
+            style: options.style === 'interface' ? 'interface' : 'class',
             typescript: options.typescript !== false,
             fields,
             enums: enums.length > 0 ? enums : undefined,

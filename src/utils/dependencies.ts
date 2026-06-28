@@ -1,9 +1,14 @@
 /**
  * Dependencies Management for Archbase CLI
- * 
- * Manages required dependencies based on archbase-react v2.1.3
- * Automatically includes all necessary dependencies in generated projects
+ *
+ * Manages required dependencies for the Archbase React V3 modular ecosystem
+ * (@archbase/* v4.x). Versions are aligned with the reference admin projects
+ * (gestor-rq-admin / vendax-promoter-admin) so generated projects build against
+ * the same stack.
  */
+
+/** Pinned @archbase/* version used across generated projects. */
+export const ARCHBASE_VERSION = '4.0.30';
 
 export interface DependencyConfig {
   name: string;
@@ -20,63 +25,65 @@ export interface ProjectDependencies {
 }
 
 /**
- * Core dependencies required by archbase-react
- * Based on archbase-react v2.1.3 package.json analysis
+ * Core dependencies for the Archbase React V3 (@archbase/* v4.x) ecosystem.
+ * Versions mirror the reference admin projects.
  */
 export const ARCHBASE_CORE_DEPENDENCIES: DependencyConfig[] = [
   // React ecosystem (peer dependencies)
   { name: 'react', version: '^18.3.0 || ^19.0.0', required: true, category: 'core', description: 'React library' },
   { name: 'react-dom', version: '^18.3.0 || ^19.0.0', required: true, category: 'core', description: 'React DOM library' },
-  
-  // Archbase V3 modular packages
-  { name: '@archbase/admin', version: '^3.0.0', required: true, category: 'core', description: 'Archbase admin components' },
-  { name: '@archbase/components', version: '^3.0.0', required: true, category: 'core', description: 'Archbase core components' },
-  { name: '@archbase/core', version: '^3.0.0', required: true, category: 'core', description: 'Archbase core utilities' },
-  { name: '@archbase/data', version: '^3.0.0', required: true, category: 'core', description: 'Archbase data management' },
-  { name: '@archbase/layout', version: '^3.0.0', required: true, category: 'core', description: 'Archbase layout components' },
-  { name: '@archbase/security', version: '^3.0.0', required: true, category: 'core', description: 'Archbase security components' },
-  { name: '@archbase/template', version: '^3.0.0', required: true, category: 'core', description: 'Archbase template components' },
-  
-  // Mantine 8.x ecosystem (all required by archbase-react)
-  { name: '@mantine/core', version: '8.1.2', required: true, category: 'ui', description: 'Mantine core components' },
-  { name: '@mantine/hooks', version: '8.1.2', required: true, category: 'ui', description: 'Mantine hooks' },
-  { name: '@mantine/emotion', version: '8.1.2', required: true, category: 'ui', description: 'Mantine emotion styling' },
-  { name: '@mantine/dates', version: '8.1.2', required: true, category: 'ui', description: 'Mantine date components' },
-  { name: '@mantine/dropzone', version: '8.1.2', required: true, category: 'ui', description: 'Mantine dropzone component' },
-  { name: '@mantine/modals', version: '8.1.2', required: true, category: 'ui', description: 'Mantine modal system' },
-  { name: '@mantine/notifications', version: '8.1.2', required: true, category: 'ui', description: 'Mantine notifications' },
-  { name: '@mantine/spotlight', version: '8.1.2', required: true, category: 'ui', description: 'Mantine spotlight search' },
-  
+
+  // Archbase V3 modular packages (@archbase/* v4.x)
+  { name: '@archbase/admin', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase admin components' },
+  { name: '@archbase/components', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase core components' },
+  { name: '@archbase/core', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase core utilities' },
+  { name: '@archbase/data', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase data management' },
+  { name: '@archbase/layout', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase layout components' },
+  { name: '@archbase/security', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase security domain' },
+  { name: '@archbase/security-ui', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase security views (login, tokens, user management)' },
+  { name: '@archbase/template', version: ARCHBASE_VERSION, required: true, category: 'core', description: 'Archbase form/grid templates' },
+
+  // Mantine 9.x ecosystem (required by @archbase v4)
+  { name: '@mantine/core', version: '9.3.1', required: true, category: 'ui', description: 'Mantine core components' },
+  { name: '@mantine/hooks', version: '9.3.1', required: true, category: 'ui', description: 'Mantine hooks' },
+  { name: '@mantine/emotion', version: '9.3.1', required: true, category: 'ui', description: 'Mantine emotion styling' },
+  { name: '@mantine/dates', version: '9.3.1', required: true, category: 'ui', description: 'Mantine date components' },
+  { name: '@mantine/dropzone', version: '9.3.1', required: true, category: 'ui', description: 'Mantine dropzone component' },
+  { name: '@mantine/form', version: '9.3.1', required: true, category: 'ui', description: 'Mantine form helpers' },
+  { name: '@mantine/modals', version: '9.3.1', required: true, category: 'ui', description: 'Mantine modal system' },
+  { name: '@mantine/notifications', version: '9.3.1', required: true, category: 'ui', description: 'Mantine notifications' },
+  { name: '@mantine/spotlight', version: '9.3.1', required: true, category: 'ui', description: 'Mantine spotlight search' },
+
   // Icons and UI utilities
-  { name: '@tabler/icons-react', version: '^2.47.0', required: true, category: 'ui', description: 'Tabler icons for React' },
-  
+  { name: '@tabler/icons-react', version: '^3.34.1', required: true, category: 'ui', description: 'Tabler icons for React' },
+
   // Data management
   { name: '@tanstack/react-query', version: '^5.81.5', required: true, category: 'data', description: 'React Query for data fetching' },
   { name: 'axios', version: '^1.7.2', required: true, category: 'data', description: 'HTTP client' },
-  
+
   // Utility libraries
   { name: 'clsx', version: '^2.1.1', required: true, category: 'utils', description: 'Conditional class names' },
   { name: 'dayjs', version: '1.11.10', required: true, category: 'utils', description: 'Date manipulation library' },
   { name: 'uuid', version: '^9.0.1', required: true, category: 'utils', description: 'UUID generation' },
   { name: 'lodash', version: '4.17.21', required: true, category: 'utils', description: 'Utility functions' },
-  
+
   // Internationalization
   { name: 'i18next', version: '23.7.6', required: true, category: 'utils', description: 'Internationalization framework' },
   { name: 'react-i18next', version: '13.4.1', required: true, category: 'utils', description: 'React bindings for i18next' },
   { name: 'i18next-browser-languagedetector', version: '^7.2.1', required: true, category: 'utils', description: 'Language detection plugin' },
-  
+
   // Dependency injection
-  { name: 'inversify', version: '6.0.1', required: true, category: 'core', description: 'IoC container' },
-  { name: 'inversify-react', version: '^1.1.1', required: true, category: 'core', description: 'React bindings for Inversify' },
-  { name: 'reflect-metadata', version: '^0.1.14', required: true, category: 'core', description: 'Metadata reflection API' },
-  
+  { name: 'inversify', version: '6.2.0', required: true, category: 'core', description: 'IoC container' },
+  { name: 'inversify-react', version: '^1.2.0', required: true, category: 'core', description: 'React bindings for Inversify' },
+  { name: 'reflect-metadata', version: '^0.2.2', required: true, category: 'core', description: 'Metadata reflection API' },
+
   // Routing
-  { name: 'react-router', version: '6.21.2', required: true, category: 'core', description: 'React router' },
-  { name: 'react-router-dom', version: '6.21.2', required: true, category: 'core', description: 'React router DOM bindings' },
-  
+  { name: 'react-router', version: '^6.28.0', required: true, category: 'core', description: 'React router' },
+  { name: 'react-router-dom', version: '^6.28.0', required: true, category: 'core', description: 'React router DOM bindings' },
+
   // Forms and validation
   { name: 'final-form', version: '^4.20.10', required: true, category: 'data', description: 'Final Form core' },
-  { name: 'react-final-form', version: '^6.5.9', required: true, category: 'data', description: 'React Final Form bindings' },
+  { name: 'react-final-form', version: '^7.0.0', required: true, category: 'data', description: 'React Final Form bindings' },
   { name: 'final-form-arrays', version: '^3.1.0', required: true, category: 'data', description: 'Final Form arrays support' },
   { name: 'react-final-form-arrays', version: '^3.1.4', required: true, category: 'data', description: 'React Final Form arrays' },
 ];

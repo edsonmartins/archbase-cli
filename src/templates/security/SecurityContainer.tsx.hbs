@@ -2,11 +2,11 @@ import { Container } from 'inversify';
 import { {{authenticatorClass}} } from './{{authenticatorClass}}';
 import { {{userClass}} } from '../domain/{{userClass}}';
 import { {{apiTokenClass}} } from '../domain/{{apiTokenClass}}';
-import { 
-  ArchbaseAuthenticator,
+import { ArchbaseAuthenticator } from '@archbase/security';
+import {
   ArchbaseRemoteDataSource,
   ArchbaseStore
-} from 'archbase-react';
+} from '@archbase/data';
 
 export interface {{componentName}}ContainerConfig {
   baseURL: string;

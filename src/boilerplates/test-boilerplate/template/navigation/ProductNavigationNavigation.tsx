@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconPackage } from '@tabler/icons-react';
-import { ArchbaseNavigationItem } from 'archbase-react';
+import { ArchbaseNavigationItem } from '@archbase/admin';
 import ProdutoView from '../views/produto/ProdutoView';
 import ProdutoForm from '../views/produto/ProdutoForm';
 

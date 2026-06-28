@@ -1,17 +1,23 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ArchbaseDataGrid,
-  ArchbaseRemoteDataSource,
-  ArchbaseFormTemplate,
-  ArchbaseNavigationView,
-  useArchbaseStore,
-  useArchbaseNavigationListener,
-  ArchbaseQueryFilter,
-  ArchbaseQueryFilterDelegator,
-  ArchbaseQueryBuilder,
   ArchbaseDialog,
   ArchbaseNotifications
-} from 'archbase-react';
+} from '@archbase/components';
+import {
+  ArchbaseRemoteDataSource,
+  useArchbaseStore
+} from '@archbase/data';
+import { ArchbaseFormTemplate } from '@archbase/template';
+import {
+  ArchbaseNavigationView,
+  useArchbaseNavigationListener
+} from '@archbase/admin';
+import {
+  ArchbaseQueryFilter,
+  ArchbaseQueryFilterDelegator,
+  ArchbaseQueryBuilder
+} from '@archbase/advanced';
 import { Button, Group, ActionIcon, Text, Badge, Code, CopyButton, Tooltip, Stack } from '@mantine/core';
 import { IconPlus, IconPencil, IconTrash, IconCopy, IconCheck, IconEye, IconEyeOff, IconRefresh } from '@tabler/icons-react';
 import { {{apiTokenClass}} } from '../domain/{{apiTokenClass}}';
@@ -23,7 +29,7 @@ export interface {{componentName}}ApiTokenManagementViewProps {
   onTokenSelect?: (token: {{apiTokenClass}}) => void;
   onTokenEdit?: (token: {{apiTokenClass}}) => void;
   onTokenDelete?: (token: {{apiTokenClass}}) => void;
-  {{#if hasFeature "custom-permissions"}}
+  {{#if (hasFeature "custom-permissions")}}
   permissions?: {
     canCreateTokens?: boolean;
     canEditTokens?: boolean;
@@ -41,7 +47,7 @@ export function {{componentName}}ApiTokenManagementView({
   onTokenSelect, 
   onTokenEdit, 
   onTokenDelete,
-  {{#if hasFeature "custom-permissions"}}
+  {{#if (hasFeature "custom-permissions")}}
   permissions = {
     canCreateTokens: true,
     canEditTokens: true,
@@ -179,7 +185,7 @@ export function {{componentName}}ApiTokenManagementView({
 
   const renderTokenActions = useCallback((token: {{apiTokenClass}}) => (
     <Group gap="xs" justify="center">
-      {{#if hasFeature "custom-permissions"}}
+      {{#if (hasFeature "custom-permissions")}}
       {permissions.canViewTokens && (
         <ActionIcon
           variant="light"
@@ -257,7 +263,7 @@ export function {{componentName}}ApiTokenManagementView({
       </ActionIcon>
       {{/if}}
     </Group>
-  ), [handleTokenSelect, handleEditToken, handleDeleteToken, handleRevokeToken{{#if hasFeature "custom-permissions"}}, permissions{{/if}}]);
+  ), [handleTokenSelect, handleEditToken, handleDeleteToken, handleRevokeToken{{#if (hasFeature "custom-permissions")}}, permissions{{/if}}]);
 
   const renderTokenValue = useCallback((token: {{apiTokenClass}}) => {
     if (!token.token) return <Text size="sm" c="dimmed">Token não disponível</Text>;
@@ -266,18 +272,18 @@ export function {{componentName}}ApiTokenManagementView({
     const displayValue = isVisible ? token.token : '•'.repeat(Math.min(token.token.length, 32));
     
     return (
-      <Group gap="xs" style={{ maxWidth: 200 }}>
-        <Code 
-          style={{ 
-            maxWidth: 150, 
-            overflow: 'hidden', 
+      <Group gap="xs" style={{lt}}{ maxWidth: 200 }{{gt}}>
+        <Code
+          style={{lt}}{
+            maxWidth: 150,
+            overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
-          }}
+          }{{gt}}
         >
           {displayValue}
         </Code>
-        {{#if hasFeature "custom-permissions"}}
+        {{#if (hasFeature "custom-permissions")}}
         {permissions.canViewTokenValues && (
           <ActionIcon
             variant="light"
@@ -312,7 +318,7 @@ export function {{componentName}}ApiTokenManagementView({
         )}
       </Group>
     );
-  }, [visibleTokens, toggleTokenVisibility{{#if hasFeature "custom-permissions"}}, permissions{{/if}}]);
+  }, [visibleTokens, toggleTokenVisibility{{#if (hasFeature "custom-permissions")}}, permissions{{/if}}]);
 
   const renderTokenStatus = useCallback((token: {{apiTokenClass}}) => {
     if (token.revoked) {
@@ -351,7 +357,7 @@ export function {{componentName}}ApiTokenManagementView({
         ref={queryFilterRef}
         dataSource={dataSourceRef.current}
         initialFilter={ArchbaseQueryBuilder.create().build()}
-        {{#if hasFeature "advanced-filters"}}
+        {{#if (hasFeature "advanced-filters")}}
         advancedMode
         {{/if}}
       >
@@ -359,7 +365,7 @@ export function {{componentName}}ApiTokenManagementView({
           <Text size="lg" fw={600}>
             Gerenciamento de API Tokens
           </Text>
-          {{#if hasFeature "custom-permissions"}}
+          {{#if (hasFeature "custom-permissions")}}
           {permissions.canCreateTokens && (
             <Button
               leftSection={<IconPlus size={16} />}
@@ -443,14 +449,14 @@ export function {{componentName}}ApiTokenManagementView({
               cellRenderer: renderTokenActions
             }
           ]}
-          {{#if hasFeature "pagination"}}
+          {{#if (hasFeature "pagination")}}
           enablePagination
           paginationPageSize={25}
           {{/if}}
-          {{#if hasFeature "export"}}
+          {{#if (hasFeature "export")}}
           enableExport
           {{/if}}
-          {{#if hasFeature "selection"}}
+          {{#if (hasFeature "selection")}}
           enableSelection
           {{/if}}
           height="calc(100vh - 200px)"
@@ -526,7 +532,7 @@ export function {{componentName}}ApiTokenManagementView({
               pois não será possível visualizá-lo novamente.
             </Text>
             <Group>
-              <Code style={{ flex: 1, wordBreak: 'break-all' }}>
+              <Code style={{lt}}{ flex: 1, wordBreak: 'break-all' }{{gt}}>
                 {newTokenValue}
               </Code>
               <CopyButton value={newTokenValue}>

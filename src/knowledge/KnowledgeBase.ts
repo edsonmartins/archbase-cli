@@ -149,22 +149,78 @@ export class KnowledgeBase {
   private async loadComponents(): Promise<void> {
     try {
       const componentsFile = path.join(this.knowledgePath, 'components.json');
-      
+
       if (await fs.pathExists(componentsFile)) {
         const data = await fs.readJson(componentsFile);
-        
+
         if (data.components) {
           Object.entries(data.components).forEach(([name, info]: [string, any]) => {
             this.componentsCache.set(name, info as ComponentInfo);
           });
         }
       } else {
-        // Initialize with default Archbase React components
+        // Initialize with default (richly curated) Archbase React components
         await this.initializeDefaultComponents();
       }
+
+      // Augment with the full V3 catalog (916 components) for breadth, without
+      // overwriting the curated entries above.
+      await this.loadV3Catalog();
     } catch (error) {
       console.warn('Failed to load components knowledge base:', error.message);
       await this.initializeDefaultComponents();
+      await this.loadV3Catalog();
+    }
+  }
+
+  /**
+   * Load the full Archbase V3 component catalog (derived from
+   * archbase-react/component-catalog.json) and merge any components not already
+   * present in the curated cache. Resolved relative to this module so it works
+   * both from src (ts-node) and dist (compiled + copy-assets).
+   */
+  private async loadV3Catalog(): Promise<void> {
+    try {
+      const catalogFile = path.join(__dirname, 'archbase-v3-catalog.json');
+      if (!(await fs.pathExists(catalogFile))) {
+        return;
+      }
+      const catalog = await fs.readJson(catalogFile);
+      const components: any[] = catalog.components || [];
+      const version: string = catalog.version || '4.x';
+
+      for (const entry of components) {
+        const name: string = entry.name;
+        if (!name || this.componentsCache.has(name)) {
+          continue; // keep curated entries; skip duplicates
+        }
+        const pkg: string = entry.package || '@archbase/components';
+        const category = pkg.replace('@archbase/', '');
+        const props: Record<string, PropInfo> = {};
+        for (const propName of entry.props || []) {
+          if (typeof propName === 'string') {
+            props[propName] = { type: 'unknown', required: false, description: '' };
+          }
+        }
+        this.componentsCache.set(name, {
+          name,
+          description: entry.description || `${name} (${pkg})`,
+          category,
+          version,
+          status: 'stable',
+          props,
+          examples: [],
+          patterns: [],
+          relatedComponents: [],
+          dependencies: [pkg],
+          aiHints: [`Imported from ${pkg}`],
+          complexity: 'medium',
+          useCases: entry.tags || [],
+        });
+      }
+    } catch (error) {
+      // Catalog augmentation is best-effort; never fail the whole load.
+      console.warn('Failed to load V3 catalog:', error.message);
     }
   }
   
@@ -710,7 +766,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseTextArea', 'ArchbaseJsonEdit'],
-        dependencies: ['archbase-react', 'suneditor-react'],
+        dependencies: ['@archbase/components', 'suneditor-react'],
         complexity: 'high',
         useCases: ['content creation', 'blog posts', 'rich formatting', 'email templates'],
         aiHints: [
@@ -746,7 +802,7 @@ export class KnowledgeBase {
         ],
         patterns: [],
         relatedComponents: ['ArchbaseEdit', 'ArchbaseNumberEdit'],
-        dependencies: ['archbase-react', 'react-imask'],
+        dependencies: ['@archbase/components', 'react-imask'],
         complexity: 'low',
         useCases: ['document numbers', 'phone numbers', 'postal codes', 'formatted inputs'],
         aiHints: [

@@ -31,8 +31,34 @@ interface SecurityGeneratorOptions {
 export class SecurityGenerator {
   private templatesPath: string;
 
+  /** Maps a security component type to its actual template file. */
+  private static readonly TEMPLATE_BY_TYPE: Record<string, string> = {
+    'security-view': 'security-view.hbs',
+    'api-token-view': 'api-token-view.hbs',
+    'login': 'LoginView.tsx.hbs',
+    'security-management': 'SecurityView.tsx.hbs',
+    'user-management': 'UserManagementView.tsx.hbs',
+    'api-tokens': 'ApiTokenManagementView.tsx.hbs',
+    'authenticator': 'Authenticator.ts.hbs',
+  };
+
   constructor() {
     this.templatesPath = path.join(__dirname, '../templates/security');
+    this.registerHelpers();
+  }
+
+  private registerHelpers(): void {
+    Handlebars.registerHelper('toUpperCase', (str: string) => String(str ?? '').toUpperCase());
+    Handlebars.registerHelper('toLowerCase', (str: string) => String(str ?? '').toLowerCase());
+    Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
+    // Template-literal escape helpers used by some templates ({{lt}}...{{gt}}).
+    Handlebars.registerHelper('lt', () => '{');
+    Handlebars.registerHelper('gt', () => '}');
+    // Resolves feature flags from the `features` array passed in the render context.
+    Handlebars.registerHelper('hasFeature', function (this: any, feature: string) {
+      const features = (this && this.features) || [];
+      return Array.isArray(features) && features.includes(feature);
+    });
   }
 
   async generate(options: SecurityGeneratorOptions): Promise<{ success: boolean; files?: string[]; errors?: string[] }> {
@@ -44,11 +70,12 @@ export class SecurityGenerator {
       await fs.ensureDir(finalOutputPath);
       
       // Select template based on type
-      const templateFile = `${type}.hbs`;
+      const templateFile = SecurityGenerator.TEMPLATE_BY_TYPE[type] || `${type}.hbs`;
       const templatePath = path.join(this.templatesPath, templateFile);
-      
+
       if (!await fs.pathExists(templatePath)) {
-        throw new Error(`Template not found: ${templateFile}`);
+        const known = Object.keys(SecurityGenerator.TEMPLATE_BY_TYPE).join(', ');
+        throw new Error(`Template not found for type '${type}' (expected ${templateFile}). Known types: ${known}`);
       }
       
       // Read template
@@ -64,8 +91,9 @@ export class SecurityGenerator {
         ...options
       });
       
-      // Write file
-      const outputFile = path.join(finalOutputPath, `${componentName}.tsx`);
+      // Write file (authenticator is plain TS, views are TSX)
+      const ext = type === 'authenticator' ? '.ts' : '.tsx';
+      const outputFile = path.join(finalOutputPath, `${componentName}${ext}`);
       await fs.writeFile(outputFile, renderedContent);
       
       Logger.getInstance().info(`✅ Generated ${type}: ${outputFile}`);

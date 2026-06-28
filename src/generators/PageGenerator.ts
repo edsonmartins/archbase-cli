@@ -7,6 +7,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
+import { buildArchbaseImports } from '../utils/archbasePackages';
 
 interface PageConfig {
   layout: 'sidebar' | 'header' | 'blank' | 'dashboard';
@@ -106,30 +107,31 @@ export class PageGenerator {
       "import React from 'react';"
     ];
     
-    // Layout-specific imports
+    // Layout-specific imports (resolved to the correct @archbase/* packages)
     switch (config.layout) {
       case 'sidebar':
-        imports.push("import { ArchbaseSidebar, ArchbaseLayout } from 'archbase-react';");
+        imports.push(...buildArchbaseImports(['ArchbaseAdminMainLayout', 'ArchbaseNavigationItem']));
         break;
       case 'header':
-        imports.push("import { ArchbaseHeader, ArchbaseLayout } from 'archbase-react';");
+        imports.push(...buildArchbaseImports(['ArchbaseAdminMainLayout']));
         break;
       case 'dashboard':
-        imports.push("import { ArchbaseDashboard, ArchbaseLayout, ArchbaseCard } from 'archbase-react';");
+        imports.push(...buildArchbaseImports(['ArchbaseAdminMainLayout']));
+        imports.push("import { Card } from '@mantine/core';");
         break;
       case 'blank':
-        imports.push("import { ArchbaseContainer } from 'archbase-react';");
+        imports.push("import { Container } from '@mantine/core';");
         break;
     }
-    
+
     // Authentication imports
     if (config.withAuth) {
-      imports.push("import { ArchbaseAuthProvider, ProtectedRoute } from 'archbase-react';");
+      imports.push(...buildArchbaseImports(['ArchbaseViewSecurityProvider']));
     }
-    
+
     // Navigation imports
     if (config.withNavigation) {
-      imports.push("import { ArchbaseNavigation, ArchbaseBreadcrumb } from 'archbase-react';");
+      imports.push(...buildArchbaseImports(['useArchbaseNavigationListener']));
     }
     
     // Component-specific imports

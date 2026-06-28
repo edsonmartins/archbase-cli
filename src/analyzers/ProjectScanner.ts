@@ -432,7 +432,12 @@ export class ProjectScanner {
       const packageJson = await fs.readJson(packageJsonPath);
       const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
 
-      const archbaseVersion = deps['archbase-react'];
+      // V3 projects use the modular @archbase/* packages; fall back to the
+      // legacy monolithic archbase-react package for older projects.
+      const archbaseVersion =
+        deps['@archbase/core'] ||
+        deps['@archbase/components'] ||
+        deps['archbase-react'];
       const reactVersion = deps['react'];
 
       // Check for missing common dependencies

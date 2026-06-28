@@ -1,265 +1,236 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { 
-  Paper,
-  Group,
-  Button,
-  ActionIcon,
-  Flex
-} from '@mantine/core';
-import {
-  IconPlus,
-  IconEdit,
-  IconTrashX,
-  IconEye,
-  IconTrash
-} from '@tabler/icons-react';
-import {
-  ArchbaseDataGrid,
-  ArchbaseDataGridColumn,
-  Columns,
-  ArchbaseNotifications,
-  ArchbaseDialog
-} from '@archbase/components';
-import {
-  useArchbaseRemoteDataSource
-} from '@archbase/data';
-import {
-  useArchbaseStore,
-  useArchbaseGetLoggedUser,
-  useArchbaseNavigateParams,
-  useArchbaseTheme
-} from '@archbase/core';
+import { ReactNode, useMemo, useState, useRef, useEffect } from 'react';
+import { Paper } from '@mantine/core';
+import { uniqueId } from 'lodash';
 import {
   useArchbaseRemoteServiceApi,
+  useArchbaseRemoteDataSourceV2,
+  useArchbaseStore
 } from '@archbase/data';
-import { useTranslation } from 'react-i18next';
+import {
+  ArchbaseDialog,
+  ArchbaseNotifications,
+  useArchbaseNavigateParams,
+  ArchbaseDataGridColumn,
+  ArchbaseGridRowActions,
+  Columns,
+  useArchbaseElementSizeArea
+} from '@archbase/components';
+import {
+  ArchbaseGridTemplateRef,
+  ArchbaseGridTemplate,
+  UserRowActionsOptions
+} from '@archbase/template';
+import { useArchbaseNavigationListener } from '@archbase/admin';
+import { ArchbaseViewSecurityProvider, useArchbaseSecureForm } from '@archbase/security';
 {{#if typescript}}
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
-import { API_TYPE } from '../../ioc/{{pascalCase projectName}}IOCTypes';
+import { API_TYPE } from '../../ioc/IOCTypes';
 {{/if}}
 
-{{#if typescript}}
-interface {{componentName}}Props {}
-{{/if}}
+// Constantes de segurança (padrão canônico Archbase V3)
+const SECURITY_RESOURCE_NAME = '{{toLowerCase entityName}}';
+const SECURITY_RESOURCE_DESCRIPTION = '{{entityName}}';
 
-// Navigation constants (following powerview-admin pattern)
+// Constante de navegação
 const {{featureConstant}}_ROUTE = '{{adminRoute}}';
 
-// Actions constants
+// Constantes de ações
 const ADD_ACTION = 'ADD';
 const EDIT_ACTION = 'EDIT';
 const VIEW_ACTION = 'VIEW';
 
-function {{componentName}}({{#if typescript}}{}: {{componentName}}Props{{/if}}) {
-  const { t } = useTranslation();
-  const loggedUser = useArchbaseGetLoggedUser();
+export function {{componentName}}() {
+  return (
+    <ArchbaseViewSecurityProvider
+      resourceName={SECURITY_RESOURCE_NAME}
+      resourceDescription={SECURITY_RESOURCE_DESCRIPTION}
+    >
+      <{{componentName}}Content />
+    </ArchbaseViewSecurityProvider>
+  );
+}
+
+function {{componentName}}Content() {
+{{#if withPermissions}}
+  const { canCreate, canEdit, canDelete, canView, isLoading: isLoadingSecurity } = useArchbaseSecureForm(
+    SECURITY_RESOURCE_NAME,
+    SECURITY_RESOURCE_DESCRIPTION
+  );
+{{else}}
+  const { isLoading: isLoadingSecurity } = useArchbaseSecureForm(
+    SECURITY_RESOURCE_NAME,
+    SECURITY_RESOURCE_DESCRIPTION
+  );
+{{/if}}
+
   const templateStore = useArchbaseStore('{{toLowerCase entityName}}Store');
-  const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
+  const { closeAllowed } = useArchbaseNavigationListener({{featureConstant}}_ROUTE, () => {
+    templateStore.clearAllValues();
+    closeAllowed();
+  });
   const navigate = useArchbaseNavigateParams();
+  const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
   const [lastError, setLastError] = useState<string>('');
-  const gridRef = useRef<any>(null);
-  const theme = useArchbaseTheme();
+  const [containerRef, { height: containerHeight }] = useArchbaseElementSizeArea();
+  const templateRef = useRef<ArchbaseGridTemplateRef | null>(null);
 
-  // Permission check (admin-only operations)
-  const isAdministrator = (): boolean => {
-    if (!loggedUser) {
-      return false;
-    }
-    return loggedUser.isAdmin;
-  };
-
-  // Remote DataSource configuration
-  const { dataSource, isLoading, error, isError } = useArchbaseRemoteDataSource<
-    {{entityName}}Dto,
-    string
-  >({
+  const {
+    dataSource,
+    currentRecord,
+    isLoading,
+    error,
+    refreshData,
+    remove
+  } = useArchbaseRemoteDataSourceV2<{{entityName}}Dto>({
     name: 'ds{{entityName}}',
+    label: '{{entityName}}',
     service: serviceApi,
-    store: templateStore,
     pageSize: {{pageSize}},
-    loadOnStart: true,
-    onError: (error, origin) => {
-      ArchbaseNotifications.showError(t('WARNING'), error, origin);
+    defaultSortFields: ['id'],
+    onError: (err) => {
+      ArchbaseNotifications.showError('Atenção', err);
+      setLastError(String(err));
     }
   });
 
-  // Navigation handlers
-  const handleAdd = useCallback(() => {
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  const handleAdd = () => {
     navigate(
-      {{featureConstant}}_ROUTE + '/novo-' + Date.now(),
+      `${ {{~featureConstant}}_ROUTE}/novo->${uniqueId()}`,
       {},
       { action: ADD_ACTION, redirectUrl: {{featureConstant}}_ROUTE }
     );
-  }, [navigate]);
+  };
 
-  const handleEdit = useCallback(() => {
-    const record = dataSource.getCurrentRecord();
+  const handleEdit = (row?: {{entityName}}Dto) => {
+    const record = row || currentRecord;
     if (record) {
+      if (row) {
+        dataSource.gotoRecordByData(row);
+      }
       navigate(
-        {{featureConstant}}_ROUTE + '/' + record.id,
+        `${ {{~featureConstant}}_ROUTE}/${record.id}`,
         {},
         { action: EDIT_ACTION, redirectUrl: {{featureConstant}}_ROUTE }
       );
     }
-  }, [dataSource, navigate]);
+  };
 
-  const handleView = useCallback(() => {
-    const record = dataSource.getCurrentRecord();
+  const handleView = (row?: {{entityName}}Dto) => {
+    const record = row || currentRecord;
     if (record) {
+      if (row) {
+        dataSource.gotoRecordByData(row);
+      }
       navigate(
-        {{featureConstant}}_ROUTE + '/' + record.id,
+        `${ {{~featureConstant}}_ROUTE}/${record.id}`,
         {},
         { action: VIEW_ACTION, redirectUrl: {{featureConstant}}_ROUTE }
       );
     }
-  }, [dataSource, navigate]);
+  };
 
-  const handleRemove = useCallback(() => {
-    if (!dataSource.isEmpty()) {
-      const record = dataSource.getCurrentRecord();
-      if (record) {
-        ArchbaseDialog.showConfirmDialogYesNo(
-          `${t('Confirme')}`,
-          `${t('Deseja remover este registro')} ?`,
-          () => {
-            dataSource.remove();
-          },
-          () => {}
-        );
+  const handleRemove = (row?: {{entityName}}Dto) => {
+    const record = row || currentRecord;
+    if (record) {
+      if (row) {
+        dataSource.gotoRecordByData(row);
       }
+      ArchbaseDialog.showConfirmDialogYesNo(
+        'Confirme',
+        'Deseja remover este registro?',
+        () => {
+          remove();
+        },
+        () => {}
+      );
     }
-  }, [dataSource, t]);
+  };
 
-  // Row actions
-  const buildRowActions = useCallback((row: {{entityName}}Dto): React.ReactNode => {
-    return (
-      <Group gap={4} wrap="nowrap">
-        <ActionIcon variant="transparent" color="gray" onClick={() => {
-          dataSource.gotoRecordByData(row);
-          handleView();
-        }}>
-          <IconEye size={22} />
-        </ActionIcon>
-        
-        {{#if withPermissions}}
-        {isAdministrator() && (
-          <>
-            <ActionIcon variant="transparent" color="blue" onClick={() => {
-              dataSource.gotoRecordByData(row);
-              handleEdit();
-            }}>
-              <IconEdit size={22} />
-            </ActionIcon>
-            <ActionIcon variant="transparent" color="red" onClick={() => {
-              dataSource.gotoRecordByData(row);
-              handleRemove();
-            }}>
-              <IconTrash size={22} />
-            </ActionIcon>
-          </>
-        )}
-        {{else}}
-        <ActionIcon variant="transparent" color="blue" onClick={() => {
-          dataSource.gotoRecordByData(row);
-          handleEdit();
-        }}>
-          <IconEdit size={22} />
-        </ActionIcon>
-        <ActionIcon variant="transparent" color="red" onClick={() => {
-          dataSource.gotoRecordByData(row);
-          handleRemove();
-        }}>
-          <IconTrash size={22} />
-        </ActionIcon>
-        {{/if}}
-      </Group>
-    );
-  }, [dataSource, handleView, handleEdit, handleRemove{{#if withPermissions}}, isAdministrator{{/if}}]);
+  const getRowId = (row: {{entityName}}Dto): string => {
+    return row.id || '';
+  };
 
-  // Toolbar actions
-  const renderToolbarActions = useCallback(() => {
-    return (
-      <Group align="end" gap={'8px'} wrap="nowrap">
-        {{#if withPermissions}}
-        {isAdministrator() && (
-          <>
-            <Button color={'green'} leftSection={<IconPlus />} onClick={handleAdd}>
-              {t('Novo')}
-            </Button>
-            <Button color={'blue'} leftSection={<IconEdit />} onClick={handleEdit}>
-              {t('Editar')}
-            </Button>
-            <Button color={'red'} leftSection={<IconTrashX />} onClick={handleRemove}>
-              {t('Remover')}
-            </Button>
-          </>
-        )}
-        <Button color={'gray'} leftSection={<IconEye />} onClick={handleView}>
-          {t('Visualizar')}
-        </Button>
-        {{else}}
-        <Button color={'green'} leftSection={<IconPlus />} onClick={handleAdd}>
-          {t('Novo')}
-        </Button>
-        <Button color={'blue'} leftSection={<IconEdit />} onClick={handleEdit}>
-          {t('Editar')}
-        </Button>
-        <Button color={'red'} leftSection={<IconTrashX />} onClick={handleRemove}>
-          {t('Remover')}
-        </Button>
-        <Button color={'gray'} leftSection={<IconEye />} onClick={handleView}>
-          {t('Visualizar')}
-        </Button>
-        {{/if}}
-      </Group>
-    );
-  }, [handleAdd, handleEdit, handleRemove, handleView{{#if withPermissions}}, isAdministrator{{/if}}, t]);
+  const handleClearError = () => {
+    setLastError('');
+  };
 
-  // Column definitions
-  const columns = useMemo(() => {
+  const columns: ReactNode = useMemo(() => {
     return (
       <Columns>
-        {{#each fields}}
-        <ArchbaseDataGridColumn
+{{#each fields}}
+        <ArchbaseDataGridColumn<{{../entityName}}Dto>
           dataField="{{name}}"
-          dataType="{{#if (eq type 'enum')}}enum{{else if (eq type 'date')}}date{{else if (eq type 'datetime')}}datetime{{else}}text{{/if}}"
-          header={t('{{label}}')}
-          {{#if filterable}}inputFilterType="{{#if (eq type 'enum')}}select{{else if (eq type 'date')}}date-range{{else if (eq type 'datetime')}}date-range{{else}}text{{/if}}"{{/if}}
-          {{#if size}}size={{lt}}{{size}}{{gt}}{{/if}}
-          {{#unless sortable}}enableSorting={false}{{/unless}}
-        />
-        {{/each}}
+          dataType="{{#if (eq type 'enum')}}enum{{else if (eq type 'date')}}date{{else if (eq type 'datetime')}}datetime{{else if (eq type 'number')}}number{{else if (eq type 'boolean')}}boolean{{else}}text{{/if}}"
+          header="{{label}}"
+{{#if filterable}}          inputFilterType="{{#if (eq type 'enum')}}select{{else if (eq type 'date')}}date-range{{else if (eq type 'datetime')}}date-range{{else if (eq type 'number')}}number{{else}}text{{/if}}"
+{{/if}}{{#if size}}          size={{lt}}{{size}}{{gt}}
+{{else if width}}          size={{lt}}{{width}}{{gt}}
+{{/if}}{{#unless sortable}}          enableSorting={false}
+{{/unless}}        />
+{{/each}}
       </Columns>
     );
-  }, [t]);
+  }, []);
+
+  const userRowActions: UserRowActionsOptions<{{entityName}}Dto> = {
+    actions: ArchbaseGridRowActions,
+    onAddRow: {{#if withPermissions}}canCreate ? handleAdd : undefined{{else}}handleAdd{{/if}},
+    onEditRow: {{#if withPermissions}}canEdit ? handleEdit : undefined{{else}}handleEdit{{/if}},
+    onRemoveRow: {{#if withPermissions}}canDelete ? handleRemove : undefined{{else}}handleRemove{{/if}},
+    onViewRow: {{#if withPermissions}}canView ? handleView : undefined{{else}}handleView{{/if}}
+  };
+
+  if (isLoadingSecurity) {
+    return null;
+  }
 
   return (
-    <Paper>
-      <ArchbaseDataGrid<{{entityName}}Dto, string>
-        gridRef={gridRef}
-        printTitle={t('{{entityName}}')}
-        width={'100%'}
-        height={'100%'}
-        withBorder={false}
-        dataSource={dataSource}
-        withColumnBorders={true}
-        striped={true}
-        enableTopToolbar={true}
-        enableRowActions={true}
-        pageSize={{lt}}{{pageSize}}{{gt}}
-        isLoading={isLoading}
-        isError={isError || lastError !== ''}
-        error={error || lastError}
-        {{#if withFilters}}enableGlobalFilter={true}{{/if}}
-        getRowId={(row: {{entityName}}Dto) => row.id}
-        toolbarLeftContent={renderToolbarActions()}
-        renderRowActions={buildRowActions}
-        children={columns}
-      />
+    <Paper p="md" style={{lt}}{{lt}} height: '100%', display: 'flex', flexDirection: 'column' {{gt}}{{gt}}>
+      <Paper ref={containerRef} withBorder style={{lt}}{{lt}} flex: 1, minHeight: 0, overflow: 'hidden' {{gt}}{{gt}}>
+        <ArchbaseGridTemplate<{{entityName}}Dto, string>
+          ref={templateRef}
+          title="{{entityName}}"
+          height={containerHeight}
+          width={'100%'}
+          dataSource={dataSource}
+          pageSize={{lt}}{{pageSize}}{{gt}}
+          isLoading={isLoading}
+          error={error || lastError}
+          isError={!!error || lastError !== ''}
+          clearError={handleClearError}
+          withBorder={false}
+{{#if withFilters}}          filterType={'normal'}
+          filterOptions={{lt}}{{lt}}
+            activeFilterIndex: 0,
+            enabledAdvancedFilter: false,
+            apiVersion: '2.00',
+            componentName: '{{toLowerCase entityName}}Filter',
+            viewName: '{{componentName}}'
+          {{gt}}{{gt}}
+{{/if}}          userActions={{lt}}{{lt}}
+            visible: true,
+            allowRemove: {{#if withPermissions}}canDelete{{else}}true{{/if}},
+            onAddExecute: {{#if withPermissions}}canCreate ? handleAdd : undefined{{else}}handleAdd{{/if}},
+            onEditExecute: {{#if withPermissions}}canEdit ? handleEdit : undefined{{else}}handleEdit{{/if}},
+            onRemoveExecute: {{#if withPermissions}}canDelete ? handleRemove : undefined{{else}}handleRemove{{/if}},
+            onViewExecute: {{#if withPermissions}}canView ? handleView : undefined{{else}}handleView{{/if}}
+          {{gt}}{{gt}}
+          userRowActions={userRowActions}
+          getRowId={getRowId}
+          enableTopToolbarActions={true}
+          enableRowSelection={true}
+          enableRowActions={true}
+          columns={columns}
+          positionActionsColumn={'first'}
+        />
+      </Paper>
     </Paper>
   );
 }
 
-export { {{componentName}} };
 export default {{componentName}};

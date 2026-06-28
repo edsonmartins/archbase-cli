@@ -1,17 +1,23 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ArchbaseDataGrid,
-  ArchbaseRemoteDataSource,
-  ArchbaseFormTemplate,
-  ArchbaseNavigationView,
-  useArchbaseStore,
-  useArchbaseNavigationListener,
-  ArchbaseQueryFilter,
-  ArchbaseQueryFilterDelegator,
-  ArchbaseQueryBuilder,
   ArchbaseDialog,
   ArchbaseNotifications
-} from 'archbase-react';
+} from '@archbase/components';
+import {
+  ArchbaseRemoteDataSource,
+  useArchbaseStore
+} from '@archbase/data';
+import { ArchbaseFormTemplate } from '@archbase/template';
+import {
+  ArchbaseNavigationView,
+  useArchbaseNavigationListener
+} from '@archbase/admin';
+import {
+  ArchbaseQueryFilter,
+  ArchbaseQueryFilterDelegator,
+  ArchbaseQueryBuilder
+} from '@archbase/advanced';
 import { Button, Group, ActionIcon, Menu, Text, Badge } from '@mantine/core';
 import { IconPlus, IconPencil, IconTrash, IconDotsVertical, IconEye, IconUserCheck, IconUserX } from '@tabler/icons-react';
 import { {{userClass}} } from '../domain/{{userClass}}';
@@ -23,7 +29,7 @@ export interface {{componentName}}UserManagementViewProps {
   onUserSelect?: (user: {{userClass}}) => void;
   onUserEdit?: (user: {{userClass}}) => void;
   onUserDelete?: (user: {{userClass}}) => void;
-  {{#if hasFeature "custom-permissions"}}
+  {{#if (hasFeature "custom-permissions")}}
   permissions?: {
     canCreateUsers?: boolean;
     canEditUsers?: boolean;
@@ -40,7 +46,7 @@ export function {{componentName}}UserManagementView({
   onUserSelect, 
   onUserEdit, 
   onUserDelete,
-  {{#if hasFeature "custom-permissions"}}
+  {{#if (hasFeature "custom-permissions")}}
   permissions = {
     canCreateUsers: true,
     canEditUsers: true,
@@ -112,7 +118,7 @@ export function {{componentName}}UserManagementView({
     onUserSelect?.(user);
   }, [onUserSelect]);
 
-  {{#if hasFeature "user-activation"}}
+  {{#if (hasFeature "user-activation")}}
   const handleToggleUserStatus = useCallback(async (user: {{userClass}}) => {
     if (dataSourceRef.current) {
       try {
@@ -133,7 +139,7 @@ export function {{componentName}}UserManagementView({
 
   const renderUserActions = useCallback((user: {{userClass}}) => (
     <Group gap="xs" justify="center">
-      {{#if hasFeature "custom-permissions"}}
+      {{#if (hasFeature "custom-permissions")}}
       {permissions.canViewUsers && (
         <ActionIcon
           variant="light"
@@ -198,7 +204,7 @@ export function {{componentName}}UserManagementView({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-          {{#if hasFeature "user-activation"}}
+          {{#if (hasFeature "user-activation")}}
           <Menu.Item
             leftSection={user.active ? <IconUserX size={16} /> : <IconUserCheck size={16} />}
             onClick={() => handleToggleUserStatus(user)}
@@ -206,7 +212,7 @@ export function {{componentName}}UserManagementView({
             {user.active ? 'Desativar' : 'Ativar'}
           </Menu.Item>
           {{/if}}
-          {{#if hasFeature "user-roles"}}
+          {{#if (hasFeature "user-roles")}}
           {permissions?.canManageUserRoles && (
             <Menu.Item
               leftSection={<IconUserCheck size={16} />}
@@ -219,7 +225,7 @@ export function {{componentName}}UserManagementView({
         </Menu.Dropdown>
       </Menu>
     </Group>
-  ), [handleUserSelect, handleEditUser, handleDeleteUser{{#if hasFeature "user-activation"}}, handleToggleUserStatus{{/if}}{{#if hasFeature "custom-permissions"}}, permissions{{/if}}]);
+  ), [handleUserSelect, handleEditUser, handleDeleteUser{{#if (hasFeature "user-activation")}}, handleToggleUserStatus{{/if}}{{#if (hasFeature "custom-permissions")}}, permissions{{/if}}]);
 
   const renderUserStatus = useCallback((user: {{userClass}}) => (
     <Badge
@@ -256,7 +262,7 @@ export function {{componentName}}UserManagementView({
         ref={queryFilterRef}
         dataSource={dataSourceRef.current}
         initialFilter={ArchbaseQueryBuilder.create().build()}
-        {{#if hasFeature "advanced-filters"}}
+        {{#if (hasFeature "advanced-filters")}}
         advancedMode
         {{/if}}
       >
@@ -264,7 +270,7 @@ export function {{componentName}}UserManagementView({
           <Text size="lg" fw={600}>
             Gerenciamento de Usuários
           </Text>
-          {{#if hasFeature "custom-permissions"}}
+          {{#if (hasFeature "custom-permissions")}}
           {permissions.canCreateUsers && (
             <Button
               leftSection={<IconPlus size={16} />}
@@ -309,7 +315,7 @@ export function {{componentName}}UserManagementView({
               filter: true,
               flex: 1
             },
-            {{#if hasFeature "user-roles"}}
+            {{#if (hasFeature "user-roles")}}
             {
               headerName: 'Roles',
               field: 'roles',
@@ -319,7 +325,7 @@ export function {{componentName}}UserManagementView({
               cellRenderer: renderUserRoles
             },
             {{/if}}
-            {{#if hasFeature "user-activation"}}
+            {{#if (hasFeature "user-activation")}}
             {
               headerName: 'Status',
               field: 'active',
@@ -338,14 +344,14 @@ export function {{componentName}}UserManagementView({
               cellRenderer: renderUserActions
             }
           ]}
-          {{#if hasFeature "pagination"}}
+          {{#if (hasFeature "pagination")}}
           enablePagination
           paginationPageSize={25}
           {{/if}}
-          {{#if hasFeature "export"}}
+          {{#if (hasFeature "export")}}
           enableExport
           {{/if}}
-          {{#if hasFeature "selection"}}
+          {{#if (hasFeature "selection")}}
           enableSelection
           {{/if}}
           height="calc(100vh - 200px)"
@@ -395,7 +401,7 @@ export function {{componentName}}UserManagementView({
                   required: 'Username é obrigatório'
                 }
               },
-              {{#if hasFeature "user-roles"}}
+              {{#if (hasFeature "user-roles")}}
               {
                 name: 'roles',
                 label: 'Roles',
@@ -408,7 +414,7 @@ export function {{componentName}}UserManagementView({
                 ]
               },
               {{/if}}
-              {{#if hasFeature "user-activation"}}
+              {{#if (hasFeature "user-activation")}}
               {
                 name: 'active',
                 label: 'Ativo',

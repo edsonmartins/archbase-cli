@@ -7,6 +7,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
+import { buildArchbaseImports } from '../utils/archbasePackages';
 
 interface FormConfig {
   fields?: string;
@@ -337,11 +338,20 @@ export class FormGenerator {
   
   private async loadTemplate(templateName: string): Promise<string> {
     const templatePath = path.join(this.templatesPath, templateName);
-    
+
     if (await fs.pathExists(templatePath)) {
       return fs.readFile(templatePath, 'utf-8');
     }
-    
+
+    // Test/story templates fall back to the shared common templates.
+    if (templateName.endsWith('test.hbs') || templateName.endsWith('story.hbs')) {
+      const commonName = templateName.endsWith('test.hbs') ? 'common/test.hbs' : 'common/story.hbs';
+      const commonPath = path.join(this.templatesPath, commonName);
+      if (await fs.pathExists(commonPath)) {
+        return fs.readFile(commonPath, 'utf-8');
+      }
+    }
+
     // Return default template if specific template not found
     return this.getDefaultTemplate(templateName);
   }
@@ -530,24 +540,34 @@ export const WithInitialValues: Story = {
   }
   
   private generateImports(fields: FieldDefinition[], config: FormConfig): string[] {
-    const archbaseComponents = ['ArchbaseEdit'];
-    const mantineComponents = ['Button'];
-    
-    // Add specific components based on field types
+    // Map field types to the Archbase V3 input component they require.
+    const fieldComponentByType: Record<string, string> = {
+      string: 'ArchbaseEdit',
+      text: 'ArchbaseEdit',
+      email: 'ArchbaseEdit',
+      password: 'ArchbasePasswordEdit',
+      number: 'ArchbaseNumberEdit',
+      select: 'ArchbaseSelect',
+      textarea: 'ArchbaseTextArea',
+      checkbox: 'ArchbaseCheckbox',
+      switch: 'ArchbaseSwitch',
+      date: 'ArchbaseDateTimePickerEdit',
+      boolean: 'ArchbaseSwitch',
+    };
+
+    const archbaseSymbols = new Set<string>(['ArchbaseEdit', 'ArchbaseFormTemplate']);
     fields.forEach(field => {
-      if (field.type === 'select') archbaseComponents.push('ArchbaseSelect');
-      if (field.type === 'textarea') archbaseComponents.push('ArchbaseTextArea');
-      if (field.type === 'checkbox') archbaseComponents.push('ArchbaseCheckbox');
+      const component = fieldComponentByType[field.type];
+      if (component) archbaseSymbols.add(component);
     });
-    
-    // Remove duplicates and create import statements
-    const uniqueArchbaseComponents = [...new Set(archbaseComponents)];
-    const uniqueMantineComponents = [...new Set(mantineComponents)];
-    
+
+    const mantineComponents = ['Button'];
+
     return [
       "import React from 'react';",
-      `import { ${uniqueArchbaseComponents.join(', ')} } from 'archbase-react';`,
-      `import { ${uniqueMantineComponents.join(', ')} } from '@mantine/core';`,
+      // Imports grouped by @archbase/* package via the central resolver.
+      ...buildArchbaseImports([...archbaseSymbols]),
+      `import { ${[...new Set(mantineComponents)].join(', ')} } from '@mantine/core';`,
       config.validation !== 'none' ? `import * as ${config.validation} from '${config.validation}';` : ''
     ].filter(Boolean);
   }

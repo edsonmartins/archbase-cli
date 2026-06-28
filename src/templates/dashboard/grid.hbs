@@ -232,7 +232,7 @@ export function {{name}}() {
                 accessorKey="{{field}}"
                 header="{{title}}"
                 {{#if (eq type 'number')}}
-                meta={{ isNumeric: true }}
+                meta={{lt}}{ isNumeric: true }{{gt}}
                 {{/if}}
                 {{#if sortable}}
                 enableSorting={true}

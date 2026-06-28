@@ -17,15 +17,17 @@ import {
   ArchbaseDataGrid,
   ArchbaseDataGridColumn,
   Columns,
-  useArchbaseRemoteDataSource,
-  useArchbaseStore,
-  useArchbaseRemoteServiceApi,
-  useArchbaseGetLoggedUser,
   useArchbaseNavigateParams,
-  useArchbaseTheme,
   ArchbaseNotifications,
   ArchbaseDialog
-} from 'archbase-react';
+} from '@archbase/components';
+import {
+  useArchbaseRemoteDataSource,
+  useArchbaseStore,
+  useArchbaseRemoteServiceApi
+} from '@archbase/data';
+import { useArchbaseGetLoggedUser } from '@archbase/security';
+import { useArchbaseTheme } from '@archbase/core';
 import { useTranslation } from 'react-i18next';
 import { UserDto } from '../domain/UserDto';
 import { UserRemoteService } from '../service/UserRemoteService';

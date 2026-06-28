@@ -201,7 +201,14 @@
   ],
   
   "dependencies": {
-    "archbase-react": "^2.0.0",
+    "@archbase/admin": "4.0.30",
+    "@archbase/components": "4.0.30",
+    "@archbase/core": "4.0.30",
+    "@archbase/data": "4.0.30",
+    "@archbase/layout": "4.0.30",
+    "@archbase/security": "4.0.30",
+    "@archbase/security-ui": "4.0.30",
+    "@archbase/template": "4.0.30",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.0.0",

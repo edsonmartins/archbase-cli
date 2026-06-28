@@ -230,7 +230,7 @@ export class DashboardGenerator {
 
     // Add navigation imports if needed
     if (options.withNavigation) {
-      imports.push("import { useArchbaseNavigationListener } from '@archbase/core';");
+      imports.push("import { useArchbaseNavigationListener } from '@archbase/admin';");
     }
 
     // Add service imports if needed
