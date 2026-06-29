@@ -11,7 +11,17 @@ import {
   patchIocTypes,
   patchIocContainer,
   patchNavConstants,
+  patchNavData,
+  buildNavDataSnippet,
 } from '../../src/utils/projectWiring';
+
+const NAV_OPTS = {
+  entity: 'Product',
+  feature: 'product',
+  featureConstant: 'PRODUCT',
+  viewName: 'ProductView',
+  formName: 'ProductForm',
+};
 
 async function scaffoldProject(base: string) {
   await fs.ensureDir(path.join(base, 'ioc'));
@@ -100,5 +110,47 @@ describe('projectWiring', () => {
     expect((await patchIocTypes(base, 'Product')).action).toBe('skipped');
     expect((await patchIocContainer(base, 'ProductService', 'Product')).action).toBe('skipped');
     expect((await patchNavConstants(base, 'PRODUCT', '/x')).action).toBe('skipped');
+  });
+
+  describe('patchNavData', () => {
+    it('buildNavDataSnippet matches the project import-path style', () => {
+      const aliased = buildNavDataSnippet("import x from '@views/home'", NAV_OPTS);
+      expect(aliased).toContain('import("@views/product")');
+      const relative = buildNavDataSnippet("import x from '../views/home'", NAV_OPTS);
+      expect(relative).toContain('import("../views/product")');
+      expect(relative).toContain('component: withSuspense(<ProductView />)');
+      expect(relative).toContain('link: PRODUCT_ROUTE');
+    });
+
+    it('inserts lazy imports + nav item at the marker, idempotently', async () => {
+      const nav = path.join(base, 'navigation', 'navigationData.tsx');
+      await fs.ensureDir(path.dirname(nav));
+      await fs.writeFile(nav,
+        `const HomeView = lazy(() => import("../views/home").then((m) => ({ default: m.HomeView })))\n` +
+        `export const navigationData = [\n  // @archbase-cli:navitems\n];\n`,
+      );
+      const first = await patchNavData(base, NAV_OPTS);
+      expect(first.action).toBe('patched');
+      const content = await fs.readFile(nav, 'utf-8');
+      expect(content).toContain('const ProductView = lazy(() => import("../views/product")');
+      expect(content).toContain('const ProductForm = lazy(() => import("../views/product")');
+      expect(content).toContain('component: withSuspense(<ProductView />)');
+      expect(content).toContain('// @archbase-cli:navitems'); // marker preserved
+
+      const second = await patchNavData(base, NAV_OPTS);
+      expect(second.action).toBe('skipped');
+      const after = await fs.readFile(nav, 'utf-8');
+      expect(after.match(/const ProductView = lazy/g)?.length).toBe(1);
+    });
+
+    it('skips with a snippet when no marker is present', async () => {
+      const nav = path.join(base, 'navigation', 'navigationData.tsx');
+      await fs.ensureDir(path.dirname(nav));
+      await fs.writeFile(nav, `export const navigationData = [];\n`);
+      const res = await patchNavData(base, NAV_OPTS);
+      expect(res.action).toBe('skipped');
+      expect(res.reason).toMatch(/marker/);
+      expect(res.snippet).toContain('component: withSuspense(<ProductView />)');
+    });
   });
 });

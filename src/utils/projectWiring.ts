@@ -94,6 +94,89 @@ export async function patchIocContainer(base: string, serviceName: string, entit
   return { target: file, action: 'patched' };
 }
 
+export interface NavDataOptions {
+  entity: string;
+  feature: string;
+  featureConstant: string;
+  viewName: string;
+  formName?: string;
+}
+
+/**
+ * Build the lazy import(s) + navigation item snippet for a feature, matching the
+ * project's existing import-path style (`@views/...` vs `../views/...`).
+ */
+export function buildNavDataSnippet(content: string, opts: NavDataOptions): string {
+  const alias = content.includes('@views/') ? '@views' : '../views';
+  const importPath = `${alias}/${opts.feature}`;
+  const lazyLines = [
+    `const ${opts.viewName} = lazy(() => import("${importPath}").then((m) => ({ default: m.${opts.viewName} })))`,
+  ];
+  if (opts.formName) {
+    lazyLines.push(`const ${opts.formName} = lazy(() => import("${importPath}").then((m) => ({ default: m.${opts.formName} })))`);
+  }
+  const navItem =
+    `  {\n` +
+    `    label: '${opts.entity}',\n` +
+    `    link: ${opts.featureConstant}_ROUTE,\n` +
+    `    component: withSuspense(<${opts.viewName} />),\n` +
+    `    showInSidebar: true,\n` +
+    `  },`;
+  return `${lazyLines.join('\n')}\n\n${navItem}`;
+}
+
+/**
+ * Insert the feature's lazy imports + a navigation item into navigationData,
+ * but only at an explicit `// @archbase-cli:navitems` marker (the nested menu
+ * array shape is project-specific, so unguarded edits are unsafe). When the
+ * marker is absent the function returns `skipped` and the caller prints the
+ * ready-to-paste snippet instead. Always returns the snippet.
+ */
+export async function patchNavData(
+  base: string,
+  opts: NavDataOptions,
+): Promise<WiringResult & { snippet: string }> {
+  const matches = globSync(path.join(base, 'navigation', 'navigationData.{ts,tsx}'));
+  if (matches.length === 0) {
+    const snippet = buildNavDataSnippet('', opts);
+    return { target: path.join(base, 'navigation'), action: 'skipped', reason: 'no navigationData file found', snippet };
+  }
+  const file = matches[0];
+  let content = await fs.readFile(file, 'utf-8');
+  const snippet = buildNavDataSnippet(content, opts);
+
+  if (content.includes(`m.${opts.viewName} }`) || content.includes(`<${opts.viewName} />`)) {
+    return { target: file, action: 'skipped', reason: `${opts.viewName} already wired`, snippet };
+  }
+
+  const MARKER = '// @archbase-cli:navitems';
+  if (!content.includes(MARKER)) {
+    return {
+      target: file,
+      action: 'skipped',
+      reason: `no ${MARKER} marker — paste the snippet manually (see next steps)`,
+      snippet,
+    };
+  }
+
+  const [lazyBlock, navItem] = snippet.split('\n\n');
+
+  // Lazy imports: insert right after the last existing `= lazy(` line.
+  const lastLazy = content.lastIndexOf('= lazy(');
+  if (lastLazy !== -1) {
+    const lineEnd = content.indexOf('\n', lastLazy);
+    content = content.slice(0, lineEnd + 1) + lazyBlock + '\n' + content.slice(lineEnd + 1);
+  } else {
+    content = lazyBlock + '\n' + content;
+  }
+
+  // Navigation item: insert just before the marker line.
+  content = content.replace(new RegExp(`([ \\t]*)${MARKER}`), `${navItem}\n$1${MARKER}`);
+
+  await fs.writeFile(file, content);
+  return { target: file, action: 'patched', snippet };
+}
+
 /** Append `{FEATURE}_ROUTE` / `{FEATURE}_FORM_ROUTE` route constants (idempotent). */
 export async function patchNavConstants(
   base: string,

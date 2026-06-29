@@ -25,6 +25,7 @@ import {
   patchIocTypes,
   patchIocContainer,
   patchNavConstants,
+  patchNavData,
   WiringResult,
 } from '../utils/projectWiring';
 
@@ -418,17 +419,29 @@ export const createCommand = new Command('create')
             wiring.push(await patchIocContainer(base, `${entity}Service`, entity));
             wiring.push(await patchNavConstants(base, featureConstant, route));
 
+            const navData = await patchNavData(base, {
+              entity,
+              feature,
+              featureConstant,
+              viewName: wantList ? `${entity}View` : `${entity}Form`,
+              formName: wantForm ? `${entity}Form` : undefined,
+            });
+            wiring.push(navData);
+
             console.log(chalk.cyan('\n🔌 Wiring:'));
             for (const w of wiring) {
               const icon = w.action === 'skipped' ? '➖' : '🔗';
               const detail = w.reason ? chalk.gray(` (${w.reason})`) : '';
               console.log(chalk.gray(`  ${icon} ${w.action}: ${w.target}`) + detail);
             }
-          }
 
-          console.log(chalk.yellow('\n💡 Next steps:'));
-          console.log(chalk.gray(`  • Add the menu item + lazy route for ${entity}View/${entity}Form to navigationData (route ${feature.toUpperCase()}_ROUTE / ${feature.toUpperCase()}_FORM_ROUTE)`));
-          console.log(chalk.gray(`  • Confirm the service endpoint and the IOC types/container wiring above`));
+            console.log(chalk.yellow('\n💡 Next steps:'));
+            if (navData.action !== 'patched') {
+              console.log(chalk.gray('  • Add to navigationData (paste below; or add a `// @archbase-cli:navitems` marker to auto-wire next time):'));
+              console.log(navData.snippet.split('\n').map((l) => chalk.gray(`      ${l}`)).join('\n'));
+            }
+            console.log(chalk.gray('  • Confirm the service endpoint and the IOC types/container wiring above'));
+          }
 
         } catch (error) {
           console.error(chalk.red(`❌ Error creating module: ${error.message}`));
