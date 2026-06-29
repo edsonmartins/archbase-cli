@@ -18,7 +18,7 @@ import { DomainGenerator } from '../generators/DomainGenerator';
 import { ServiceGenerator } from '../generators/ServiceGenerator';
 import { ViewGenerator } from '../generators/ViewGenerator';
 import { FormGenerator } from '../generators/FormGenerator';
-import { parseFieldSpecs } from '../utils/fields';
+import { parseFieldSpecs, enumTypeName } from '../utils/fields';
 import {
   resolveIocTypesName,
   writeBarrel,
@@ -333,12 +333,10 @@ export const createCommand = new Command('create')
 
           // Enum fields (status:enum:A|B|C) become a generated enum + Values array;
           // the DTO field is typed as the enum (e.g. ProductStatus → @IsEnum).
-          const pascal = (s: string) =>
-            s.replace(/[_\-\s]+(\w)/g, (_m, c) => c.toUpperCase()).replace(/^(\w)/, (_m, c) => c.toUpperCase());
           const enums: { name: string; values: string[] }[] = [];
           const domainFields = fieldsArray.map((f) => {
             if (f.type === 'enum' && f.enumValues && f.enumValues.length > 0) {
-              const enumName = `${entity}${pascal(f.name)}`;
+              const enumName = enumTypeName(entity, f.name);
               enums.push({ name: enumName, values: f.enumValues });
               return { name: f.name, type: enumName, required: f.required };
             }

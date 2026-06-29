@@ -8,7 +8,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
 import { resolveCommonTemplateFallback } from '../utils/templates';
-import { parseFieldSpecs } from '../utils/fields';
+import { parseFieldSpecs, enumTypeName } from '../utils/fields';
 
 interface FormConfig {
   fields?: string;
@@ -283,12 +283,11 @@ export class FormGenerator {
 
   private buildTemplateContext(name: string, fields: FieldDefinition[], config: FormConfig) {
     const entityName = name.replace(/Form(Modal)?$/, '');
-    // Resolve each enum field's enum type (matches DomainGenerator: Entity + PascalField).
-    const pascal = (s: string) =>
-      s.replace(/[_\-\s]+(\w)/g, (_m, c) => c.toUpperCase()).replace(/^(\w)/, (_m, c) => c.toUpperCase());
+    // Resolve each enum field's type via the shared helper so the form's import
+    // matches the enum file the DTO generator writes (single source of truth).
     for (const field of fields) {
       if (field.type === 'enum') {
-        field.enumName = `${entityName}${pascal(field.name)}`;
+        field.enumName = enumTypeName(entityName, field.name);
       }
     }
     const enumImports = Array.from(

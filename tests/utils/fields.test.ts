@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseFieldSpecs } from '../../src/utils/fields';
+import { parseFieldSpecs, toPascalCase, enumTypeName } from '../../src/utils/fields';
 
 describe('parseFieldSpecs', () => {
   it('parses name and type, defaulting type to text and required to false', () => {
@@ -48,5 +48,20 @@ describe('parseFieldSpecs', () => {
   it('normalizes enum member names to UPPER_SNAKE', () => {
     const [field] = parseFieldSpecs('priority:enum:low priority|high-priority');
     expect(field.enumValues).toEqual(['LOW_PRIORITY', 'HIGH_PRIORITY']);
+  });
+});
+
+describe('toPascalCase / enumTypeName', () => {
+  it('PascalCases simple and separated identifiers', () => {
+    expect(toPascalCase('status')).toBe('Status');
+    expect(toPascalCase('order_status')).toBe('OrderStatus');
+    expect(toPascalCase('order-status')).toBe('OrderStatus');
+    expect(toPascalCase('order status')).toBe('OrderStatus');
+  });
+
+  it('derives the entity-qualified enum type name (single source of truth)', () => {
+    // The DTO generator and the form generator both call this, so they agree.
+    expect(enumTypeName('Product', 'status')).toBe('ProductStatus');
+    expect(enumTypeName('Order', 'payment_type')).toBe('OrderPaymentType');
   });
 });

@@ -20,6 +20,22 @@ function toEnumMember(value: string): string {
   return value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
+/** Convert a field/identifier to PascalCase (handles _, -, and space separators). */
+export function toPascalCase(value: string): string {
+  return value
+    .replace(/[_\-\s]+(\w)/g, (_m, c) => c.toUpperCase())
+    .replace(/^(\w)/, (_m, c) => c.toUpperCase());
+}
+
+/**
+ * The enum type name a field maps to: Entity + PascalCase(field), e.g.
+ * (`Product`, `status`) → `ProductStatus`. Shared by the DTO generator and the
+ * form generator so the generated enum file and the form's import never drift.
+ */
+export function enumTypeName(entity: string, fieldName: string): string {
+  return `${entity}${toPascalCase(fieldName)}`;
+}
+
 export function parseFieldSpecs(csv: string): ParsedFieldSpec[] {
   if (!csv || !csv.trim()) {
     return [];
