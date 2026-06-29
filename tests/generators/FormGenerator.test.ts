@@ -113,4 +113,25 @@ describe('FormGenerator', () => {
     expect(content).toContain('<ArchbaseSelectItem key={option} value={option} label={option} />');
     expect(content).toMatch(/import \{[\s\S]*ArchbaseSelect[\s\S]*\} from '@archbase\/components'/);
   });
+
+  it('generates a controlled modal form from the modal template', async () => {
+    const result = await generator.generate('ProductFormModal', baseConfig(tempDir, {
+      fields: 'name:text,status:enum:ATIVO|INATIVO',
+      validation: 'none',
+      template: 'modal',
+    }));
+    const content = await readGenerated(result.files[0]);
+    // Controlled child: FormModalTemplate driven by a dataSource prop the parent owns.
+    expect(content).toContain('ArchbaseFormModalTemplate<ProductDto, string>');
+    expect(content).toContain('export interface ProductFormModalProps');
+    expect(content).toContain('dataSource: ArchbaseDataSource<ProductDto, string>;');
+    expect(content).toContain('export function ProductFormModal({ opened, dataSource, onClose, onSave }');
+    // entityName is stripped of the FormModal suffix (not "ProductFormModal").
+    expect(content).toContain("import { ProductDto } from '../../domain/ProductDto';");
+    expect(content).not.toContain('ProductFormModalDto');
+    // Field rendering comes from the shared partial (enum select included).
+    expect(content).toContain('{Object.values(ProductStatus).map((option) => (');
+    // The modal does not own a remote datasource (that's the page form's job).
+    expect(content).not.toContain('useArchbaseRemoteDataSource');
+  });
 });

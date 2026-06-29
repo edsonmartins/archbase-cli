@@ -1,0 +1,73 @@
+{{#each fields}}
+{{#if (eq type 'password')}}
+<ArchbasePasswordEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  {{#if required}}required{{/if}}
+/>
+{{else if (eq type 'number')}}
+<ArchbaseNumberEdit{{#if ../typescript}}<{{../entityName}}Dto, number>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  {{#if required}}required{{/if}}
+/>
+{{else if (eq type 'textarea')}}
+<ArchbaseTextArea{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  {{#if required}}required{{/if}}
+/>
+{{else if (eq type 'boolean')}}
+<ArchbaseSwitch{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+/>
+{{else if (eq type 'checkbox')}}
+<ArchbaseCheckbox{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+/>
+{{else if (eq type 'enum')}}
+<ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, {{enumName}}, {{enumName}}>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  getOptionLabel={(option) => option}
+  getOptionValue={(option) => option}
+  {{#if required}}required{{/if}}
+>
+  {Object.values({{enumName}}).map((option) => (
+    <ArchbaseSelectItem key={option} value={option} label={option} />
+  ))}
+</ArchbaseSelect>
+{{else if (eq type 'select')}}
+<ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, string, string>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  {{#if required}}required{{/if}}
+>
+  {/* TODO: add <ArchbaseSelectItem value="..." label="..." /> options for "{{name}}" */}
+</ArchbaseSelect>
+{{else if (eq type 'email')}}
+<ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  type="email"
+  {{#if required}}required{{/if}}
+/>
+{{else}}
+<ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
+  label="{{label}}"
+  dataSource={dataSource}
+  dataField="{{name}}"
+  {{#if required}}required{{/if}}
+/>
+{{/if}}
+{{/each}}

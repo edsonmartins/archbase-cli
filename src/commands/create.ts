@@ -307,8 +307,8 @@ export const createCommand = new Command('create')
     new Command('module')
       .description('Scaffold a feature module (domain + service + view + form) following V3 patterns')
       .argument('<name>', 'Entity/module name (e.g., Product)')
-      .option('--with <components>', 'Comma-separated parts (crud|lists|forms|details)', 'crud')
-      .option('--fields <fields>', 'Comma-separated field list (name:type[:required], e.g. name:text:required,price:number)', 'name:text,description:textarea')
+      .option('--with <components>', 'Comma-separated parts (crud|lists|forms|details|form-modal)', 'crud')
+      .option('--fields <fields>', 'Comma-separated field list (name:type[:required], e.g. name:text:required,price:number,status:enum:ATIVO|INATIVO)', 'name:text,description:textarea')
       .option('--output <dir>', 'Base source directory', './src')
       .option('--endpoint <path>', 'REST endpoint for the service')
       .option('--dto-style <style>', 'DTO style: class|interface', 'class')
@@ -327,6 +327,7 @@ export const createCommand = new Command('create')
           const parts = String(options.with).split(',').map((p: string) => p.trim().toLowerCase());
           const wantList = parts.includes('crud') || parts.includes('lists');
           const wantForm = parts.includes('crud') || parts.includes('forms') || parts.includes('details');
+          const wantFormModal = parts.includes('form-modal') || parts.includes('modal');
           const fieldsCsv: string = options.fields;
           const fieldsArray = parseFieldSpecs(fieldsCsv);
 
@@ -411,6 +412,21 @@ export const createCommand = new Command('create')
             if (formResult.success) created.push(...formResult.files);
           }
 
+          if (wantFormModal) {
+            const modalResult = await new FormGenerator().generate(`${entity}FormModal`, {
+              fields: fieldsCsv,
+              validation: 'none',
+              template: 'modal',
+              output: path.join(base, 'views', feature),
+              typescript: true,
+              test: false,
+              story: false,
+              feature,
+              iocTypesName,
+            } as any);
+            if (modalResult.success) created.push(...modalResult.files);
+          }
+
           console.log(chalk.green(`\n✅ Module '${entity}' created with ${created.length} file(s):`));
           created.forEach((file) => console.log(chalk.gray(`  📄 ${file}`)));
 
@@ -423,11 +439,12 @@ export const createCommand = new Command('create')
             wiring.push(await writeBarrel(path.join(base, 'domain', 'index.ts'), [
               `export * from './${entity}Dto';`,
             ]));
-            if (wantList || wantForm) {
+            if (wantList || wantForm || wantFormModal) {
               const viewsBarrel = path.join(base, 'views', feature, 'index.ts');
               const exports: string[] = [];
               if (wantList) exports.push(`export { ${entity}View } from './${entity}View';`);
               if (wantForm) exports.push(`export { ${entity}Form } from './${entity}Form';`);
+              if (wantFormModal) exports.push(`export { ${entity}FormModal } from './${entity}FormModal';`);
               wiring.push(await writeBarrel(viewsBarrel, exports));
             }
             wiring.push(await patchIocTypes(base, entity));

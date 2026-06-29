@@ -1,0 +1,49 @@
+import { Grid, Stack } from '@mantine/core';
+import {
+{{#each formEditorImports}}
+  {{this}},
+{{/each}}
+} from '@archbase/components';
+import { ArchbaseFormModalTemplate } from '@archbase/template';
+{{#if typescript}}
+import { ArchbaseDataSource } from '@archbase/data';
+{{/if}}
+import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
+{{#each enumImports}}
+{{{this}}}
+{{/each}}
+
+{{#if typescript}}
+export interface {{componentName}}Props {
+  opened: boolean;
+  dataSource: ArchbaseDataSource<{{entityName}}Dto, string>;
+  onClose: () => void;
+  onSave: () => void;
+}
+
+{{/if}}
+// Controlled modal form: the parent owns the dataSource and toggles `opened`.
+export function {{componentName}}({ opened, dataSource, onClose, onSave }{{#if typescript}}: {{componentName}}Props{{/if}}) {
+  return (
+    <ArchbaseFormModalTemplate{{#if typescript}}<{{entityName}}Dto, string>{{/if}}
+      dataSource={dataSource}
+      title="{{entityName}}"
+      opened={opened}
+      onClickOk={onClose}
+      onAfterSave={onSave}
+      onClickCancel={onClose}
+      size="lg"
+      height="600px"
+    >
+      <Grid>
+        <Grid.Col span={12}>
+          <Stack>
+            {{> formFields}}
+          </Stack>
+        </Grid.Col>
+      </Grid>
+    </ArchbaseFormModalTemplate>
+  );
+}
+
+export default {{componentName}};

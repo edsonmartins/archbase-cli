@@ -46,7 +46,8 @@ interface GenerationResult {
 export class FormGenerator {
   private readonly handlebars = Handlebars.create();
   private templatesPath: string;
-  
+  private fieldsPartialRegistered = false;
+
   constructor(templatesPath: string = path.join(__dirname, '../../src/templates')) {
     this.templatesPath = templatesPath;
     this.registerHandlebarsHelpers();
@@ -285,7 +286,7 @@ export class FormGenerator {
   }
 
   private buildTemplateContext(name: string, fields: FieldDefinition[], config: FormConfig) {
-    const entityName = name.replace(/Form$/, '');
+    const entityName = name.replace(/Form(Modal)?$/, '');
     // Resolve each enum field's enum type (matches DomainGenerator: Entity + PascalField).
     const pascal = (s: string) =>
       s.replace(/[_\-\s]+(\w)/g, (_m, c) => c.toUpperCase()).replace(/^(\w)/, (_m, c) => c.toUpperCase());
@@ -341,9 +342,10 @@ export class FormGenerator {
     }
     
     const template = await this.loadTemplate(templateName);
+    await this.registerFieldsPartial();
     const compiled = this.handlebars.compile(template);
     const content = compiled(context);
-    
+
     const ext = config.typescript ? '.tsx' : '.jsx';
     const fileName = `${name}${ext}`;
     const filePath = path.resolve(config.output, fileName);
@@ -354,7 +356,21 @@ export class FormGenerator {
     console.log(`  📄 ${filePath}`);
     return filePath;
   }
-  
+
+  /**
+   * Register the shared field-rendering partial (`forms/_fields.hbs`) so both
+   * the page form (basic.hbs) and the modal form (modal.hbs) render fields
+   * identically without duplicating the editor branches. Registered once.
+   */
+  private async registerFieldsPartial(): Promise<void> {
+    if (this.fieldsPartialRegistered) return;
+    const partialPath = path.join(this.templatesPath, 'forms', '_fields.hbs');
+    if (await fs.pathExists(partialPath)) {
+      this.handlebars.registerPartial('formFields', await fs.readFile(partialPath, 'utf-8'));
+      this.fieldsPartialRegistered = true;
+    }
+  }
+
   private async generateTest(name: string, context: any, config: FormConfig): Promise<string> {
     const template = await this.loadTemplate('forms/test.hbs');
     const compiled = this.handlebars.compile(template);
