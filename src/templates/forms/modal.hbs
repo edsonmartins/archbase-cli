@@ -24,6 +24,9 @@ export interface {{componentName}}Props {
 {{/if}}
 // Controlled modal form: the parent owns the dataSource and toggles `opened`.
 export function {{componentName}}({ opened, dataSource, onClose, onSave }{{#if typescript}}: {{componentName}}Props{{/if}}) {
+  // Read-only when the parent opened the modal to view (not insert/edit) a record.
+  const isViewing = !dataSource.isInserting() && !dataSource.isEditing();
+
   return (
     <ArchbaseFormModalTemplate{{#if typescript}}<{{entityName}}Dto, string>{{/if}}
       dataSource={dataSource}

@@ -9,6 +9,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
 import { resolveCommonTemplateFallback } from '../utils/templates';
+import { parseFieldSpecs } from '../utils/fields';
 
 interface ViewConfig {
   fields?: string;
@@ -155,19 +156,17 @@ export class ViewGenerator {
       ];
     }
     
-    return fieldsString.split(',').map(field => {
-      const [name, type = 'text'] = field.trim().split(':');
-      
-      return {
-        name: name.trim(),
-        type: type.trim(),
-        label: this.capitalizeFirst(name.trim()),
-        required: true,
-        filterable: this.isFilterableType(type.trim()),
-        sortable: this.isSortableType(type.trim()),
-        size: this.getDefaultSize(type.trim())
-      };
-    });
+    // Shared CSV parser so grid columns agree with the DTO on field names
+    // (strips the `!` suffix) and required-ness (honors `:required`).
+    return parseFieldSpecs(fieldsString).map(spec => ({
+      name: spec.name,
+      type: spec.type,
+      label: this.capitalizeFirst(spec.name),
+      required: spec.required,
+      filterable: this.isFilterableType(spec.type),
+      sortable: this.isSortableType(spec.type),
+      size: this.getDefaultSize(spec.type)
+    }));
   }
   
   private async extractFieldsFromDto(dtoPath: string): Promise<FieldDefinition[]> {

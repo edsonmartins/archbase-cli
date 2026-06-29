@@ -373,7 +373,6 @@ export class DomainGenerator {
       // Fields
       fields: decoratedFields,
       hasRequiredFields: processedFields.some(f => f.required),
-      hasEnumFields: processedFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
       hasNestedFields: processedFields.some(f => f.nested),
       hasArrayFields: processedFields.some(f => f.isArray),
       
@@ -410,7 +409,9 @@ export class DomainGenerator {
     if ((field as any).nested) return { decorator: '@ValidateNested()', importName: 'ValidateNested' };
     const t = field.type;
     if (t === 'email') return { decorator: '@IsEmail()', importName: 'IsEmail' };
-    if (/Status$|Type$/.test(t)) return { decorator: `@IsEnum(${t})`, importName: 'IsEnum' };
+    // Enum recognition is authoritative via the caller's `enumNames` set (which
+    // also imports the enum). No name-suffix heuristic here: a *Status/*Type field
+    // that is NOT a declared enum would otherwise get @IsEnum with no import.
     switch (t) {
       case 'number':
       case 'decimal':

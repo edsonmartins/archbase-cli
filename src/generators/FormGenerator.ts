@@ -8,6 +8,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
 import { resolveCommonTemplateFallback } from '../utils/templates';
+import { parseFieldSpecs } from '../utils/fields';
 
 interface FormConfig {
   fields?: string;
@@ -161,23 +162,16 @@ export class FormGenerator {
       ];
     }
     
-    return fieldsString.split(',').map(field => {
-      const parts = field.trim().split(':');
-      const name = parts[0].trim();
-      const type = (parts[1] || 'text').trim();
-
-      const def: FieldDefinition = {
-        name,
-        type,
-        label: this.capitalizeFirst(name),
-        required: true,
-        placeholder: `Enter ${name}...`,
-        validation: this.getValidationForType(type),
-      };
-      // Enum fields carry their values in the 3rd token (status:enum:A|B|C); the
-      // enum name is resolved against the entity in buildTemplateContext.
-      return def;
-    });
+    // Reuse the shared CSV parser so the form agrees with the DTO on field names
+    // (strips the `!` required-suffix) and required-ness (honors `:required`).
+    return parseFieldSpecs(fieldsString).map(spec => ({
+      name: spec.name,
+      type: spec.type,
+      label: this.capitalizeFirst(spec.name),
+      required: spec.required,
+      placeholder: `Enter ${spec.name}...`,
+      validation: this.getValidationForType(spec.type),
+    }));
   }
   
   private async extractFieldsFromDto(dtoPath: string): Promise<FieldDefinition[]> {
@@ -272,7 +266,9 @@ export class FormGenerator {
         case 'textarea': used.add('ArchbaseTextArea'); break;
         case 'boolean': used.add('ArchbaseSwitch'); break;
         case 'checkbox': used.add('ArchbaseCheckbox'); break;
-        case 'select':
+        // Plain 'select' renders an empty ArchbaseSelect (items are a TODO), so it
+        // must NOT import ArchbaseSelectItem (unused import → noUnusedLocals error).
+        case 'select': used.add('ArchbaseSelect'); break;
         case 'enum': used.add('ArchbaseSelect'); used.add('ArchbaseSelectItem'); break;
         default: used.add('ArchbaseEdit'); break; // text, email, date, ...
       }

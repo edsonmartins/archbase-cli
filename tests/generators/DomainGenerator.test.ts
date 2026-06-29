@@ -117,6 +117,19 @@ describe('DomainGenerator', () => {
     });
   });
 
+  it('does not emit @IsEnum for a *Status field that is not a declared enum', async () => {
+    // Without the field's enum in `enums`, the old name-suffix heuristic emitted
+    // @IsEnum(OrderStatus) with no import → a DTO that does not compile.
+    const result = await generator.generate({
+      name: 'OrderDto', output: tempDir, typescript: true,
+      fields: [{ name: 'orderStatus', type: 'OrderStatus', required: false }],
+      withValidation: true, withConstructor: true, withFactory: true, withAuditFields: false,
+    } as any);
+    const dto = await readGenerated(result.files[0]);
+    expect(dto).not.toContain('@IsEnum(OrderStatus)');
+    expect(dto).not.toContain('import { OrderStatus }');
+  });
+
   describe('interface style', () => {
     it('generates interface + Create/Update DTOs', async () => {
       const result = await generator.generate({

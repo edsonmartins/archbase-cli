@@ -114,6 +114,25 @@ describe('FormGenerator', () => {
     expect(content).toMatch(/import \{[\s\S]*ArchbaseSelect[\s\S]*\} from '@archbase\/components'/);
   });
 
+  it('honors required flags and emits valid view/edit bindings (no fabricated readOnly prop)', async () => {
+    const result = await generator.generate('ProductForm', baseConfig(tempDir, {
+      fields: 'email!:email,note:textarea',
+      validation: 'none',
+    }));
+    const content = await readGenerated(result.files[0]);
+    // The `!` required-suffix is stripped from the field name (matches the DTO property).
+    expect(content).toContain('dataField="email"');
+    expect(content).not.toContain('dataField="email!"');
+    // ArchbaseFormTemplate has no readOnly prop; VIEW mode disables each editor instead.
+    expect(content).not.toContain('readOnly');
+    expect(content).toContain('disabled={isViewing}');
+    // EDIT puts the loaded record into edit mode so changes are accepted.
+    expect(content).toContain('ds.edit();');
+    // Optional field (no :required) does not get a required attribute.
+    const noteIdx = content.indexOf('dataField="note"');
+    expect(content.slice(noteIdx, content.indexOf('/>', noteIdx))).not.toContain('required');
+  });
+
   it('generates a controlled modal form from the modal template', async () => {
     const result = await generator.generate('ProductFormModal', baseConfig(tempDir, {
       fields: 'name:text,status:enum:ATIVO|INATIVO',

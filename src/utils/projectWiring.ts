@@ -70,11 +70,16 @@ export async function patchIocContainer(base: string, serviceName: string, entit
     return { target: file, action: 'skipped', reason: `${serviceName} already registered` };
   }
 
-  // Insert the service import after the last existing import line.
+  // Insert the service import after the last existing import statement. Anchor on
+  // the import's `from` clause so a multi-line `import {\n A,\n B\n} from '...'`
+  // isn't split in the middle.
   const serviceImport = `import { ${serviceName} } from "../services/${serviceName}";`;
   if (!content.includes(serviceImport)) {
     const lastImport = content.lastIndexOf('\nimport ');
-    const lineEnd = content.indexOf('\n', lastImport + 1);
+    const fromIdx = content.indexOf('from', lastImport + 1);
+    const anchor = fromIdx !== -1 ? fromIdx : lastImport + 1;
+    let lineEnd = content.indexOf('\n', anchor);
+    if (lineEnd === -1) lineEnd = content.length;
     content = content.slice(0, lineEnd + 1) + serviceImport + '\n' + content.slice(lineEnd + 1);
   }
 

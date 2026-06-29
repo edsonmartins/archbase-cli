@@ -28,6 +28,8 @@ export function {{componentName}}() {
   const action = (searchParamsUrl.get('action') ?? 'ADD').toUpperCase();
   const isAddAction = action === 'ADD';
   const isViewAction = action === 'VIEW';
+  // Shared name with the modal form so the field partial can disable editors in VIEW.
+  const isViewing = isViewAction;
 
   const templateStore = useArchbaseStore(`{{toLowerCase entityName}}Form${ {{toLowerCase entityName}}Id }Store`);
   const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
@@ -45,6 +47,9 @@ export function {{componentName}}() {
     onLoadComplete: (ds) => {
       if (isAddAction) {
         ds.insert({{entityName}}Dto.newInstance());
+      } else if (action === 'EDIT' && !ds.isEmpty()) {
+        // Put the loaded record into edit mode so field changes are accepted.
+        ds.edit();
       }
     }
   });
@@ -59,7 +64,6 @@ export function {{componentName}}() {
       dataSource={dataSource}
       onAfterSave={handleAfterSave}
       isLoading={isLoading}
-      readOnly={isViewAction}
     >
       {{> formFields}}
     </ArchbaseFormTemplate>

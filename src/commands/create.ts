@@ -449,16 +449,24 @@ export const createCommand = new Command('create')
             }
             wiring.push(await patchIocTypes(base, entity));
             wiring.push(await patchIocContainer(base, `${entity}Service`, entity));
-            wiring.push(await patchNavConstants(base, featureConstant, route));
 
-            const navData = await patchNavData(base, {
-              entity,
-              feature,
-              featureConstant,
-              viewName: wantList ? `${entity}View` : `${entity}Form`,
-              formName: wantForm ? `${entity}Form` : undefined,
-            });
-            wiring.push(navData);
+            // Navigation wires the routed page: the list view, or the page form
+            // when there's no list. A modal-only module has no routed page, and we
+            // never reference a form that wasn't generated.
+            const routedView = wantList ? `${entity}View` : wantForm ? `${entity}Form` : undefined;
+            const routedForm = wantList && wantForm ? `${entity}Form` : undefined;
+            let navData: (typeof wiring)[number] & { snippet?: string } | undefined;
+            if (routedView) {
+              wiring.push(await patchNavConstants(base, featureConstant, route));
+              navData = await patchNavData(base, {
+                entity,
+                feature,
+                featureConstant,
+                viewName: routedView,
+                formName: routedForm,
+              });
+              wiring.push(navData);
+            }
 
             console.log(chalk.cyan('\n🔌 Wiring:'));
             for (const w of wiring) {
@@ -468,9 +476,9 @@ export const createCommand = new Command('create')
             }
 
             console.log(chalk.yellow('\n💡 Next steps:'));
-            if (navData.action !== 'patched') {
+            if (navData && navData.action !== 'patched') {
               console.log(chalk.gray('  • Add to navigationData (paste below; or add a `// @archbase-cli:navitems` marker to auto-wire next time):'));
-              console.log(navData.snippet.split('\n').map((l) => chalk.gray(`      ${l}`)).join('\n'));
+              console.log(navData.snippet!.split('\n').map((l) => chalk.gray(`      ${l}`)).join('\n'));
             }
             console.log(chalk.gray('  • Confirm the service endpoint and the IOC types/container wiring above'));
           }

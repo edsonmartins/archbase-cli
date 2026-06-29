@@ -4,6 +4,7 @@
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
   {{#if required}}required{{/if}}
 />
 {{else if (eq type 'number')}}
@@ -11,6 +12,7 @@
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
   {{#if required}}required{{/if}}
 />
 {{else if (eq type 'textarea')}}
@@ -18,6 +20,7 @@
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
   {{#if required}}required{{/if}}
 />
 {{else if (eq type 'boolean')}}
@@ -25,20 +28,24 @@
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
 />
 {{else if (eq type 'checkbox')}}
 <ArchbaseCheckbox{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
 />
 {{else if (eq type 'enum')}}
 <ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, {{enumName}}, {{enumName}}>{{/if}}
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
   getOptionLabel={(option) => option}
   getOptionValue={(option) => option}
+  {{#if required}}clearable={false}{{/if}}
   {{#if required}}required{{/if}}
 >
   {Object.values({{enumName}}).map((option) => (
@@ -50,6 +57,7 @@
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
   {{#if required}}required{{/if}}
 >
   {/* TODO: add <ArchbaseSelectItem value="..." label="..." /> options for "{{name}}" */}
@@ -60,6 +68,7 @@
   dataSource={dataSource}
   dataField="{{name}}"
   type="email"
+  disabled={isViewing}
   {{#if required}}required{{/if}}
 />
 {{else}}
@@ -67,6 +76,7 @@
   label="{{label}}"
   dataSource={dataSource}
   dataField="{{name}}"
+  disabled={isViewing}
   {{#if required}}required{{/if}}
 />
 {{/if}}
