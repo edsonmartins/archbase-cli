@@ -70,17 +70,21 @@ export async function patchIocContainer(base: string, serviceName: string, entit
     return { target: file, action: 'skipped', reason: `${serviceName} already registered` };
   }
 
-  // Insert the service import after the last existing import statement. Anchor on
-  // the import's `from` clause so a multi-line `import {\n A,\n B\n} from '...'`
-  // isn't split in the middle.
+  // Insert the service import after the last complete import statement. Matching
+  // whole `import ... ;` statements handles single-line, multi-line, and
+  // side-effect (`import './x';`) forms without splitting any of them.
   const serviceImport = `import { ${serviceName} } from "../services/${serviceName}";`;
   if (!content.includes(serviceImport)) {
-    const lastImport = content.lastIndexOf('\nimport ');
-    const fromIdx = content.indexOf('from', lastImport + 1);
-    const anchor = fromIdx !== -1 ? fromIdx : lastImport + 1;
-    let lineEnd = content.indexOf('\n', anchor);
-    if (lineEnd === -1) lineEnd = content.length;
-    content = content.slice(0, lineEnd + 1) + serviceImport + '\n' + content.slice(lineEnd + 1);
+    const importStmt = /^import\b[\s\S]*?;/gm;
+    let lastMatch: RegExpExecArray | null = null;
+    let mm: RegExpExecArray | null;
+    while ((mm = importStmt.exec(content)) !== null) lastMatch = mm;
+    if (lastMatch) {
+      const at = lastMatch.index + lastMatch[0].length;
+      content = content.slice(0, at) + '\n' + serviceImport + content.slice(at);
+    } else {
+      content = serviceImport + '\n' + content;
+    }
   }
 
   // Insert the binding after the last container.bind(...).to(...); statement.

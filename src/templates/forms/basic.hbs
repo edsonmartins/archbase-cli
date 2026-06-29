@@ -11,6 +11,7 @@ import {
   useArchbaseStore
 } from '@archbase/data';
 import { useArchbaseValidator } from '@archbase/core';
+import { useForceUpdate } from '@mantine/hooks';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
@@ -34,6 +35,7 @@ export function {{componentName}}() {
   const templateStore = useArchbaseStore(`{{toLowerCase entityName}}Form${ {{toLowerCase entityName}}Id }Store`);
   const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
   const validator = useArchbaseValidator();
+  const forceUpdate = useForceUpdate();
 
   const { dataSource, isLoading } = useArchbaseRemoteDataSource<{{entityName}}Dto, string>({
     name: `ds{{entityName}}${ {{toLowerCase entityName}}Id }`,
@@ -48,8 +50,10 @@ export function {{componentName}}() {
       if (isAddAction) {
         ds.insert({{entityName}}Dto.newInstance());
       } else if (action === 'EDIT' && !ds.isEmpty()) {
-        // Put the loaded record into edit mode so field changes are accepted.
+        // Put the loaded record into edit mode so field changes are accepted,
+        // then force a re-render since onLoadComplete runs outside React's cycle.
         ds.edit();
+        forceUpdate();
       }
     }
   });

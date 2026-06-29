@@ -79,6 +79,34 @@ describe('projectWiring', () => {
     expect(second.action).toBe('skipped');
   });
 
+  it('patchIocContainer inserts after a side-effect import without splitting it', async () => {
+    await fs.ensureDir(path.join(base, 'ioc'));
+    await fs.writeFile(
+      path.join(base, 'ioc', 'ContainerIOC.ts'),
+      `import { API_TYPE } from './IOCTypes';\n` +
+        `import './sideEffect';\n\n` +
+        `const container = IOCContainer.getContainer();\n\nexport { container };\n`,
+    );
+    const res = await patchIocContainer(base, 'ProductService', 'Product');
+    expect(res.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'ioc', 'ContainerIOC.ts'), 'utf-8');
+    // Side-effect import stays intact; the new import follows it, not spliced inside.
+    expect(content).toMatch(/import '\.\/sideEffect';\nimport \{ ProductService \} from "\.\.\/services\/ProductService";/);
+  });
+
+  it('patchIocContainer inserts after a multi-line import without splitting it', async () => {
+    await fs.ensureDir(path.join(base, 'ioc'));
+    await fs.writeFile(
+      path.join(base, 'ioc', 'ContainerIOC.ts'),
+      `import {\n  API_TYPE,\n  OTHER,\n} from './IOCTypes';\n\nconst container = IOCContainer.getContainer();\n\nexport { container };\n`,
+    );
+    const res = await patchIocContainer(base, 'ProductService', 'Product');
+    expect(res.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'ioc', 'ContainerIOC.ts'), 'utf-8');
+    // The multi-line import is preserved whole; the new import lands right after its `;`.
+    expect(content).toContain("  OTHER,\n} from './IOCTypes';\nimport { ProductService }");
+  });
+
   it('patchNavConstants appends route constants and is idempotent', async () => {
     await scaffoldProject(base);
     const first = await patchNavConstants(base, 'PRODUCT', '/admin/configuracao/product');

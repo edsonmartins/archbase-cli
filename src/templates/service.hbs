@@ -25,9 +25,8 @@ export class {{serviceName}} extends ArchbaseRemoteApiService<{{entityType}}, {{
     }
 
     isNewRecord(entity: {{entityType}}): boolean {
-        // Class DTOs (newInstance) carry an explicit `isNew` flag; fall back to the
-        // id for interface/external DTOs that don't, so POST vs PUT stays correct.
-        return entity.isNew ?? (!entity.id || entity.id === '');
+        // Canonical pattern: the DTO's newInstance() sets isNew; the service trusts it.
+        return entity.isNew;
     }
 
     async save<R>(entity: {{entityType}}): Promise<R> {

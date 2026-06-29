@@ -21,6 +21,7 @@
   dataSource={dataSource}
   dataField="{{name}}"
   disabled={isViewing}
+  disabledBase64Convertion
   {{#if required}}required{{/if}}
 />
 {{else if (eq type 'boolean')}}
@@ -45,7 +46,7 @@
   disabled={isViewing}
   getOptionLabel={(option) => option}
   getOptionValue={(option) => option}
-  {{#if required}}clearable={false}{{/if}}
+  clearable={false}
   {{#if required}}required{{/if}}
 >
   {Object.values({{enumName}}).map((option) => (
