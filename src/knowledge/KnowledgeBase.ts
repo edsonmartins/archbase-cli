@@ -204,23 +204,40 @@ export class KnowledgeBase {
         const pkg: string = entry.package || '@archbase/components';
         const category = pkg.replace('@archbase/', '');
         const props: Record<string, PropInfo> = {};
-        for (const propName of entry.props || []) {
-          if (typeof propName === 'string') {
-            props[propName] = { type: 'unknown', required: false, description: '' };
+        for (const prop of entry.props || []) {
+          // Rich form: { name, type, required, description }. Legacy form: a bare
+          // string (name only) — falls back to an unknown type.
+          if (typeof prop === 'string') {
+            props[prop] = { type: 'unknown', required: false, description: '' };
+          } else if (prop && prop.name) {
+            props[prop.name] = {
+              type: prop.type || 'unknown',
+              required: !!prop.required,
+              description: prop.description || '',
+            };
           }
         }
+
+        const requiredProps = Object.entries(props)
+          .filter(([, info]) => info.required)
+          .map(([propName]) => propName);
+        const aiHints = [`Import: import { ${name} } from '${pkg}';`];
+        if (requiredProps.length > 0) {
+          aiHints.push(`Required props: ${requiredProps.join(', ')}`);
+        }
+
         this.componentsCache.set(name, {
           name,
           description: entry.description || `${name} (${pkg})`,
           category,
           version,
-          status: 'stable',
+          status: (entry.status as ComponentInfo['status']) || 'stable',
           props,
           examples: [],
           patterns: [],
           relatedComponents: [],
           dependencies: [pkg],
-          aiHints: [`Imported from ${pkg}`],
+          aiHints,
           complexity: 'medium',
           useCases: entry.tags || [],
         });
