@@ -15,6 +15,9 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
 import { API_TYPE } from '../../ioc/{{iocTypesName}}';
+{{#each enumImports}}
+{{{this}}}
+{{/each}}
 
 // Validation is driven by the DTO's class-validator decorators via
 // useArchbaseValidator() below (the V3 pattern), not a standalone schema.
@@ -92,6 +95,19 @@ export function {{componentName}}() {
         dataSource={dataSource}
         dataField="{{name}}"
       />
+      {{else if (eq type 'enum')}}
+      <ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, {{enumName}}, {{enumName}}>{{/if}}
+        label="{{label}}"
+        dataSource={dataSource}
+        dataField="{{name}}"
+        getOptionLabel={(option) => option}
+        getOptionValue={(option) => option}
+        {{#if required}}required{{/if}}
+      >
+        {Object.values({{enumName}}).map((option) => (
+          <ArchbaseSelectItem key={option} value={option} label={option} />
+        ))}
+      </ArchbaseSelect>
       {{else if (eq type 'select')}}
       <ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, string, string>{{/if}}
         label="{{label}}"

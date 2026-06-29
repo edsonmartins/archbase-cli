@@ -329,6 +329,20 @@ export const createCommand = new Command('create')
           const wantForm = parts.includes('crud') || parts.includes('forms') || parts.includes('details');
           const fieldsCsv: string = options.fields;
           const fieldsArray = parseFieldSpecs(fieldsCsv);
+
+          // Enum fields (status:enum:A|B|C) become a generated enum + Values array;
+          // the DTO field is typed as the enum (e.g. ProductStatus → @IsEnum).
+          const pascal = (s: string) =>
+            s.replace(/[_\-\s]+(\w)/g, (_m, c) => c.toUpperCase()).replace(/^(\w)/, (_m, c) => c.toUpperCase());
+          const enums: { name: string; values: string[] }[] = [];
+          const domainFields = fieldsArray.map((f) => {
+            if (f.type === 'enum' && f.enumValues && f.enumValues.length > 0) {
+              const enumName = `${entity}${pascal(f.name)}`;
+              enums.push({ name: enumName, values: f.enumValues });
+              return { name: f.name, type: enumName, required: f.required };
+            }
+            return f;
+          });
           const created: string[] = [];
 
           // 1. Domain DTO
@@ -337,7 +351,8 @@ export const createCommand = new Command('create')
             output: path.join(base, 'domain'),
             style: options.dtoStyle === 'interface' ? 'interface' : 'class',
             typescript: true,
-            fields: fieldsArray,
+            fields: domainFields,
+            enums,
             withValidation: true,
             withConstructor: true,
             withFactory: true,

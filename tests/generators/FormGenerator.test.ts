@@ -98,4 +98,19 @@ describe('FormGenerator', () => {
     expect(result.success).toBe(false);
     expect(result.errors && result.errors.length).toBeGreaterThan(0);
   });
+
+  it('renders enum fields as ArchbaseSelect over the enum values', async () => {
+    const result = await generator.generate('ProductForm', baseConfig(tempDir, {
+      fields: 'name:text,status:enum:ATIVO|INATIVO',
+      validation: 'none',
+    }));
+    const content = await readGenerated(result.files[0]);
+    expectV3Imports(content);
+    // Imports the generated enum and binds the select to it.
+    expect(content).toContain("import { ProductStatus } from '../../domain/ProductStatus';");
+    expect(content).toContain('<ArchbaseSelect<ProductDto, ProductStatus, ProductStatus>');
+    expect(content).toContain('{Object.values(ProductStatus).map((option) => (');
+    expect(content).toContain('<ArchbaseSelectItem key={option} value={option} label={option} />');
+    expect(content).toMatch(/import \{[\s\S]*ArchbaseSelect[\s\S]*\} from '@archbase\/components'/);
+  });
 });

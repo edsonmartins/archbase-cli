@@ -334,6 +334,7 @@ export class DomainGenerator {
     // proper @IsString/@IsNumber/@IsEnum alongside @IsNotEmpty/@IsOptional).
     const needsValidation = !!config.withValidation && config.style !== 'interface';
     const validationImportSet = new Set<string>();
+    const enumNames = new Set((config.enums || []).map(e => e.name));
     const decoratedFields = processedFields.map(field => {
       const decorators: string[] = [];
       if (needsValidation) {
@@ -346,7 +347,9 @@ export class DomainGenerator {
           validationImportSet.add('IsOptional');
         }
         // Format/type decorator: @IsEmail / @IsString / @IsNumber / @IsBoolean / @IsEnum.
-        const td = this.getTypeDecorator(field);
+        const td = enumNames.has(field.type)
+          ? { decorator: `@IsEnum(${field.type})`, importName: 'IsEnum' }
+          : this.getTypeDecorator(field);
         if (td) {
           decorators.push(td.decorator);
           validationImportSet.add(td.importName);

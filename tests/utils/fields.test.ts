@@ -38,4 +38,15 @@ describe('parseFieldSpecs', () => {
     expect(parseFieldSpecs('')).toEqual([]);
     expect(parseFieldSpecs('   ')).toEqual([]);
   });
+
+  it('parses enum fields with pipe-separated values', () => {
+    expect(parseFieldSpecs('status:enum:ATIVO|INATIVO|PENDENTE')).toEqual([
+      { name: 'status', type: 'enum', required: false, enumValues: ['ATIVO', 'INATIVO', 'PENDENTE'] },
+    ]);
+  });
+
+  it('normalizes enum member names to UPPER_SNAKE', () => {
+    const [field] = parseFieldSpecs('priority:enum:low priority|high-priority');
+    expect(field.enumValues).toEqual(['LOW_PRIORITY', 'HIGH_PRIORITY']);
+  });
 });

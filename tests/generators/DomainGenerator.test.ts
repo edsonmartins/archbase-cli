@@ -87,6 +87,36 @@ describe('DomainGenerator', () => {
     });
   });
 
+  describe('enum fields', () => {
+    it('generates the enum, @IsEnum DTO field, and clean Values array', async () => {
+      const result = await generator.generate({
+        name: 'ProductDto', output: tempDir, typescript: true,
+        fields: [{ name: 'name', type: 'string', required: true }, { name: 'status', type: 'ProductStatus', required: false }],
+        enums: [{ name: 'ProductStatus', values: ['ATIVO', 'INATIVO'] }],
+        withValidation: true, withConstructor: true, withFactory: true, withAuditFields: true,
+      } as any);
+      expect(result.success).toBe(true);
+
+      const dto = await readGenerated(result.files.find((f) => f.endsWith('ProductDto.ts'))!);
+      expect(dto).toContain("import { ProductStatus } from './ProductStatus';");
+      expect(dto).toContain('@IsEnum(ProductStatus)');
+      expect(dto).toContain('status: ProductStatus;');
+
+      const enumFile = result.files.find((f) => f.endsWith('ProductStatus.ts'));
+      expect(enumFile).toBeDefined();
+      const enumContent = await readGenerated(enumFile!);
+      expect(enumContent).toContain('export enum ProductStatus');
+      expect(enumContent).toContain('ATIVO = "ATIVO"');
+      expect(enumContent).not.toContain('mentors:');
+
+      const valuesFile = result.files.find((f) => f.endsWith('StatusValues.ts'));
+      expect(valuesFile).toBeDefined();
+      const values = await readGenerated(valuesFile!);
+      expect(values).toContain("label: 'Ativo'");
+      expect(values).not.toContain('mentors:');
+    });
+  });
+
   describe('interface style', () => {
     it('generates interface + Create/Update DTOs', async () => {
       const result = await generator.generate({

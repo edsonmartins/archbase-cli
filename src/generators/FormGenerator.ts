@@ -33,6 +33,8 @@ interface FieldDefinition {
   required: boolean;
   placeholder?: string;
   validation?: string;
+  /** For enum fields: the enum type name (e.g. ProductStatus) the select binds to. */
+  enumName?: string;
 }
 
 interface GenerationResult {
@@ -159,16 +161,21 @@ export class FormGenerator {
     }
     
     return fieldsString.split(',').map(field => {
-      const [name, type = 'text'] = field.trim().split(':');
-      
-      return {
-        name: name.trim(),
-        type: type.trim(),
-        label: this.capitalizeFirst(name.trim()),
+      const parts = field.trim().split(':');
+      const name = parts[0].trim();
+      const type = (parts[1] || 'text').trim();
+
+      const def: FieldDefinition = {
+        name,
+        type,
+        label: this.capitalizeFirst(name),
         required: true,
-        placeholder: `Enter ${name.trim()}...`,
-        validation: this.getValidationForType(type.trim())
+        placeholder: `Enter ${name}...`,
+        validation: this.getValidationForType(type),
       };
+      // Enum fields carry their values in the 3rd token (status:enum:A|B|C); the
+      // enum name is resolved against the entity in buildTemplateContext.
+      return def;
     });
   }
   
@@ -264,7 +271,8 @@ export class FormGenerator {
         case 'textarea': used.add('ArchbaseTextArea'); break;
         case 'boolean': used.add('ArchbaseSwitch'); break;
         case 'checkbox': used.add('ArchbaseCheckbox'); break;
-        case 'select': used.add('ArchbaseSelect'); used.add('ArchbaseSelectItem'); break;
+        case 'select':
+        case 'enum': used.add('ArchbaseSelect'); used.add('ArchbaseSelectItem'); break;
         default: used.add('ArchbaseEdit'); break; // text, email, date, ...
       }
     }
@@ -277,11 +285,29 @@ export class FormGenerator {
   }
 
   private buildTemplateContext(name: string, fields: FieldDefinition[], config: FormConfig) {
+    const entityName = name.replace(/Form$/, '');
+    // Resolve each enum field's enum type (matches DomainGenerator: Entity + PascalField).
+    const pascal = (s: string) =>
+      s.replace(/[_\-\s]+(\w)/g, (_m, c) => c.toUpperCase()).replace(/^(\w)/, (_m, c) => c.toUpperCase());
+    for (const field of fields) {
+      if (field.type === 'enum') {
+        field.enumName = `${entityName}${pascal(field.name)}`;
+      }
+    }
+    const enumImports = Array.from(
+      new Set(
+        fields
+          .filter(f => f.type === 'enum' && f.enumName)
+          .map(f => `import { ${f.enumName} } from '../../domain/${f.enumName}';`),
+      ),
+    );
+
     return {
       componentName: name,
-      entityName: name.replace(/Form$/, ''),
+      entityName,
       iocTypesName: (config as any).iocTypesName || 'IOCTypes',
       formEditorImports: this.getFormEditorImports(fields),
+      enumImports,
       fields,
       useValidation: config.validation !== 'none',
       validationLibrary: config.validation,
