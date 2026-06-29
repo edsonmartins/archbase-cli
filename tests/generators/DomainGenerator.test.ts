@@ -51,6 +51,29 @@ describe('DomainGenerator', () => {
       expect(content).toContain("from '@archbase/core'");
     });
 
+    it('emits clean decorators: optional id, real type decorators, clean messages, no unused imports', async () => {
+      const result = await generator.generate({
+        name: 'ProductDto', output: tempDir, typescript: true, fields: fields(),
+        withValidation: true, withConstructor: true, withFactory: true, withAuditFields: true,
+      } as any);
+      const content = await readGenerated(result.files[0]);
+      // id is server/uuid-generated → optional, not @IsNotEmpty
+      expect(content).toMatch(/@IsOptional\(\)\s*\n\s*@IsString\(\)\s*\n\s*id: string;/);
+      // required field gets @IsNotEmpty + a type decorator + a clean message (no 'mentors:'/'dever')
+      expect(content).toContain('@IsNotEmpty({');
+      expect(content).toContain('message: "name é obrigatório",');
+      expect(content).not.toContain('mentors:');
+      expect(content).not.toContain('dever ser informado');
+      // type/format decorators present
+      expect(content).toContain('@IsNumber()');
+      expect(content).toContain('@IsBoolean()');
+      expect(content).toContain('@IsEmail()');
+      // optional email → @IsOptional() + @IsEmail()
+      expect(content).toMatch(/@IsOptional\(\)\s*\n\s*@IsEmail\(\)/);
+      // unused decorator imports are not emitted
+      expect(content).not.toContain('ValidateNested');
+    });
+
     it('maps field types to valid TypeScript types (no leaked "email" type)', async () => {
       const result = await generator.generate({
         name: 'ProductDto', output: tempDir, typescript: true, fields: fields(),

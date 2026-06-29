@@ -254,10 +254,34 @@ export class FormGenerator {
     return typeMap[cleanType] || 'text';
   }
   
+  /** The @archbase/components editors a form needs, based on its field types. */
+  private getFormEditorImports(fields: FieldDefinition[]): string[] {
+    const used = new Set<string>();
+    for (const field of fields) {
+      switch (field.type) {
+        case 'password': used.add('ArchbasePasswordEdit'); break;
+        case 'number': used.add('ArchbaseNumberEdit'); break;
+        case 'textarea': used.add('ArchbaseTextArea'); break;
+        case 'boolean': used.add('ArchbaseSwitch'); break;
+        case 'checkbox': used.add('ArchbaseCheckbox'); break;
+        case 'select': used.add('ArchbaseSelect'); used.add('ArchbaseSelectItem'); break;
+        default: used.add('ArchbaseEdit'); break; // text, email, date, ...
+      }
+    }
+    if (used.size === 0) used.add('ArchbaseEdit');
+    const ORDER = [
+      'ArchbaseEdit', 'ArchbaseNumberEdit', 'ArchbasePasswordEdit', 'ArchbaseTextArea',
+      'ArchbaseSelect', 'ArchbaseSelectItem', 'ArchbaseCheckbox', 'ArchbaseSwitch',
+    ];
+    return ORDER.filter(component => used.has(component));
+  }
+
   private buildTemplateContext(name: string, fields: FieldDefinition[], config: FormConfig) {
     return {
       componentName: name,
       entityName: name.replace(/Form$/, ''),
+      iocTypesName: (config as any).iocTypesName || 'IOCTypes',
+      formEditorImports: this.getFormEditorImports(fields),
       fields,
       useValidation: config.validation !== 'none',
       validationLibrary: config.validation,

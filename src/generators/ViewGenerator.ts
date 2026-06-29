@@ -263,6 +263,7 @@ export class ViewGenerator {
     return {
       componentName: name,
       entityName: name.replace(/View$/, ''),
+      iocTypesName: (config as any).iocTypesName || 'IOCTypes',
       fields,
       typescript: config.typescript,
       // Permission features

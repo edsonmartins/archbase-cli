@@ -4,7 +4,7 @@
 
 @injectable()
 export class {{serviceName}} extends ArchbaseRemoteApiService<{{entityType}}, {{idType}}> {
-    constructor(@inject(ARCHBASE_IOC_API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
+    constructor(@inject(API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
         super(client);
     }
 
@@ -25,7 +25,14 @@ export class {{serviceName}} extends ArchbaseRemoteApiService<{{entityType}}, {{
     }
 
     isNewRecord(entity: {{entityType}}): boolean {
-        return !entity.id || entity.id === '';
+        return entity.isNew;
+    }
+
+    async save<R>(entity: {{entityType}}): Promise<R> {
+        if (this.isNewRecord(entity)) {
+            return this.client.post<{{entityType}}, R>(this.getEndpoint(), entity, {}, false);
+        }
+        return this.client.put<{{entityType}}, R>(`${this.getEndpoint()}/${entity.id}`, entity, {}, false);
     }
 
     async delete<R>(id: {{idType}}): Promise<R> {

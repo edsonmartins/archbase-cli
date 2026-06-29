@@ -1,13 +1,8 @@
 import React, { useCallback } from 'react';
 import {
-  ArchbaseEdit,
-  ArchbaseSelect,
-  ArchbaseSelectItem,
-  ArchbaseCheckbox,
-  ArchbaseSwitch,
-  ArchbaseNumberEdit,
-  ArchbasePasswordEdit,
-  ArchbaseTextArea
+{{#each formEditorImports}}
+  {{this}},
+{{/each}}
 } from '@archbase/components';
 import { ArchbaseFormTemplate } from '@archbase/template';
 import {
@@ -19,7 +14,7 @@ import { useArchbaseValidator } from '@archbase/core';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
-import { API_TYPE } from '../../ioc/IOCTypes';
+import { API_TYPE } from '../../ioc/{{iocTypesName}}';
 
 // Validation is driven by the DTO's class-validator decorators via
 // useArchbaseValidator() below (the V3 pattern), not a standalone schema.

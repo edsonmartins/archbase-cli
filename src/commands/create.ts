@@ -19,6 +19,14 @@ import { ServiceGenerator } from '../generators/ServiceGenerator';
 import { ViewGenerator } from '../generators/ViewGenerator';
 import { FormGenerator } from '../generators/FormGenerator';
 import { parseFieldSpecs } from '../utils/fields';
+import {
+  resolveIocTypesName,
+  writeBarrel,
+  patchIocTypes,
+  patchIocContainer,
+  patchNavConstants,
+  WiringResult,
+} from '../utils/projectWiring';
 
 export const createCommand = new Command('create')
   .description('Create projects and modules from boilerplates')
@@ -303,6 +311,8 @@ export const createCommand = new Command('create')
       .option('--output <dir>', 'Base source directory', './src')
       .option('--endpoint <path>', 'REST endpoint for the service')
       .option('--dto-style <style>', 'DTO style: class|interface', 'class')
+      .option('--category <cat>', 'Admin route category (e.g. configuracao, cadastros)', 'configuracao')
+      .option('--no-wire', 'Skip wiring into IOC/navigation/barrels (generate files only)')
       .action(async (name: string, options) => {
         console.log(chalk.blue(`🧩 Creating module: ${name}`));
 
@@ -310,6 +320,9 @@ export const createCommand = new Command('create')
           const entity = name.charAt(0).toUpperCase() + name.slice(1);
           const feature = entity.toLowerCase();
           const base = options.output;
+          const category = options.category || 'configuracao';
+          // All generated files import API_TYPE from the same resolved IOC module.
+          const iocTypesName = resolveIocTypesName(base);
           const parts = String(options.with).split(',').map((p: string) => p.trim().toLowerCase());
           const wantList = parts.includes('crud') || parts.includes('lists');
           const wantForm = parts.includes('crud') || parts.includes('forms') || parts.includes('details');
@@ -342,6 +355,8 @@ export const createCommand = new Command('create')
             endpoint: options.endpoint || `/api/v1/${feature}`,
             outputPath: base,
             generateDto: false,
+            iocTypesName,
+            skipIocRegistration: true, // create module wires IOC centrally below
           });
           created.push(path.join(base, 'services', `${entity}Service.ts`));
 
@@ -354,11 +369,13 @@ export const createCommand = new Command('create')
               test: false,
               story: false,
               feature,
+              category,
+              iocTypesName,
               withPermissions: true,
               withFilters: true,
               withPagination: true,
               withSorting: true,
-            });
+            } as any);
             if (viewResult.success) created.push(...viewResult.files);
           }
 
@@ -373,15 +390,45 @@ export const createCommand = new Command('create')
               test: false,
               story: false,
               feature,
+              iocTypesName,
             } as any);
             if (formResult.success) created.push(...formResult.files);
           }
 
           console.log(chalk.green(`\n✅ Module '${entity}' created with ${created.length} file(s):`));
           created.forEach((file) => console.log(chalk.gray(`  📄 ${file}`)));
+
+          // Wire the feature into the existing project (idempotent; skips files not found).
+          if (options.wire !== false) {
+            const featureConstant = feature.toUpperCase();
+            const route = `/admin/${category}/${feature}`;
+            const wiring: WiringResult[] = [];
+
+            wiring.push(await writeBarrel(path.join(base, 'domain', 'index.ts'), [
+              `export * from './${entity}Dto';`,
+            ]));
+            if (wantList || wantForm) {
+              const viewsBarrel = path.join(base, 'views', feature, 'index.ts');
+              const exports: string[] = [];
+              if (wantList) exports.push(`export { ${entity}View } from './${entity}View';`);
+              if (wantForm) exports.push(`export { ${entity}Form } from './${entity}Form';`);
+              wiring.push(await writeBarrel(viewsBarrel, exports));
+            }
+            wiring.push(await patchIocTypes(base, entity));
+            wiring.push(await patchIocContainer(base, `${entity}Service`, entity));
+            wiring.push(await patchNavConstants(base, featureConstant, route));
+
+            console.log(chalk.cyan('\n🔌 Wiring:'));
+            for (const w of wiring) {
+              const icon = w.action === 'skipped' ? '➖' : '🔗';
+              const detail = w.reason ? chalk.gray(` (${w.reason})`) : '';
+              console.log(chalk.gray(`  ${icon} ${w.action}: ${w.target}`) + detail);
+            }
+          }
+
           console.log(chalk.yellow('\n💡 Next steps:'));
-          console.log(chalk.gray(`  • Register ${entity}Service in your IOC container (API_TYPE.${entity})`));
-          console.log(chalk.gray(`  • Add navigation entries: archbase generate navigation ${entity} --feature ${feature}`));
+          console.log(chalk.gray(`  • Add the menu item + lazy route for ${entity}View/${entity}Form to navigationData (route ${feature.toUpperCase()}_ROUTE / ${feature.toUpperCase()}_FORM_ROUTE)`));
+          console.log(chalk.gray(`  • Confirm the service endpoint and the IOC types/container wiring above`));
 
         } catch (error) {
           console.error(chalk.red(`❌ Error creating module: ${error.message}`));

@@ -91,9 +91,10 @@ export class DomainGenerator {
       }).replace(/\s+/g, '');
     });
     
-    // Register validation message helper
-    this.handlebars.registerHelper('validationMessage', (fieldName: string, entityName: string) => {
-      return `mentors:${fieldName} ${entityName.toLowerCase()} dever ser informado`;
+    // Register validation message helper (kept for backwards-compat with any
+    // external template; the bundled dto.hbs now uses precomputed decorators).
+    this.handlebars.registerHelper('validationMessage', (fieldName: string, _entityName: string) => {
+      return `${fieldName} é obrigatório`;
     });
     
     // Register concat helper
@@ -176,10 +177,13 @@ export class DomainGenerator {
         }
       }
       
-      // Generate status values for UI rendering
+      // Generate status values for UI rendering (only when enums exist;
+      // generateStatusValues returns '' otherwise, which must not be listed).
       const statusFile = await this.generateStatusValues(processedConfig.name, context, processedConfig);
-      files.push(statusFile);
-      
+      if (statusFile) {
+        files.push(statusFile);
+      }
+
       return { files, success: true };
       
     } catch (error) {
@@ -294,7 +298,8 @@ export class DomainGenerator {
     
     // Add audit fields if requested (only if not already present)
     const auditFields: DomainField[] = config.withAuditFields ? [
-      { name: 'id', type: 'string', required: true },
+      // id is server/uuid-generated → optional (matches the reference DTOs)
+      { name: 'id', type: 'string', required: false },
       { name: 'code', type: 'string', required: false },
       { name: 'version', type: 'number', required: false },
       { name: 'createEntityDate', type: 'string', required: false },
@@ -323,15 +328,47 @@ export class DomainGenerator {
       }
       return field;
     });
-    
+
+    // Precompute validation decorators per field and the exact import set, so
+    // the template emits only the decorators it actually uses (no unused imports,
+    // proper @IsString/@IsNumber/@IsEnum alongside @IsNotEmpty/@IsOptional).
+    const needsValidation = !!config.withValidation && config.style !== 'interface';
+    const validationImportSet = new Set<string>();
+    const decoratedFields = processedFields.map(field => {
+      const decorators: string[] = [];
+      if (needsValidation) {
+        // Presence decorator: required → @IsNotEmpty, optional → @IsOptional.
+        if (field.required) {
+          decorators.push(`@IsNotEmpty({\n    message: "${field.name} é obrigatório",\n  })`);
+          validationImportSet.add('IsNotEmpty');
+        } else {
+          decorators.push('@IsOptional()');
+          validationImportSet.add('IsOptional');
+        }
+        // Format/type decorator: @IsEmail / @IsString / @IsNumber / @IsBoolean / @IsEnum.
+        const td = this.getTypeDecorator(field);
+        if (td) {
+          decorators.push(td.decorator);
+          validationImportSet.add(td.importName);
+        }
+      }
+      return { ...field, decorators };
+    });
+
+    const IMPORT_ORDER = [
+      'IsNotEmpty', 'IsEmail', 'IsOptional',
+      'IsString', 'IsNumber', 'IsBoolean', 'IsEnum', 'IsArray', 'ValidateNested',
+    ];
+    const validationImports = IMPORT_ORDER.filter(name => validationImportSet.has(name));
+
     return {
       // Basic info
       name: config.name,
       entityName,
       dtoName,
-      
+
       // Fields
-      fields: processedFields,
+      fields: decoratedFields,
       hasRequiredFields: processedFields.some(f => f.required),
       hasEnumFields: processedFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
       hasNestedFields: processedFields.some(f => f.nested),
@@ -355,9 +392,33 @@ export class DomainGenerator {
       style: config.style || 'class',
 
       // Imports
-      needsValidation: config.withValidation && processedFields.some(f => f.required),
+      needsValidation,
+      validationImports,
       needsUuid: config.withFactory || config.withAuditFields
     };
+  }
+
+  /**
+   * Pick the class-validator type decorator for a field (alongside the
+   * required/optional decorator), and the import symbol it needs.
+   */
+  private getTypeDecorator(field: DomainField): { decorator: string; importName: string } | null {
+    if ((field as any).isArray) return { decorator: '@IsArray()', importName: 'IsArray' };
+    if ((field as any).nested) return { decorator: '@ValidateNested()', importName: 'ValidateNested' };
+    const t = field.type;
+    if (t === 'email') return { decorator: '@IsEmail()', importName: 'IsEmail' };
+    if (/Status$|Type$/.test(t)) return { decorator: `@IsEnum(${t})`, importName: 'IsEnum' };
+    switch (t) {
+      case 'number':
+      case 'decimal':
+      case 'integer':
+      case 'float':
+        return { decorator: '@IsNumber()', importName: 'IsNumber' };
+      case 'boolean':
+        return { decorator: '@IsBoolean()', importName: 'IsBoolean' };
+      default:
+        return { decorator: '@IsString()', importName: 'IsString' };
+    }
   }
   
   private async generateDto(name: string, context: any, config: DomainConfig): Promise<string> {
