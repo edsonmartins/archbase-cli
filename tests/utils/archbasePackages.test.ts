@@ -57,6 +57,14 @@ describe('archbasePackages resolver', () => {
       expect(resolveArchbasePackage('useFooBar')).toBe('@archbase/core');
       expect(resolveArchbasePackage('SomethingTemplate')).toBe('@archbase/template');
     });
+
+    it('routes unknown *SecurityView symbols to security-ui, not security (heuristic order)', () => {
+      // The broad /Security/ branch must not shadow the security-ui views.
+      expect(resolveArchbasePackage('MyCustomSecurityView')).toBe('@archbase/security-ui');
+      expect(resolveArchbasePackage('TenantApiTokenView')).toBe('@archbase/security-ui');
+      // Genuine security (non-view) symbols still resolve to @archbase/security.
+      expect(resolveArchbasePackage('FooAuthenticator')).toBe('@archbase/security');
+    });
   });
 
   describe('isKnownArchbaseSymbol', () => {

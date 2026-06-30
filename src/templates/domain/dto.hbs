@@ -9,11 +9,10 @@
 import { v4 as uuidv4 } from 'uuid';
 {{/if}}
 {{#if needsValidation}}
-import { 
-  IsNotEmpty,
-  IsEmail,
-  ValidateNested,
-  IsOptional
+import {
+{{#each validationImports}}
+  {{this}},
+{{/each}}
 } from '@archbase/core';
 {{/if}}
 
@@ -34,25 +33,9 @@ import { {{name}} } from './{{name}}';
 
 export class {{dtoName}} {
   {{#each fields}}
-  {{#if required}}
-  {{#if validation}}
-  {{#if (eq validation 'email')}}
-  @IsEmail({
-    message: "{{validationMessage name ../entityName}} deve ser um email válido",
-  })
-  {{else}}
-  @IsNotEmpty({
-    message: "{{validationMessage name ../entityName}}",
-  })
-  {{/if}}
-  {{else}}
-  @IsNotEmpty({
-    message: "{{validationMessage name ../entityName}}",
-  })
-  {{/if}}
-  {{else}}
-  @IsOptional()
-  {{/if}}
+  {{#each decorators}}
+  {{{this}}}
+  {{/each}}
   {{name}}: {{tsType type}};
 
   {{/each}}

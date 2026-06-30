@@ -42,6 +42,7 @@ interface GenerationResult {
 }
 
 export class ComponentGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
   
   constructor(templatesPath: string = path.join(__dirname, '../../templates')) {
@@ -156,7 +157,7 @@ export class ComponentGenerator {
         imports.push("import { ArchbaseEdit, ArchbaseSelect, ArchbaseCheckbox } from '@archbase/components';");
         break;
       case 'display':
-        imports.push("import { Card, Text, Image } from '@mantine/core';");
+        imports.push("import { Card, Text } from '@mantine/core';");
         break;
       case 'layout':
         imports.push("import { Container, Grid } from '@mantine/core';");
@@ -237,11 +238,11 @@ export class ComponentGenerator {
   
   private getInlineTemplate(templateName: string): HandlebarsTemplateDelegate {
     // Register helper functions for Handlebars
-    Handlebars.registerHelper('eq', function(a, b) {
+    this.handlebars.registerHelper('eq', function(a, b) {
       return a === b;
     });
     
-    Handlebars.registerHelper('capitalizeFirst', function(str) {
+    this.handlebars.registerHelper('capitalizeFirst', function(str) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
     
@@ -254,7 +255,7 @@ export class ComponentGenerator {
       story: this.getStoryTemplate()
     };
     
-    return Handlebars.compile(templates[templateName] || templates.functional);
+    return this.handlebars.compile(templates[templateName] || templates.functional);
   }
   
   private getDisplayTemplate(): string {
@@ -290,16 +291,16 @@ const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if
   {{/if}}
   
   return (
-    <ArchbaseCard className="{{componentName}}">
+    <Card className="{{componentName}}" withBorder padding="md">
       {{#each props}}
       {{#if (eq type "string")}}
-      <ArchbaseText>{{{name}}}</ArchbaseText>
+      <Text>{{{name}}}</Text>
       {{/if}}
       {{#if (eq type "node")}}
       {{{name}}}
       {{/if}}
       {{/each}}
-    </ArchbaseCard>
+    </Card>
   );
 };
 
@@ -383,23 +384,23 @@ const {{componentName}}{{#if typescript}}: React.FC<{{componentName}}Props>{{/if
   children
 }) => {
   return (
-    <ArchbaseContainer className="{{componentName}}">
+    <Container className="{{componentName}}">
       {{#each props}}
       {{#if (eq type "string")}}
-      <ArchbaseRow>
-        <ArchbaseCol>
+      <Grid>
+        <Grid.Col span={12}>
           <h2>{{{name}}}</h2>
-        </ArchbaseCol>
-      </ArchbaseRow>
+        </Grid.Col>
+      </Grid>
       {{/if}}
       {{/each}}
-      
-      <ArchbaseRow>
-        <ArchbaseCol>
+
+      <Grid>
+        <Grid.Col span={12}>
           {children}
-        </ArchbaseCol>
-      </ArchbaseRow>
-    </ArchbaseContainer>
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 };
 

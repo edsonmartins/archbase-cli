@@ -52,7 +52,7 @@ archbase --version
 ### From Release Package
 ```bash
 # Download the .tgz file from releases
-npm install -g ./archbase-cli-0.1.0.tgz
+npm install -g ./archbase-cli-0.1.4.tgz
 ```
 
 📚 **For detailed compilation and distribution instructions, see [Compilation and Distribution Guide](docs/compilation-and-distribution.md)**
@@ -83,7 +83,7 @@ archbase generate navigation UserNavigation --category=usuarios --with-view --wi
 - ✅ Remote services with Java controller method analysis
 - ✅ Enums with utility functions and UI rendering configs
 - ✅ Forms using ArchbaseFormTemplate (real pattern)
-- ✅ CRUD views with ArchbaseDataGrid
+- ✅ CRUD views with ArchbaseGridTemplate + ArchbaseViewSecurityProvider
 - ✅ Navigation items following `/admin/{category}/{feature}` pattern
 
 ## Quick Start
@@ -124,7 +124,7 @@ archbase generate service ProdutoRemoteService --entity Produto --type ProdutoDt
 archbase generate security AdminLogin --type=login --with-mobile --with-branding
 archbase generate security UserManager --type=user-management --features=user-activation,user-roles
 archbase generate security SecurityView --type=security-management --features=custom-permissions,audit-log
-archbase generate security ApiTokenView --type=api-token-management --features=token-regeneration
+archbase generate security ApiTokenView --type=api-tokens --features=token-regeneration
 
 # Use interactive wizard for guided setup (NEW!)
 archbase create project MyApp --wizard
@@ -225,15 +225,16 @@ archbase create project <name> --npm <package> --project-type=basic
 # Generate package.json with Archbase dependencies (standalone)
 archbase create package-json --name=<name> --project-type=<type> [--features=<features>] [--output=<dir>]
 
-# Create module
-archbase create module <name> --with=forms,lists,details
+# Scaffold a full feature module (domain + service + view + form)
+archbase create module <name> --with=crud [--fields="name:text,price:number"] [--endpoint=/api/v1/products] [--dto-style=class|interface] [--output=./src]
+archbase create module Product --with=crud --fields="name:text,price:number,active:boolean"
 
 # List boilerplates
 archbase create list-boilerplates [--category=admin]
 ```
 
 **Project Types:**
-- `basic` - Core Archbase components + Mantine 8.x
+- `basic` - Core Archbase V3 packages (@archbase/*) + Mantine 9.x
 - `admin` - Basic + data grids, authentication, file export
 - `full` - Admin + rich text, charts, PDF, image processing, color picker
 
@@ -247,8 +248,8 @@ archbase create list-boilerplates [--category=admin]
 - `image-crop` - Image cropping and processing
 - `input-mask` - Input masking for phones, documents
 - `color-picker` - Color selection components
-- `security-management` - Complete user management using @archbase/security (V3)
-- `api-token-management` - API token generation and management using @archbase/security (V3)
+- `security-management` - Complete user management using @archbase/security-ui (V3)
+- `api-token-management` - API token generation and management using @archbase/security-ui (V3)
 
 ### Interactive Wizard (NEW!)
 
@@ -402,7 +403,7 @@ Create `.archbaserc.json` in your project:
 ```json
 {
   "version": "1.0.0",
-  "archbaseReactVersion": "^2.0.0",
+  "archbaseReactVersion": "^4.0.0",
   "defaultTemplate": "typescript",
   "outputDir": "./src",
   "structure": {
@@ -438,8 +439,12 @@ npm run build
 # Run in development
 npm run dev
 
-# Test
-npm test
+# Type-check
+npm run typecheck
+
+# Test (Vitest)
+npm test            # run once
+npm run test:watch  # watch mode
 ```
 
 ## Generators Reference
@@ -522,28 +527,39 @@ archbase generate form ProductForm \
 - Validation with Yup/Zod
 - TypeScript with proper DTO imports
 
-**Generated Structure:**
-```typescript
-import React from 'react';
-import { ArchbaseEdit } from 'archbase-react';
-import { Button } from '@mantine/core';
+**Generated Structure (canonical V3 pattern):**
+```tsx
+import React, { useCallback } from 'react';
 import * as yup from 'yup';
+import { ArchbaseEdit, ArchbaseNumberEdit } from '@archbase/components';
+import { ArchbaseFormTemplate } from '@archbase/template';
+import {
+  useArchbaseRemoteDataSource,
+  useArchbaseRemoteServiceApi,
+  useArchbaseStore
+} from '@archbase/data';
+import { useArchbaseValidator } from '@archbase/core';
+import { ProductDto } from '../../domain/ProductDto';
+import { ProductService } from '../../services/ProductService';
+import { API_TYPE } from '../../ioc/IOCTypes';
 
-interface ProductFormProps {
-  onSubmit: (values: Product) => Promise<void>;
-}
+export function ProductForm() {
+  const serviceApi = useArchbaseRemoteServiceApi<ProductService>(API_TYPE.Product);
+  const { dataSource, isLoading } = useArchbaseRemoteDataSource<ProductDto, string>({
+    name: 'dsProduct', service: serviceApi, /* ... */
+  });
 
-interface Product {
-  id: number;        // number type from CLI field
-  name: string;      // string type from 'text' field
-  price: number;     // number type from 'decimal' field
-  status: string;    // string type from 'enum' field
-  category: string;  // string type from 'text' field
+  return (
+    <ArchbaseFormTemplate dataSource={dataSource} isLoading={isLoading}>
+      <ArchbaseEdit<ProductDto, string> label="Name" dataSource={dataSource} dataField="name" required />
+      <ArchbaseNumberEdit<ProductDto, number> label="Price" dataSource={dataSource} dataField="price" />
+    </ArchbaseFormTemplate>
+  );
 }
 ```
 
 ### ViewGenerator
-Generate CRUD list views with ArchbaseDataGrid and permissions, featuring enhanced JSX template rendering.
+Generate CRUD list views with **ArchbaseGridTemplate** wrapped in **ArchbaseViewSecurityProvider** and permission-aware actions, following the real reference admin projects.
 
 **From DTO:**
 ```bash
@@ -559,37 +575,45 @@ archbase generate view ProductView \
   --with-filters --with-pagination --page-size=25
 ```
 
-**Enhanced Features (v0.1.3):**
-- **Fixed JSX Template Rendering**: Proper JSX syntax for props (e.g., `pageSize={25}` instead of `pageSize=25`)
-- **Enhanced Column Configuration**: Proper size, type, and filter configurations for DataGrid columns
-- **Improved Type Safety**: Column types correctly mapped from field specifications
-- **Template Helpers**: Uses `{{lt}}` and `{{gt}}` helpers for reliable JSX curly brace rendering
-
 **Core Features:**
-- ArchbaseDataGrid with row actions
-- Permission-based UI (`isAdministrator()` checks)
-- Toolbar actions (Add/Edit/Delete/View)
-- Column definitions with proper types
-- Filter and pagination support
+- **ArchbaseGridTemplate**: high-level grid template (toolbar, paging, row actions) instead of hand-wiring ArchbaseDataGrid
+- **Security provider**: view wrapped in `ArchbaseViewSecurityProvider` with `useArchbaseSecureForm` for `canCreate/canEdit/canDelete`
+- **DataSource V2**: `useArchbaseRemoteDataSourceV2` bound to the entity service
+- **Column definitions**: `<Columns>` + one `ArchbaseDataGridColumn` per field, with type-aware `dataType`
+- **Navigation cleanup**: `useArchbaseNavigationListener` clears the store on leave
 
 **Generated JSX Example:**
-```jsx
-<ArchbaseDataGrid<ProductDto, string>
-  pageSize={25}                    // Fixed: proper JSX syntax
-  size={120}                       // Fixed: numeric prop values
-  enableGlobalFilter={true}        // Fixed: boolean props
-  getRowId={(row) => row.id}       // Fixed: function props
-  dataSource={dataSource}
->
-  <Columns>
-    <ArchbaseDataGridColumn
-      dataField="price"
-      dataType="text"
-      size={120}                   // Fixed: proper numeric size
-      inputFilterType="text"
+```tsx
+export function ProductView() {
+  return (
+    <ArchbaseViewSecurityProvider resourceName="product" resourceDescription="Product">
+      <ProductViewContent />
+    </ArchbaseViewSecurityProvider>
+  );
+}
+
+function ProductViewContent() {
+  const { canCreate, canEdit, canDelete } = useArchbaseSecureForm('product', 'Product');
+  const serviceApi = useArchbaseRemoteServiceApi<ProductService>(API_TYPE.Product);
+  const { dataSource, isLoading, error } = useArchbaseRemoteDataSourceV2<ProductDto>({
+    name: 'dsProduct', service: serviceApi, pageSize: 25, /* ... */
+  });
+  const columns = useMemo(() => (
+    <Columns>
+      <ArchbaseDataGridColumn<ProductDto> dataField="price" dataType="number" header="Price" size={120} />
+    </Columns>
+  ), []);
+
+  return (
+    <ArchbaseGridTemplate<ProductDto, string>
+      dataSource={dataSource}
+      columns={columns}
+      isLoading={isLoading}
+      isError={!!error}
+      getRowId={(row) => row.id}
     />
-  </Columns>
-</ArchbaseDataGrid>
+  );
+}
 ```
 
 ### NavigationGenerator
@@ -637,7 +661,7 @@ archbase generate service UserRemoteService --wizard
 ```typescript
 @injectable()
 export class ClienteRemoteService extends ArchbaseRemoteApiService<ClienteDto, string> {
-    constructor(@inject(API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
+    constructor(@inject(ARCHBASE_IOC_API_TYPE.ApiClient) client: ArchbaseRemoteApiClient) {
         super(client);
     }
 
@@ -735,16 +759,16 @@ archbase generate security CustomAuth \
   --user-class=MyUser
 ```
 
-**Generated Files:**
-- **Login**: `LoginView.tsx`, `LoginMobileView.tsx`, `Login.module.css`
-- **Security**: `SecurityView.tsx`, `SecurityNavigation.tsx`, `SecurityRoutes.tsx`
-- **Users**: `UserManagementView.tsx` with full CRUD interface
-- **Tokens**: `ApiTokenManagementView.tsx` with secure token handling
-- **Auth**: `Authenticator.ts`, `SecurityContainer.tsx` with IoC setup
+**Generated Files** (each `--type` produces the corresponding component):
+- `--type=login` → `LoginView.tsx`
+- `--type=security-management` → `SecurityView.tsx` (uses `ArchbaseSecurityView`)
+- `--type=user-management` → `UserManagementView.tsx` with full CRUD interface
+- `--type=api-tokens` → `ApiTokenManagementView.tsx` (uses `ArchbaseApiTokenView`)
+- `--type=authenticator` → `Authenticator.ts` with IoC setup
 
 **V3 Security Features:**
-- **ArchbaseSecurityView**: Complete user management interface from @archbase/security
-- **ArchbaseApiTokenView**: API token management with generation and revocation
+- **ArchbaseSecurityView**: Complete user management interface from @archbase/security-ui
+- **ArchbaseApiTokenView**: API token management (from @archbase/security-ui) with generation and revocation
 - **JWT Authentication**: Complete implementation with refresh tokens
 - **Role-based Security**: Permission checking throughout all views
 - **Mobile Support**: Dedicated responsive mobile login views
@@ -787,9 +811,9 @@ All generators follow real patterns from powerview-admin:
 - **TypeScript**: Full type safety with DTOs and interfaces
 
 #### ViewGenerator  
-- **CRUD List Views**: `ArchbaseDataGrid` with toolbar and row actions
-- **Permission-Based UI**: Admin-only operations with `isAdministrator()` checks
-- **Navigation Integration**: Proper route handling and redirects
+- **CRUD List Views**: `ArchbaseGridTemplate` with built-in toolbar and row actions
+- **Permission-Based UI**: `ArchbaseViewSecurityProvider` + `useArchbaseSecureForm` (`canCreate/canEdit/canDelete`)
+- **Navigation Integration**: Proper route handling and store cleanup via `useArchbaseNavigationListener`
 - **Filter/Pagination**: Built-in filtering and pagination support
 - **Row Actions**: View/Edit/Delete with confirmation dialogs
 
@@ -1008,10 +1032,10 @@ archbase migrate v1-to-v2 ./src --exclude-complex --backup
 
 The CLI maintains a comprehensive knowledge base about Archbase components:
 
-- **35+ Components Documented**: From basic inputs to specialized editors
+- **900+ Components Indexed**: the full Archbase V3 catalog (derived from `component-catalog.json`) is loaded, mapped to its `@archbase/*` package, on top of a richly curated core set
 - **Auto-generated**: AST analysis extracts component props, types, and complexity
-- **Manual curation**: Descriptions, use cases, examples, and AI hints
-- **Production Patterns**: Real patterns from powerview-admin analysis
+- **Manual curation**: Descriptions, use cases, examples, and AI hints for the key components
+- **Production Patterns**: Real patterns from the reference admin projects
 - **Examples**: Real-world code examples and best practices
 
 ### Component Categories
@@ -1058,11 +1082,11 @@ The CLI maintains a comprehensive knowledge base about Archbase components:
 # Scan project for components
 archbase knowledge scan ./src/components
 
-# Validate knowledge base
-archbase knowledge validate
+# Validate the knowledge base (use --fix to backfill missing metadata)
+archbase knowledge validate --fix
 
-# Update from remote
-archbase knowledge update
+# Export the knowledge base (json | markdown | html)
+archbase knowledge export --format=markdown
 ```
 
 ## Contributing
@@ -1075,7 +1099,33 @@ archbase knowledge update
 
 ## Changelog
 
-### v0.1.6 - Archbase React V3 Migration with Security Features (Latest)
+### v0.2.0 - V3 Import Standardization, Canonical Generators & Test Suite (Latest)
+
+**Build & tooling:**
+- ✅ **Unblocked install/build**: removed the broken local `archbase-react` file dependency (the CLI only references it inside generated code, never at runtime)
+- ✅ **Migrated Jest → Vitest**: `vitest.config.ts`, shared `tests/helpers.ts`, `npm test` / `test:watch` / `test:coverage`
+- ✅ **Dependency stack aligned to real V3 projects**: `@archbase/*` `4.0.30`, **Mantine 9.3.1**, added `@archbase/security-ui`, `@tabler/icons-react` v3, Inversify 6.2, React Router 6.28
+
+**V3 import standardization:**
+- ✅ **Central resolver** (`src/utils/archbasePackages.ts`) backed by a 961-symbol map derived from the V3 catalog + the real reference projects — generated code now emits `@archbase/*` exclusively (zero `archbase-react`)
+- ✅ Fixed V3 project detection in `ProjectScanner` and `CodeValidator` (accept `@archbase/*`)
+
+**Generators realigned to canonical reference patterns:**
+- ✅ **Forms**: `forms/basic.hbs` rewritten to `ArchbaseFormTemplate` + DataSource (replaced the non-existent `FormBuilder`)
+- ✅ **Views**: `views/crud-list.hbs` rewritten to `ArchbaseGridTemplate` + `ArchbaseViewSecurityProvider` + `useArchbaseSecureForm`
+- ✅ **Domain**: `--style=class|interface` flag (+ `dto-interface.hbs`), `isNew` factory flag, `tsType` fixes (`email` → `string`)
+- ✅ **Security**: fixed type→template mapping and registered helpers; repaired the security view templates (feature flags + JSX brace escaping) so all `--type`s render
+- ✅ Fixed dashboard number-column JSX escaping and the Component Storybook helper
+
+**Features completed:**
+- ✅ `create module` now scaffolds a full feature slice (domain + service + view + form) with `--fields/--endpoint/--dto-style/--output`
+- ✅ `knowledge validate --fix` backfills missing metadata (with backup)
+- ✅ **KnowledgeBase** augmented with the full 900+ component V3 catalog (mapped to packages), on top of the curated core
+
+**Tests:**
+- ✅ **80 Vitest tests across 15 files** (resolver, all generators, KnowledgeBase, analyzers, CodeValidator, `create module` smoke), all green; assertions enforce `@archbase/*` imports and the canonical shape
+
+### v0.1.6 - Archbase React V3 Migration with Security Features
 
 **Major V3 Migration:**
 - ✅ **Complete V3 Architecture**: Migrated from monolithic archbase-react to modular @archbase/* packages
@@ -1202,7 +1252,7 @@ archbase generate service UserRemoteService --wizard
 
 **Dependencies Included (V3):**
 - **Core**: @archbase/core, @archbase/components, @mantine/core 8.x ecosystem, React 19, TypeScript
-- **Admin Features**: @archbase/admin, @archbase/data, @mui/x-data-grid, mantine-react-table, JWT auth, file export
+- **Admin Features**: @archbase/admin, @archbase/data, @mui/x-data-grid, JWT auth, file export
 - **Security Features**: @archbase/security with ArchbaseSecurityView and ArchbaseApiTokenView components
 - **Layout & Templates**: @archbase/layout, @archbase/template for structured admin interfaces
 - **Full Features**: Rich text editing, charts (D3), PDF generation, image processing, color picker
@@ -1487,9 +1537,8 @@ MyAdminApp/
 
 ```tsx
 // src/components/MyComponent.tsx
-import { ArchbaseEdit } from 'archbase-react';
-import { Button } from '@mantine/core';
-import { Container, Title } from '@mantine/core';
+import { ArchbaseEdit } from '@archbase/components';
+import { Button, Container, Title } from '@mantine/core';
 
 export function MyComponent() {
   return (

@@ -23,7 +23,7 @@ export const {{enumName}}Utils = {
     switch (value) {
       {{#each enumValues}}
       case {{../enumName}}.{{this}}:
-        return 'mentors:{{capitalizeFirst (toLowerCase this)}}';
+        return '{{capitalizeFirst (toLowerCase this)}}';
       {{/each}}
       default:
         return value;

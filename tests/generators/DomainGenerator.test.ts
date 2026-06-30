@@ -51,6 +51,29 @@ describe('DomainGenerator', () => {
       expect(content).toContain("from '@archbase/core'");
     });
 
+    it('emits clean decorators: optional id, real type decorators, clean messages, no unused imports', async () => {
+      const result = await generator.generate({
+        name: 'ProductDto', output: tempDir, typescript: true, fields: fields(),
+        withValidation: true, withConstructor: true, withFactory: true, withAuditFields: true,
+      } as any);
+      const content = await readGenerated(result.files[0]);
+      // id is server/uuid-generated → optional, not @IsNotEmpty
+      expect(content).toMatch(/@IsOptional\(\)\s*\n\s*@IsString\(\)\s*\n\s*id: string;/);
+      // required field gets @IsNotEmpty + a type decorator + a clean message (no 'mentors:'/'dever')
+      expect(content).toContain('@IsNotEmpty({');
+      expect(content).toContain('message: "name é obrigatório",');
+      expect(content).not.toContain('mentors:');
+      expect(content).not.toContain('dever ser informado');
+      // type/format decorators present
+      expect(content).toContain('@IsNumber()');
+      expect(content).toContain('@IsBoolean()');
+      expect(content).toContain('@IsEmail()');
+      // optional email → @IsOptional() + @IsEmail()
+      expect(content).toMatch(/@IsOptional\(\)\s*\n\s*@IsEmail\(\)/);
+      // unused decorator imports are not emitted
+      expect(content).not.toContain('ValidateNested');
+    });
+
     it('maps field types to valid TypeScript types (no leaked "email" type)', async () => {
       const result = await generator.generate({
         name: 'ProductDto', output: tempDir, typescript: true, fields: fields(),
@@ -64,6 +87,49 @@ describe('DomainGenerator', () => {
     });
   });
 
+  describe('enum fields', () => {
+    it('generates the enum, @IsEnum DTO field, and clean Values array', async () => {
+      const result = await generator.generate({
+        name: 'ProductDto', output: tempDir, typescript: true,
+        fields: [{ name: 'name', type: 'string', required: true }, { name: 'status', type: 'ProductStatus', required: false }],
+        enums: [{ name: 'ProductStatus', values: ['ATIVO', 'INATIVO'] }],
+        withValidation: true, withConstructor: true, withFactory: true, withAuditFields: true,
+      } as any);
+      expect(result.success).toBe(true);
+
+      const dto = await readGenerated(result.files.find((f) => f.endsWith('ProductDto.ts'))!);
+      expect(dto).toContain("import { ProductStatus } from './ProductStatus';");
+      expect(dto).toContain('@IsEnum(ProductStatus)');
+      expect(dto).toContain('status: ProductStatus;');
+
+      const enumFile = result.files.find((f) => f.endsWith('ProductStatus.ts'));
+      expect(enumFile).toBeDefined();
+      const enumContent = await readGenerated(enumFile!);
+      expect(enumContent).toContain('export enum ProductStatus');
+      expect(enumContent).toContain('ATIVO = "ATIVO"');
+      expect(enumContent).not.toContain('mentors:');
+
+      const valuesFile = result.files.find((f) => f.endsWith('StatusValues.ts'));
+      expect(valuesFile).toBeDefined();
+      const values = await readGenerated(valuesFile!);
+      expect(values).toContain("label: 'Ativo'");
+      expect(values).not.toContain('mentors:');
+    });
+  });
+
+  it('does not emit @IsEnum for a *Status field that is not a declared enum', async () => {
+    // Without the field's enum in `enums`, the old name-suffix heuristic emitted
+    // @IsEnum(OrderStatus) with no import → a DTO that does not compile.
+    const result = await generator.generate({
+      name: 'OrderDto', output: tempDir, typescript: true,
+      fields: [{ name: 'orderStatus', type: 'OrderStatus', required: false }],
+      withValidation: true, withConstructor: true, withFactory: true, withAuditFields: false,
+    } as any);
+    const dto = await readGenerated(result.files[0]);
+    expect(dto).not.toContain('@IsEnum(OrderStatus)');
+    expect(dto).not.toContain('import { OrderStatus }');
+  });
+
   describe('interface style', () => {
     it('generates interface + Create/Update DTOs', async () => {
       const result = await generator.generate({
@@ -73,8 +139,9 @@ describe('DomainGenerator', () => {
       expect(result.success).toBe(true);
       const content = await readGenerated(result.files[0]);
       expect(content).toContain('export interface ProductDto');
-      expect(content).toContain('export interface ProductCreateDTO');
-      expect(content).toContain('export interface ProductUpdateDTO');
+      // Create/Update DTOs are derived from the base interface to avoid duplication.
+      expect(content).toContain("export type ProductCreateDTO = Omit<ProductDto, 'id'>");
+      expect(content).toContain('export type ProductUpdateDTO = Partial<ProductDto>');
       expect(content).not.toContain('export class');
     });
 

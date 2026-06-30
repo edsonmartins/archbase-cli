@@ -42,8 +42,10 @@ function heuristicPackage(symbol: string): ArchbasePackage {
   if (/^use|Provider$|Validator|IOC|^ARCHBASE_IOC/.test(symbol)) return '@archbase/core';
   if (/Template$/.test(symbol)) return '@archbase/template';
   if (/Navigation|AdminLayout|AdminMainLayout/.test(symbol)) return '@archbase/admin';
+  // Security-UI views must be tested before the broad Security branch below,
+  // otherwise `*SecurityView` symbols would be shadowed onto @archbase/security.
+  if (/ApiToken|SecurityView|SecurityUi/.test(symbol)) return '@archbase/security-ui';
   if (/Security|Authenticator|AccessToken|TokenManager/.test(symbol)) return '@archbase/security';
-  if (/ApiToken|SecurityView/.test(symbol)) return '@archbase/security-ui';
   return '@archbase/components';
 }
 
@@ -76,16 +78,13 @@ export function groupImportsByPackage(symbols: string[]): Map<string, string[]> 
     byPackage.get(pkg)!.add(symbol);
   }
 
+  // resolveArchbasePackage always returns an @archbase/* package, so iterating
+  // ARCHBASE_PACKAGES in conventional order fully drains `byPackage`.
   const ordered = new Map<string, string[]>();
   for (const pkg of ARCHBASE_PACKAGES) {
     if (byPackage.has(pkg)) {
       ordered.set(pkg, Array.from(byPackage.get(pkg)!).sort());
-      byPackage.delete(pkg);
     }
-  }
-  // Any non-archbase packages that slipped in keep a stable trailing order.
-  for (const [pkg, set] of Array.from(byPackage.entries()).sort()) {
-    ordered.set(pkg, Array.from(set).sort());
   }
   return ordered;
 }

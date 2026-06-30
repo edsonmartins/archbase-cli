@@ -14,6 +14,10 @@ export interface ServiceGeneratorOptions {
   javaController?: string;
   outputPath?: string;
   generateDto?: boolean;
+  /** Module name of the project's IOC types file (e.g. 'IOCTypes', 'RapidexIOCTypes'). Defaults to 'IOCTypes'. */
+  iocTypesName?: string;
+  /** Skip the generator's own (legacy) IOC auto-registration; the caller wires it instead. */
+  skipIocRegistration?: boolean;
 }
 
 export interface ServiceMethod {
@@ -113,8 +117,11 @@ export class ServiceGenerator {
         dtoPaths.push(dtoPath);
       }
 
-      // Auto-register service in IOC container
-      await this.registerServiceInIOC(options, outputPath);
+      // Auto-register service in IOC container (skipped when the caller — e.g.
+      // `create module` — performs the wiring itself).
+      if (!options.skipIocRegistration) {
+        await this.registerServiceInIOC(options, outputPath);
+      }
 
       this.logger.success(`Service generated successfully at: ${servicePath}`);
       if (dtoPaths.length > 0) {
@@ -141,10 +148,9 @@ export class ServiceGenerator {
   }
 
   private async prepareTemplateData(options: ServiceGeneratorOptions): Promise<any> {
-    // Extract project name from output path or use current directory name
-    const outputPath = options.outputPath || process.cwd();
-    const projectName = path.basename(outputPath);
-    
+    // Resolve the IOC types module name (the service imports API_TYPE from it).
+    const iocTypesName = options.iocTypesName || 'IOCTypes';
+
     const data: any = {
       serviceName: options.serviceName,
       entityName: options.entityName,
@@ -153,7 +159,7 @@ export class ServiceGenerator {
       endpoint: options.endpoint || `/api/v1/${options.entityName.toLowerCase()}s`,
       hasCustomMethods: false,
       customMethods: [],
-      imports: this.getDefaultImports(options.entityType, projectName)
+      imports: this.getDefaultImports(options.entityType, iocTypesName)
     };
 
     // If Java controller provided, analyze it
@@ -312,24 +318,19 @@ export class ServiceGenerator {
     return typeMap[javaType] || javaType;
   }
 
-  private getDefaultImports(entityType?: string, projectName?: string): string[] {
+  private getDefaultImports(entityType?: string, iocTypesName: string = 'IOCTypes'): string[] {
     const imports = [
       "import { injectable, inject } from 'inversify';",
-      "import { ArchbaseRemoteApiService, ArchbaseRemoteApiClient, ARCHBASE_IOC_API_TYPE } from '@archbase/data';"
+      "import { ArchbaseRemoteApiService, ArchbaseRemoteApiClient } from '@archbase/data';"
     ];
-    
+
     if (entityType) {
       imports.push(`import { ${entityType} } from '../domain/${entityType}';`);
     }
 
-    // Add project-specific IOC types import
-    if (projectName) {
-      const pascalCaseProjectName = projectName.split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join('');
-      imports.push(`import { API_TYPE } from '../ioc/${pascalCaseProjectName}IOCTypes';`);
-    }
-    
+    // API_TYPE re-exports ApiClient and the per-service symbols (project convention).
+    imports.push(`import { API_TYPE } from '../ioc/${iocTypesName}';`);
+
     return imports;
   }
 

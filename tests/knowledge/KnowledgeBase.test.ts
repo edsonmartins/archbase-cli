@@ -41,6 +41,23 @@ describe('KnowledgeBase', () => {
     expect(component!.dependencies.some(d => d.startsWith('@archbase/'))).toBe(true);
   });
 
+  it('exposes typed props (not "unknown") for catalog-only components', async () => {
+    // ArchbaseActionButtons is not curated — its metadata comes from the synced
+    // catalog, which must carry real prop types/required flags/descriptions.
+    const component = await knowledgeBase.getComponent('ArchbaseActionButtons');
+
+    expect(component).not.toBeNull();
+    const props = component!.props;
+    expect(Object.keys(props).length).toBeGreaterThan(0);
+    // No prop should be left as the old type:'unknown' placeholder.
+    const types = Object.values(props).map(p => p.type);
+    expect(types.every(t => t && t !== 'unknown')).toBe(true);
+    // At least one required prop is surfaced.
+    expect(Object.values(props).some(p => p.required)).toBe(true);
+    // AI hint includes a ready-to-paste import statement.
+    expect(component!.aiHints?.some(h => h.startsWith('Import: import {'))).toBe(true);
+  });
+
   it('returns null for an unknown component', async () => {
     const component = await knowledgeBase.getComponent('TotallyMadeUpComponent');
 

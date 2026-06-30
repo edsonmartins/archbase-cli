@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { ServiceGenerator } from '../generators/ServiceGenerator';
+import { resolveIocTypesName } from '../utils/projectWiring';
 import { Logger } from '../utils/logger';
 import * as chalk from 'chalk';
 import * as inquirer from 'inquirer';
@@ -67,7 +68,10 @@ export function createGenerateServiceCommand(): Command {
           endpoint: config.endpoint,
           javaController: config.javaController,
           outputPath: config.output,
-          generateDto: config.dto
+          generateDto: config.dto,
+          // Resolve the project's IOC types module (e.g. RapidexIOCTypes) so the
+          // emitted `import { API_TYPE } from '../ioc/...'` matches the real file.
+          iocTypesName: config.output ? resolveIocTypesName(config.output) : 'IOCTypes'
         };
 
         await generator.generate(generatorOptions);

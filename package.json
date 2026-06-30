@@ -1,6 +1,6 @@
 {
   "name": "@archbase/cli",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "CLI tool for Archbase ecosystem - component querying and code generation",
   "main": "dist/index.js",
   "bin": {
@@ -17,7 +17,8 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "sync-catalog": "node scripts/sync-catalog.js"
   },
   "keywords": [
     "archbase",

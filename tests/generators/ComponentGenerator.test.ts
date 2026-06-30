@@ -81,6 +81,22 @@ describe('ComponentGenerator', () => {
     }
   });
 
+  it('display/layout bodies use real Mantine components, not fictional Archbase* tags', async () => {
+    const display = await readGenerated(
+      (await generator.generate('InfoCard', baseConfig(tempDir, { type: 'display' }))).files[0]
+    );
+    expect(display).toContain("from '@mantine/core'");
+    expect(display).toContain('<Card');
+    expect(display).not.toMatch(/ArchbaseCard|ArchbaseText/);
+
+    const layout = await readGenerated(
+      (await generator.generate('PageShell', baseConfig(tempDir, { type: 'layout', props: 'heading:string' }))).files[0]
+    );
+    expect(layout).toContain('<Container');
+    expect(layout).toContain('<Grid');
+    expect(layout).not.toMatch(/ArchbaseContainer|ArchbaseRow|ArchbaseCol/);
+  });
+
   it('generates a companion test file on demand', async () => {
     const result = await generator.generate('FullCard', baseConfig(tempDir, {
       test: true,

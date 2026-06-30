@@ -55,6 +55,7 @@ export class KnowledgeBase {
   private knowledgePath: string;
   private componentsCache: Map<string, ComponentInfo> = new Map();
   private patternsCache: PatternInfo[] = [];
+  private componentsLoaded = false;
   
   constructor(knowledgePath: string = path.join(__dirname, '../../knowledge')) {
     this.knowledgePath = knowledgePath;
@@ -147,6 +148,10 @@ export class KnowledgeBase {
   }
   
   private async loadComponents(): Promise<void> {
+    // The full V3 catalog is ~400KB; only parse it once per process.
+    if (this.componentsLoaded) {
+      return;
+    }
     try {
       const componentsFile = path.join(this.knowledgePath, 'components.json');
 
@@ -166,10 +171,12 @@ export class KnowledgeBase {
       // Augment with the full V3 catalog (916 components) for breadth, without
       // overwriting the curated entries above.
       await this.loadV3Catalog();
+      this.componentsLoaded = true;
     } catch (error) {
       console.warn('Failed to load components knowledge base:', error.message);
       await this.initializeDefaultComponents();
       await this.loadV3Catalog();
+      this.componentsLoaded = true;
     }
   }
 
@@ -197,23 +204,40 @@ export class KnowledgeBase {
         const pkg: string = entry.package || '@archbase/components';
         const category = pkg.replace('@archbase/', '');
         const props: Record<string, PropInfo> = {};
-        for (const propName of entry.props || []) {
-          if (typeof propName === 'string') {
-            props[propName] = { type: 'unknown', required: false, description: '' };
+        for (const prop of entry.props || []) {
+          // Rich form: { name, type, required, description }. Legacy form: a bare
+          // string (name only) — falls back to an unknown type.
+          if (typeof prop === 'string') {
+            props[prop] = { type: 'unknown', required: false, description: '' };
+          } else if (prop && prop.name) {
+            props[prop.name] = {
+              type: prop.type || 'unknown',
+              required: !!prop.required,
+              description: prop.description || '',
+            };
           }
         }
+
+        const requiredProps = Object.entries(props)
+          .filter(([, info]) => info.required)
+          .map(([propName]) => propName);
+        const aiHints = [`Import: import { ${name} } from '${pkg}';`];
+        if (requiredProps.length > 0) {
+          aiHints.push(`Required props: ${requiredProps.join(', ')}`);
+        }
+
         this.componentsCache.set(name, {
           name,
           description: entry.description || `${name} (${pkg})`,
           category,
           version,
-          status: 'stable',
+          status: (entry.status as ComponentInfo['status']) || 'stable',
           props,
           examples: [],
           patterns: [],
           relatedComponents: [],
           dependencies: [pkg],
-          aiHints: [`Imported from ${pkg}`],
+          aiHints,
           complexity: 'medium',
           useCases: entry.tags || [],
         });

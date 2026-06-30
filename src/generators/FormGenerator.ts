@@ -7,7 +7,8 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import Handlebars from 'handlebars';
-import { buildArchbaseImports } from '../utils/archbasePackages';
+import { resolveCommonTemplateFallback } from '../utils/templates';
+import { parseFieldSpecs, enumTypeName } from '../utils/fields';
 
 interface FormConfig {
   fields?: string;
@@ -33,6 +34,8 @@ interface FieldDefinition {
   required: boolean;
   placeholder?: string;
   validation?: string;
+  /** For enum fields: the enum type name (e.g. ProductStatus) the select binds to. */
+  enumName?: string;
 }
 
 interface GenerationResult {
@@ -42,8 +45,10 @@ interface GenerationResult {
 }
 
 export class FormGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
-  
+  private fieldsPartialRegistered = false;
+
   constructor(templatesPath: string = path.join(__dirname, '../../src/templates')) {
     this.templatesPath = templatesPath;
     this.registerHandlebarsHelpers();
@@ -51,12 +56,12 @@ export class FormGenerator {
   
   private registerHandlebarsHelpers() {
     // Register equality helper
-    Handlebars.registerHelper('eq', (a: any, b: any) => {
+    this.handlebars.registerHelper('eq', (a: any, b: any) => {
       return a === b;
     });
     
     // Register conditional helpers
-    Handlebars.registerHelper('if_eq', (a: any, b: any, options: any) => {
+    this.handlebars.registerHelper('if_eq', (a: any, b: any, options: any) => {
       if (a === b) {
         return options.fn(options.data?.root || {});
       }
@@ -64,22 +69,22 @@ export class FormGenerator {
     });
     
     // Register array includes helper
-    Handlebars.registerHelper('includes', (array: any[], item: any) => {
+    this.handlebars.registerHelper('includes', (array: any[], item: any) => {
       return array && array.includes(item);
     });
     
     // Register capitalize first helper
-    Handlebars.registerHelper('capitalizeFirst', (str: string) => {
+    this.handlebars.registerHelper('capitalizeFirst', (str: string) => {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
     
     // Register lowercase helper
-    Handlebars.registerHelper('toLowerCase', (str: string) => {
+    this.handlebars.registerHelper('toLowerCase', (str: string) => {
       return str.toLowerCase();
     });
     
     // Register TypeScript type helper for forms
-    Handlebars.registerHelper('tsType', (inputType: string) => {
+    this.handlebars.registerHelper('tsType', (inputType: string) => {
       const typeMapping: { [key: string]: string } = {
         'text': 'string',
         'email': 'string',
@@ -98,8 +103,8 @@ export class FormGenerator {
     });
     
     // Register helpers for template literals
-    Handlebars.registerHelper('lt', () => '{');
-    Handlebars.registerHelper('gt', () => '}');
+    this.handlebars.registerHelper('lt', () => '{');
+    this.handlebars.registerHelper('gt', () => '}');
   }
   
   async generate(name: string, config: FormConfig): Promise<GenerationResult> {
@@ -157,18 +162,16 @@ export class FormGenerator {
       ];
     }
     
-    return fieldsString.split(',').map(field => {
-      const [name, type = 'text'] = field.trim().split(':');
-      
-      return {
-        name: name.trim(),
-        type: type.trim(),
-        label: this.capitalizeFirst(name.trim()),
-        required: true,
-        placeholder: `Enter ${name.trim()}...`,
-        validation: this.getValidationForType(type.trim())
-      };
-    });
+    // Reuse the shared CSV parser so the form agrees with the DTO on field names
+    // (strips the `!` required-suffix) and required-ness (honors `:required`).
+    return parseFieldSpecs(fieldsString).map(spec => ({
+      name: spec.name,
+      type: spec.type,
+      label: this.capitalizeFirst(spec.name),
+      required: spec.required,
+      placeholder: `Enter ${spec.name}...`,
+      validation: this.getValidationForType(spec.type),
+    }));
   }
   
   private async extractFieldsFromDto(dtoPath: string): Promise<FieldDefinition[]> {
@@ -191,11 +194,11 @@ export class FormGenerator {
           continue;
         }
         
-        // Skip the new record flag
-        if (fieldName.startsWith('isNovo')) {
+        // Skip the new record flag (DomainGenerator emits `isNew`; legacy DTOs used `isNovo*`)
+        if (fieldName === 'isNew' || fieldName.startsWith('isNovo')) {
           continue;
         }
-        
+
         // Convert TypeScript type to form input type
         const inputType = this.convertTypeScriptToInputType(fieldType);
         
@@ -253,17 +256,58 @@ export class FormGenerator {
     return typeMap[cleanType] || 'text';
   }
   
+  /** The @archbase/components editors a form needs, based on its field types. */
+  private getFormEditorImports(fields: FieldDefinition[]): string[] {
+    const used = new Set<string>();
+    for (const field of fields) {
+      switch (field.type) {
+        case 'password': used.add('ArchbasePasswordEdit'); break;
+        case 'number': used.add('ArchbaseNumberEdit'); break;
+        case 'textarea': used.add('ArchbaseTextArea'); break;
+        case 'boolean': used.add('ArchbaseSwitch'); break;
+        case 'checkbox': used.add('ArchbaseCheckbox'); break;
+        // Plain 'select' renders an empty ArchbaseSelect (items are a TODO), so it
+        // must NOT import ArchbaseSelectItem (unused import → noUnusedLocals error).
+        case 'select': used.add('ArchbaseSelect'); break;
+        case 'enum': used.add('ArchbaseSelect'); used.add('ArchbaseSelectItem'); break;
+        default: used.add('ArchbaseEdit'); break; // text, email, date, ...
+      }
+    }
+    if (used.size === 0) used.add('ArchbaseEdit');
+    const ORDER = [
+      'ArchbaseEdit', 'ArchbaseNumberEdit', 'ArchbasePasswordEdit', 'ArchbaseTextArea',
+      'ArchbaseSelect', 'ArchbaseSelectItem', 'ArchbaseCheckbox', 'ArchbaseSwitch',
+    ];
+    return ORDER.filter(component => used.has(component));
+  }
+
   private buildTemplateContext(name: string, fields: FieldDefinition[], config: FormConfig) {
+    const entityName = name.replace(/Form(Modal)?$/, '');
+    // Resolve each enum field's type via the shared helper so the form's import
+    // matches the enum file the DTO generator writes (single source of truth).
+    for (const field of fields) {
+      if (field.type === 'enum') {
+        field.enumName = enumTypeName(entityName, field.name);
+      }
+    }
+    const enumImports = Array.from(
+      new Set(
+        fields
+          .filter(f => f.type === 'enum' && f.enumName)
+          .map(f => `import { ${f.enumName} } from '../../domain/${f.enumName}';`),
+      ),
+    );
+
     return {
       componentName: name,
-      entityName: name.replace(/Form$/, ''),
+      entityName,
+      iocTypesName: (config as any).iocTypesName || 'IOCTypes',
+      formEditorImports: this.getFormEditorImports(fields),
+      enumImports,
       fields,
       useValidation: config.validation !== 'none',
       validationLibrary: config.validation,
       typescript: config.typescript,
-      hasRequiredFields: fields.some(f => f.required),
-      imports: this.generateImports(fields, config),
-      validationSchema: this.generateValidationSchema(fields, config.validation),
       // DataSource V2 support
       dataSourceVersion: config.dataSourceVersion || config.datasourceVersion || 'v2',
       withArrayFields: config.withArrayFields || false,
@@ -293,9 +337,10 @@ export class FormGenerator {
     }
     
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    await this.registerFieldsPartial();
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
-    
+
     const ext = config.typescript ? '.tsx' : '.jsx';
     const fileName = `${name}${ext}`;
     const filePath = path.resolve(config.output, fileName);
@@ -306,10 +351,24 @@ export class FormGenerator {
     console.log(`  📄 ${filePath}`);
     return filePath;
   }
-  
+
+  /**
+   * Register the shared field-rendering partial (`forms/_fields.hbs`) so both
+   * the page form (basic.hbs) and the modal form (modal.hbs) render fields
+   * identically without duplicating the editor branches. Registered once.
+   */
+  private async registerFieldsPartial(): Promise<void> {
+    if (this.fieldsPartialRegistered) return;
+    const partialPath = path.join(this.templatesPath, 'forms', '_fields.hbs');
+    if (await fs.pathExists(partialPath)) {
+      this.handlebars.registerPartial('formFields', await fs.readFile(partialPath, 'utf-8'));
+      this.fieldsPartialRegistered = true;
+    }
+  }
+
   private async generateTest(name: string, context: any, config: FormConfig): Promise<string> {
     const template = await this.loadTemplate('forms/test.hbs');
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const ext = config.typescript ? '.test.tsx' : '.test.jsx';
@@ -324,7 +383,7 @@ export class FormGenerator {
   
   private async generateStory(name: string, context: any, config: FormConfig): Promise<string> {
     const template = await this.loadTemplate('forms/story.hbs');
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${name}.stories.tsx`;
@@ -344,12 +403,9 @@ export class FormGenerator {
     }
 
     // Test/story templates fall back to the shared common templates.
-    if (templateName.endsWith('test.hbs') || templateName.endsWith('story.hbs')) {
-      const commonName = templateName.endsWith('test.hbs') ? 'common/test.hbs' : 'common/story.hbs';
-      const commonPath = path.join(this.templatesPath, commonName);
-      if (await fs.pathExists(commonPath)) {
-        return fs.readFile(commonPath, 'utf-8');
-      }
+    const common = await resolveCommonTemplateFallback(this.templatesPath, templateName);
+    if (common !== null) {
+      return common;
     }
 
     // Return default template if specific template not found
@@ -537,64 +593,6 @@ export const WithInitialValues: Story = {
     },
   },
 };`;
-  }
-  
-  private generateImports(fields: FieldDefinition[], config: FormConfig): string[] {
-    // Map field types to the Archbase V3 input component they require.
-    const fieldComponentByType: Record<string, string> = {
-      string: 'ArchbaseEdit',
-      text: 'ArchbaseEdit',
-      email: 'ArchbaseEdit',
-      password: 'ArchbasePasswordEdit',
-      number: 'ArchbaseNumberEdit',
-      select: 'ArchbaseSelect',
-      textarea: 'ArchbaseTextArea',
-      checkbox: 'ArchbaseCheckbox',
-      switch: 'ArchbaseSwitch',
-      date: 'ArchbaseDateTimePickerEdit',
-      boolean: 'ArchbaseSwitch',
-    };
-
-    const archbaseSymbols = new Set<string>(['ArchbaseEdit', 'ArchbaseFormTemplate']);
-    fields.forEach(field => {
-      const component = fieldComponentByType[field.type];
-      if (component) archbaseSymbols.add(component);
-    });
-
-    const mantineComponents = ['Button'];
-
-    return [
-      "import React from 'react';",
-      // Imports grouped by @archbase/* package via the central resolver.
-      ...buildArchbaseImports([...archbaseSymbols]),
-      `import { ${[...new Set(mantineComponents)].join(', ')} } from '@mantine/core';`,
-      config.validation !== 'none' ? `import * as ${config.validation} from '${config.validation}';` : ''
-    ].filter(Boolean);
-  }
-  
-  private generateValidationSchema(fields: FieldDefinition[], library: string): string {
-    if (library === 'none') return '';
-    
-    const validations = fields.map(field => {
-      let validation = `${field.name}: ${library}.string()`;
-      
-      if (field.required) {
-        validation += '.required()';
-      }
-      
-      if (field.type === 'email') {
-        validation += '.email()';
-      }
-      
-      if (field.type === 'number') {
-        validation = `${field.name}: ${library}.number()`;
-        if (field.required) validation += '.required()';
-      }
-      
-      return validation;
-    });
-    
-    return validations.join(',\n  ');
   }
   
   private getValidationForType(type: string): string {

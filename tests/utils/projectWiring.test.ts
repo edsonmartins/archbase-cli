@@ -1,0 +1,184 @@
+/**
+ * Tests for idempotent project wiring used by `create module`.
+ */
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import { makeTempDir, cleanupDir } from '../helpers';
+import {
+  resolveIocTypesName,
+  writeBarrel,
+  patchIocTypes,
+  patchIocContainer,
+  patchNavConstants,
+  patchNavData,
+  buildNavDataSnippet,
+} from '../../src/utils/projectWiring';
+
+const NAV_OPTS = {
+  entity: 'Product',
+  feature: 'product',
+  featureConstant: 'PRODUCT',
+  viewName: 'ProductView',
+  formName: 'ProductForm',
+};
+
+async function scaffoldProject(base: string) {
+  await fs.ensureDir(path.join(base, 'ioc'));
+  await fs.ensureDir(path.join(base, 'navigation'));
+  await fs.writeFile(
+    path.join(base, 'ioc', 'IOCTypes.ts'),
+    `import { ARCHBASE_IOC_API_TYPE } from '@archbase/core';\n\nexport const API_TYPE = {\n  ApiClient: ARCHBASE_IOC_API_TYPE.ApiClient,\n  Existing: Symbol.for('ExistingService'),\n};\n`,
+  );
+  await fs.writeFile(
+    path.join(base, 'ioc', 'ContainerIOC.ts'),
+    `import { API_TYPE } from './IOCTypes';\nimport { ExistingService } from '../services/ExistingService';\n\nconst container = IOCContainer.getContainer();\n\ncontainer\n  .bind<ExistingService>(API_TYPE.Existing)\n  .to(ExistingService);\n\nexport { container };\n`,
+  );
+  await fs.writeFile(
+    path.join(base, 'navigation', 'navigationDataConstants.tsx'),
+    `export const DASHBOARD_ROUTE = '/dashboard';\n`,
+  );
+}
+
+describe('projectWiring', () => {
+  let base: string;
+  beforeEach(async () => { base = await makeTempDir(); });
+  afterEach(async () => { await cleanupDir(base); });
+
+  it('resolveIocTypesName finds the project IOC types file, else defaults', async () => {
+    expect(resolveIocTypesName(base)).toBe('IOCTypes'); // none yet → default
+    await fs.ensureDir(path.join(base, 'ioc'));
+    await fs.writeFile(path.join(base, 'ioc', 'RapidexIOCTypes.ts'), 'export const API_TYPE = {};\n');
+    expect(resolveIocTypesName(base)).toBe('RapidexIOCTypes');
+  });
+
+  it('patchIocTypes adds a Symbol.for entry and is idempotent', async () => {
+    await scaffoldProject(base);
+    const first = await patchIocTypes(base, 'Product');
+    expect(first.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'ioc', 'IOCTypes.ts'), 'utf-8');
+    expect(content).toContain("Product: Symbol.for('ProductService'),");
+    expect(content).toContain("Existing: Symbol.for('ExistingService'),"); // preserved
+
+    const second = await patchIocTypes(base, 'Product');
+    expect(second.action).toBe('skipped');
+    const after = await fs.readFile(path.join(base, 'ioc', 'IOCTypes.ts'), 'utf-8');
+    expect(after.match(/Product: Symbol\.for/g)?.length).toBe(1); // not duplicated
+  });
+
+  it('patchIocContainer adds import + binding and is idempotent', async () => {
+    await scaffoldProject(base);
+    const first = await patchIocContainer(base, 'ProductService', 'Product');
+    expect(first.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'ioc', 'ContainerIOC.ts'), 'utf-8');
+    expect(content).toContain('import { ProductService } from "../services/ProductService";');
+    expect(content).toContain('.bind<ProductService>(API_TYPE.Product)');
+    expect(content).toContain('.to(ProductService);');
+
+    const second = await patchIocContainer(base, 'ProductService', 'Product');
+    expect(second.action).toBe('skipped');
+  });
+
+  it('patchIocContainer inserts after a side-effect import without splitting it', async () => {
+    await fs.ensureDir(path.join(base, 'ioc'));
+    await fs.writeFile(
+      path.join(base, 'ioc', 'ContainerIOC.ts'),
+      `import { API_TYPE } from './IOCTypes';\n` +
+        `import './sideEffect';\n\n` +
+        `const container = IOCContainer.getContainer();\n\nexport { container };\n`,
+    );
+    const res = await patchIocContainer(base, 'ProductService', 'Product');
+    expect(res.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'ioc', 'ContainerIOC.ts'), 'utf-8');
+    // Side-effect import stays intact; the new import follows it, not spliced inside.
+    expect(content).toMatch(/import '\.\/sideEffect';\nimport \{ ProductService \} from "\.\.\/services\/ProductService";/);
+  });
+
+  it('patchIocContainer inserts after a multi-line import without splitting it', async () => {
+    await fs.ensureDir(path.join(base, 'ioc'));
+    await fs.writeFile(
+      path.join(base, 'ioc', 'ContainerIOC.ts'),
+      `import {\n  API_TYPE,\n  OTHER,\n} from './IOCTypes';\n\nconst container = IOCContainer.getContainer();\n\nexport { container };\n`,
+    );
+    const res = await patchIocContainer(base, 'ProductService', 'Product');
+    expect(res.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'ioc', 'ContainerIOC.ts'), 'utf-8');
+    // The multi-line import is preserved whole; the new import lands right after its `;`.
+    expect(content).toContain("  OTHER,\n} from './IOCTypes';\nimport { ProductService }");
+  });
+
+  it('patchNavConstants appends route constants and is idempotent', async () => {
+    await scaffoldProject(base);
+    const first = await patchNavConstants(base, 'PRODUCT', '/admin/configuracao/product');
+    expect(first.action).toBe('patched');
+    const content = await fs.readFile(path.join(base, 'navigation', 'navigationDataConstants.tsx'), 'utf-8');
+    expect(content).toContain("export const PRODUCT_ROUTE = '/admin/configuracao/product';");
+    expect(content).toContain("export const PRODUCT_FORM_ROUTE = '/admin/configuracao/product/:id';");
+
+    const second = await patchNavConstants(base, 'PRODUCT', '/admin/configuracao/product');
+    expect(second.action).toBe('skipped');
+  });
+
+  it('writeBarrel creates then extends without duplicating', async () => {
+    const barrel = path.join(base, 'domain', 'index.ts');
+    const created = await writeBarrel(barrel, ["export * from './ProductDto';"]);
+    expect(created.action).toBe('created');
+
+    const extended = await writeBarrel(barrel, ["export * from './OrderDto';"]);
+    expect(extended.action).toBe('patched');
+    const content = await fs.readFile(barrel, 'utf-8');
+    expect(content).toContain("export * from './ProductDto';");
+    expect(content).toContain("export * from './OrderDto';");
+
+    const noop = await writeBarrel(barrel, ["export * from './ProductDto';"]);
+    expect(noop.action).toBe('skipped');
+  });
+
+  it('gracefully skips when target files are absent (greenfield)', async () => {
+    expect((await patchIocTypes(base, 'Product')).action).toBe('skipped');
+    expect((await patchIocContainer(base, 'ProductService', 'Product')).action).toBe('skipped');
+    expect((await patchNavConstants(base, 'PRODUCT', '/x')).action).toBe('skipped');
+  });
+
+  describe('patchNavData', () => {
+    it('buildNavDataSnippet matches the project import-path style', () => {
+      const aliased = buildNavDataSnippet("import x from '@views/home'", NAV_OPTS);
+      expect(aliased).toContain('import("@views/product")');
+      const relative = buildNavDataSnippet("import x from '../views/home'", NAV_OPTS);
+      expect(relative).toContain('import("../views/product")');
+      expect(relative).toContain('component: withSuspense(<ProductView />)');
+      expect(relative).toContain('link: PRODUCT_ROUTE');
+    });
+
+    it('inserts lazy imports + nav item at the marker, idempotently', async () => {
+      const nav = path.join(base, 'navigation', 'navigationData.tsx');
+      await fs.ensureDir(path.dirname(nav));
+      await fs.writeFile(nav,
+        `const HomeView = lazy(() => import("../views/home").then((m) => ({ default: m.HomeView })))\n` +
+        `export const navigationData = [\n  // @archbase-cli:navitems\n];\n`,
+      );
+      const first = await patchNavData(base, NAV_OPTS);
+      expect(first.action).toBe('patched');
+      const content = await fs.readFile(nav, 'utf-8');
+      expect(content).toContain('const ProductView = lazy(() => import("../views/product")');
+      expect(content).toContain('const ProductForm = lazy(() => import("../views/product")');
+      expect(content).toContain('component: withSuspense(<ProductView />)');
+      expect(content).toContain('// @archbase-cli:navitems'); // marker preserved
+
+      const second = await patchNavData(base, NAV_OPTS);
+      expect(second.action).toBe('skipped');
+      const after = await fs.readFile(nav, 'utf-8');
+      expect(after.match(/const ProductView = lazy/g)?.length).toBe(1);
+    });
+
+    it('skips with a snippet when no marker is present', async () => {
+      const nav = path.join(base, 'navigation', 'navigationData.tsx');
+      await fs.ensureDir(path.dirname(nav));
+      await fs.writeFile(nav, `export const navigationData = [];\n`);
+      const res = await patchNavData(base, NAV_OPTS);
+      expect(res.action).toBe('skipped');
+      expect(res.reason).toMatch(/marker/);
+      expect(res.snippet).toContain('component: withSuspense(<ProductView />)');
+    });
+  });
+});

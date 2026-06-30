@@ -1,16 +1,8 @@
 import React, { useCallback } from 'react';
-{{#if useValidation}}
-import * as {{validationLibrary}} from '{{validationLibrary}}';
-{{/if}}
 import {
-  ArchbaseEdit,
-  ArchbaseSelect,
-  ArchbaseSelectItem,
-  ArchbaseCheckbox,
-  ArchbaseSwitch,
-  ArchbaseNumberEdit,
-  ArchbasePasswordEdit,
-  ArchbaseTextArea
+{{#each formEditorImports}}
+  {{this}},
+{{/each}}
 } from '@archbase/components';
 import { ArchbaseFormTemplate } from '@archbase/template';
 import {
@@ -19,18 +11,17 @@ import {
   useArchbaseStore
 } from '@archbase/data';
 import { useArchbaseValidator } from '@archbase/core';
+import { useForceUpdate } from '@mantine/hooks';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
-import { API_TYPE } from '../../ioc/IOCTypes';
+import { API_TYPE } from '../../ioc/{{iocTypesName}}';
+{{#each enumImports}}
+{{{this}}}
+{{/each}}
 
-{{#if useValidation}}
-const formValidator = {{validationLibrary}}.object({
-  {{#each fields}}
-  {{name}}: {{#if (eq type 'email')}}{{../validationLibrary}}.string().email(){{else if (eq type 'number')}}{{../validationLibrary}}.number(){{else if (eq type 'boolean')}}{{../validationLibrary}}.boolean(){{else}}{{../validationLibrary}}.string(){{/if}}{{#if required}}.required(){{/if}},
-  {{/each}}
-});
-{{/if}}
+// Validation is driven by the DTO's class-validator decorators via
+// useArchbaseValidator() below (the V3 pattern), not a standalone schema.
 
 export function {{componentName}}() {
   const { {{toLowerCase entityName}}Id } = useParams{{#if typescript}}<{ {{toLowerCase entityName}}Id: string }>{{/if}}();
@@ -38,10 +29,13 @@ export function {{componentName}}() {
   const action = (searchParamsUrl.get('action') ?? 'ADD').toUpperCase();
   const isAddAction = action === 'ADD';
   const isViewAction = action === 'VIEW';
+  // Shared name with the modal form so the field partial can disable editors in VIEW.
+  const isViewing = isViewAction;
 
   const templateStore = useArchbaseStore(`{{toLowerCase entityName}}Form${ {{toLowerCase entityName}}Id }Store`);
   const serviceApi = useArchbaseRemoteServiceApi<{{entityName}}Service>(API_TYPE.{{entityName}});
   const validator = useArchbaseValidator();
+  const forceUpdate = useForceUpdate();
 
   const { dataSource, isLoading } = useArchbaseRemoteDataSource<{{entityName}}Dto, string>({
     name: `ds{{entityName}}${ {{toLowerCase entityName}}Id }`,
@@ -55,6 +49,11 @@ export function {{componentName}}() {
     onLoadComplete: (ds) => {
       if (isAddAction) {
         ds.insert({{entityName}}Dto.newInstance());
+      } else if (action === 'EDIT' && !ds.isEmpty()) {
+        // Put the loaded record into edit mode so field changes are accepted,
+        // then force a re-render since onLoadComplete runs outside React's cycle.
+        ds.edit();
+        forceUpdate();
       }
     }
   });
@@ -69,70 +68,8 @@ export function {{componentName}}() {
       dataSource={dataSource}
       onAfterSave={handleAfterSave}
       isLoading={isLoading}
-      readOnly={isViewAction}
     >
-      {{#each fields}}
-      {{#if (eq type 'password')}}
-      <ArchbasePasswordEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-        {{#if required}}required{{/if}}
-      />
-      {{else if (eq type 'number')}}
-      <ArchbaseNumberEdit{{#if ../typescript}}<{{../entityName}}Dto, number>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-        {{#if required}}required{{/if}}
-      />
-      {{else if (eq type 'textarea')}}
-      <ArchbaseTextArea{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-        {{#if required}}required{{/if}}
-      />
-      {{else if (eq type 'boolean')}}
-      <ArchbaseSwitch{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-      />
-      {{else if (eq type 'checkbox')}}
-      <ArchbaseCheckbox{{#if ../typescript}}<{{../entityName}}Dto>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-      />
-      {{else if (eq type 'select')}}
-      <ArchbaseSelect{{#if ../typescript}}<{{../entityName}}Dto, string, string>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-        {{#if required}}required{{/if}}
-      >
-        {{#each options}}
-        <ArchbaseSelectItem key="{{this}}" value="{{this}}" label="{{this}}" />
-        {{/each}}
-      </ArchbaseSelect>
-      {{else if (eq type 'email')}}
-      <ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-        type="email"
-        {{#if required}}required{{/if}}
-      />
-      {{else}}
-      <ArchbaseEdit{{#if ../typescript}}<{{../entityName}}Dto, string>{{/if}}
-        label="{{label}}"
-        dataSource={dataSource}
-        dataField="{{name}}"
-        {{#if required}}required{{/if}}
-      />
-      {{/if}}
-      {{/each}}
+      {{> formFields}}
     </ArchbaseFormTemplate>
   );
 }

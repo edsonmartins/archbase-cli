@@ -25,7 +25,7 @@ import { ArchbaseViewSecurityProvider, useArchbaseSecureForm } from '@archbase/s
 {{#if typescript}}
 import { {{entityName}}Dto } from '../../domain/{{entityName}}Dto';
 import { {{entityName}}Service } from '../../services/{{entityName}}Service';
-import { API_TYPE } from '../../ioc/IOCTypes';
+import { API_TYPE } from '../../ioc/{{iocTypesName}}';
 {{/if}}
 
 // Constantes de segurança (padrão canônico Archbase V3)

@@ -57,6 +57,36 @@ describe('ServiceGenerator', () => {
     });
     expectV3Imports(content);
     expect(content).toContain("from '@archbase/data'");
-    expect(content).toContain('ARCHBASE_IOC_API_TYPE');
+    // Injects via the project's local API_TYPE.ApiClient (the reference convention),
+    // not the @archbase/data ARCHBASE_IOC_API_TYPE symbol directly.
+    expect(content).toContain('@inject(API_TYPE.ApiClient)');
+    expect(content).not.toContain('ARCHBASE_IOC_API_TYPE');
+  });
+
+  it('imports API_TYPE from the resolved IOC types module (default IOCTypes)', async () => {
+    const content = await generator.generate({
+      serviceName: 'ProductService',
+      entityName: 'Product',
+      entityType: 'ProductDto',
+      endpoint: '/api/v1/products',
+      outputPath: tempDir,
+      generateDto: false,
+    });
+    expect(content).toContain("import { API_TYPE } from '../ioc/IOCTypes';");
+    // No path-derived garbage like SrcIOCTypes.
+    expect(content).not.toMatch(/ioc\/\w*Src\w*IOCTypes/);
+  });
+
+  it('honors a custom iocTypesName', async () => {
+    const content = await generator.generate({
+      serviceName: 'ProductService',
+      entityName: 'Product',
+      entityType: 'ProductDto',
+      endpoint: '/api/v1/products',
+      outputPath: tempDir,
+      generateDto: false,
+      iocTypesName: 'RapidexIOCTypes',
+    });
+    expect(content).toContain("import { API_TYPE } from '../ioc/RapidexIOCTypes';");
   });
 });

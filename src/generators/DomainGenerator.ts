@@ -55,6 +55,7 @@ interface GenerationResult {
 }
 
 export class DomainGenerator {
+  private readonly handlebars = Handlebars.create();
   private templatesPath: string;
   
   constructor(templatesPath: string = path.join(__dirname, '../../src/templates')) {
@@ -64,46 +65,47 @@ export class DomainGenerator {
   
   private registerHandlebarsHelpers() {
     // Register equality helper
-    Handlebars.registerHelper('eq', (a: any, b: any) => {
+    this.handlebars.registerHelper('eq', (a: any, b: any) => {
       return a === b;
     });
     
     // Register capitalize first helper
-    Handlebars.registerHelper('capitalizeFirst', (str: string) => {
+    this.handlebars.registerHelper('capitalizeFirst', (str: string) => {
       return str.charAt(0).toUpperCase() + str.slice(1);
     });
     
     // Register lowercase helper
-    Handlebars.registerHelper('toLowerCase', (str: string) => {
+    this.handlebars.registerHelper('toLowerCase', (str: string) => {
       return str.toLowerCase();
     });
     
     // Register uppercase helper
-    Handlebars.registerHelper('toUpperCase', (str: string) => {
+    this.handlebars.registerHelper('toUpperCase', (str: string) => {
       return str.toUpperCase();
     });
     
     // Register camelCase helper
-    Handlebars.registerHelper('toCamelCase', (str: string) => {
+    this.handlebars.registerHelper('toCamelCase', (str: string) => {
       return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
         return index === 0 ? word.toLowerCase() : word.toUpperCase();
       }).replace(/\s+/g, '');
     });
     
-    // Register validation message helper
-    Handlebars.registerHelper('validationMessage', (fieldName: string, entityName: string) => {
-      return `mentors:${fieldName} ${entityName.toLowerCase()} dever ser informado`;
+    // Register validation message helper (kept for backwards-compat with any
+    // external template; the bundled dto.hbs now uses precomputed decorators).
+    this.handlebars.registerHelper('validationMessage', (fieldName: string, _entityName: string) => {
+      return `${fieldName} é obrigatório`;
     });
     
     // Register concat helper
-    Handlebars.registerHelper('concat', (...args: any[]) => {
+    this.handlebars.registerHelper('concat', (...args: any[]) => {
       // Remove the options object (last argument)
       const values = args.slice(0, -1);
       return values.join('');
     });
     
     // Register TypeScript type helper
-    Handlebars.registerHelper('tsType', (javaType: string) => {
+    this.handlebars.registerHelper('tsType', (javaType: string) => {
       const typeMapping: { [key: string]: string } = {
         // Java types
         'String': 'string',
@@ -175,10 +177,13 @@ export class DomainGenerator {
         }
       }
       
-      // Generate status values for UI rendering
+      // Generate status values for UI rendering (only when enums exist;
+      // generateStatusValues returns '' otherwise, which must not be listed).
       const statusFile = await this.generateStatusValues(processedConfig.name, context, processedConfig);
-      files.push(statusFile);
-      
+      if (statusFile) {
+        files.push(statusFile);
+      }
+
       return { files, success: true };
       
     } catch (error) {
@@ -293,7 +298,8 @@ export class DomainGenerator {
     
     // Add audit fields if requested (only if not already present)
     const auditFields: DomainField[] = config.withAuditFields ? [
-      { name: 'id', type: 'string', required: true },
+      // id is server/uuid-generated → optional (matches the reference DTOs)
+      { name: 'id', type: 'string', required: false },
       { name: 'code', type: 'string', required: false },
       { name: 'version', type: 'number', required: false },
       { name: 'createEntityDate', type: 'string', required: false },
@@ -322,17 +328,51 @@ export class DomainGenerator {
       }
       return field;
     });
-    
+
+    // Precompute validation decorators per field and the exact import set, so
+    // the template emits only the decorators it actually uses (no unused imports,
+    // proper @IsString/@IsNumber/@IsEnum alongside @IsNotEmpty/@IsOptional).
+    const needsValidation = !!config.withValidation && config.style !== 'interface';
+    const validationImportSet = new Set<string>();
+    const enumNames = new Set((config.enums || []).map(e => e.name));
+    const decoratedFields = processedFields.map(field => {
+      const decorators: string[] = [];
+      if (needsValidation) {
+        // Presence decorator: required → @IsNotEmpty, optional → @IsOptional.
+        if (field.required) {
+          decorators.push(`@IsNotEmpty({\n    message: "${field.name} é obrigatório",\n  })`);
+          validationImportSet.add('IsNotEmpty');
+        } else {
+          decorators.push('@IsOptional()');
+          validationImportSet.add('IsOptional');
+        }
+        // Format/type decorator: @IsEmail / @IsString / @IsNumber / @IsBoolean / @IsEnum.
+        const td = enumNames.has(field.type)
+          ? { decorator: `@IsEnum(${field.type})`, importName: 'IsEnum' }
+          : this.getTypeDecorator(field);
+        if (td) {
+          decorators.push(td.decorator);
+          validationImportSet.add(td.importName);
+        }
+      }
+      return { ...field, decorators };
+    });
+
+    const IMPORT_ORDER = [
+      'IsNotEmpty', 'IsEmail', 'IsOptional',
+      'IsString', 'IsNumber', 'IsBoolean', 'IsEnum', 'IsArray', 'ValidateNested',
+    ];
+    const validationImports = IMPORT_ORDER.filter(name => validationImportSet.has(name));
+
     return {
       // Basic info
       name: config.name,
       entityName,
       dtoName,
-      
+
       // Fields
-      fields: processedFields,
+      fields: decoratedFields,
       hasRequiredFields: processedFields.some(f => f.required),
-      hasEnumFields: processedFields.some(f => f.type.includes('Status') || f.type.includes('Type')),
       hasNestedFields: processedFields.some(f => f.nested),
       hasArrayFields: processedFields.some(f => f.isArray),
       
@@ -354,9 +394,35 @@ export class DomainGenerator {
       style: config.style || 'class',
 
       // Imports
-      needsValidation: config.withValidation && processedFields.some(f => f.required),
+      needsValidation,
+      validationImports,
       needsUuid: config.withFactory || config.withAuditFields
     };
+  }
+
+  /**
+   * Pick the class-validator type decorator for a field (alongside the
+   * required/optional decorator), and the import symbol it needs.
+   */
+  private getTypeDecorator(field: DomainField): { decorator: string; importName: string } | null {
+    if ((field as any).isArray) return { decorator: '@IsArray()', importName: 'IsArray' };
+    if ((field as any).nested) return { decorator: '@ValidateNested()', importName: 'ValidateNested' };
+    const t = field.type;
+    if (t === 'email') return { decorator: '@IsEmail()', importName: 'IsEmail' };
+    // Enum recognition is authoritative via the caller's `enumNames` set (which
+    // also imports the enum). No name-suffix heuristic here: a *Status/*Type field
+    // that is NOT a declared enum would otherwise get @IsEnum with no import.
+    switch (t) {
+      case 'number':
+      case 'decimal':
+      case 'integer':
+      case 'float':
+        return { decorator: '@IsNumber()', importName: 'IsNumber' };
+      case 'boolean':
+        return { decorator: '@IsBoolean()', importName: 'IsBoolean' };
+      default:
+        return { decorator: '@IsString()', importName: 'IsString' };
+    }
   }
   
   private async generateDto(name: string, context: any, config: DomainConfig): Promise<string> {
@@ -364,7 +430,7 @@ export class DomainGenerator {
       ? 'domain/dto-interface.hbs'
       : 'domain/dto.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${context.dtoName}.ts`;
@@ -380,7 +446,7 @@ export class DomainGenerator {
   private async generateEnum(enumConfig: EnumConfig, context: any, config: DomainConfig): Promise<string> {
     const templateName = 'domain/enum.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled({
       ...context,
       enumName: enumConfig.name,
@@ -406,7 +472,7 @@ export class DomainGenerator {
     
     const templateName = 'domain/status-values.hbs';
     const template = await this.loadTemplate(templateName);
-    const compiled = Handlebars.compile(template);
+    const compiled = this.handlebars.compile(template);
     const content = compiled(context);
     
     const fileName = `${context.entityName}StatusValues.ts`;

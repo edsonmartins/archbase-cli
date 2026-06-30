@@ -18,6 +18,16 @@ import { DomainGenerator } from '../generators/DomainGenerator';
 import { ServiceGenerator } from '../generators/ServiceGenerator';
 import { ViewGenerator } from '../generators/ViewGenerator';
 import { FormGenerator } from '../generators/FormGenerator';
+import { parseFieldSpecs, enumTypeName } from '../utils/fields';
+import {
+  resolveIocTypesName,
+  writeBarrel,
+  patchIocTypes,
+  patchIocContainer,
+  patchNavConstants,
+  patchNavData,
+  WiringResult,
+} from '../utils/projectWiring';
 
 export const createCommand = new Command('create')
   .description('Create projects and modules from boilerplates')
@@ -297,11 +307,13 @@ export const createCommand = new Command('create')
     new Command('module')
       .description('Scaffold a feature module (domain + service + view + form) following V3 patterns')
       .argument('<name>', 'Entity/module name (e.g., Product)')
-      .option('--with <components>', 'Comma-separated parts (crud|lists|forms|details)', 'crud')
-      .option('--fields <fields>', 'Comma-separated field list (name:type,price:number)', 'name:text,description:textarea')
+      .option('--with <components>', 'Comma-separated parts (crud|lists|forms|details|form-modal)', 'crud')
+      .option('--fields <fields>', 'Comma-separated field list (name:type[:required], e.g. name:text:required,price:number,status:enum:ATIVO|INATIVO)', 'name:text,description:textarea')
       .option('--output <dir>', 'Base source directory', './src')
       .option('--endpoint <path>', 'REST endpoint for the service')
       .option('--dto-style <style>', 'DTO style: class|interface', 'class')
+      .option('--category <cat>', 'Admin route category (e.g. configuracao, cadastros)', 'configuracao')
+      .option('--no-wire', 'Skip wiring into IOC/navigation/barrels (generate files only)')
       .action(async (name: string, options) => {
         console.log(chalk.blue(`🧩 Creating module: ${name}`));
 
@@ -309,13 +321,26 @@ export const createCommand = new Command('create')
           const entity = name.charAt(0).toUpperCase() + name.slice(1);
           const feature = entity.toLowerCase();
           const base = options.output;
+          const category = options.category || 'configuracao';
+          // All generated files import API_TYPE from the same resolved IOC module.
+          const iocTypesName = resolveIocTypesName(base);
           const parts = String(options.with).split(',').map((p: string) => p.trim().toLowerCase());
           const wantList = parts.includes('crud') || parts.includes('lists');
           const wantForm = parts.includes('crud') || parts.includes('forms') || parts.includes('details');
+          const wantFormModal = parts.includes('form-modal') || parts.includes('modal');
           const fieldsCsv: string = options.fields;
-          const fieldsArray = fieldsCsv.split(',').map((f) => {
-            const [fieldName, fieldType = 'text'] = f.trim().split(':');
-            return { name: fieldName.trim(), type: fieldType.trim(), required: false };
+          const fieldsArray = parseFieldSpecs(fieldsCsv);
+
+          // Enum fields (status:enum:A|B|C) become a generated enum + Values array;
+          // the DTO field is typed as the enum (e.g. ProductStatus → @IsEnum).
+          const enums: { name: string; values: string[] }[] = [];
+          const domainFields = fieldsArray.map((f) => {
+            if (f.type === 'enum' && f.enumValues && f.enumValues.length > 0) {
+              const enumName = enumTypeName(entity, f.name);
+              enums.push({ name: enumName, values: f.enumValues });
+              return { name: f.name, type: enumName, required: f.required };
+            }
+            return f;
           });
           const created: string[] = [];
 
@@ -325,7 +350,8 @@ export const createCommand = new Command('create')
             output: path.join(base, 'domain'),
             style: options.dtoStyle === 'interface' ? 'interface' : 'class',
             typescript: true,
-            fields: fieldsArray,
+            fields: domainFields,
+            enums,
             withValidation: true,
             withConstructor: true,
             withFactory: true,
@@ -334,7 +360,9 @@ export const createCommand = new Command('create')
           if (domainResult.success) created.push(...domainResult.files);
 
           // 2. Remote service
-          const servicePath = await new ServiceGenerator().generate({
+          // ServiceGenerator.generate() returns the rendered source (not a path)
+          // and writes to <outputPath>/services/<serviceName>.ts.
+          await new ServiceGenerator().generate({
             serviceName: `${entity}Service`,
             entityName: entity,
             entityType: `${entity}Dto`,
@@ -342,8 +370,10 @@ export const createCommand = new Command('create')
             endpoint: options.endpoint || `/api/v1/${feature}`,
             outputPath: base,
             generateDto: false,
+            iocTypesName,
+            skipIocRegistration: true, // create module wires IOC centrally below
           });
-          if (servicePath) created.push(servicePath);
+          created.push(path.join(base, 'services', `${entity}Service.ts`));
 
           // 3. CRUD list view
           if (wantList) {
@@ -354,11 +384,13 @@ export const createCommand = new Command('create')
               test: false,
               story: false,
               feature,
+              category,
+              iocTypesName,
               withPermissions: true,
               withFilters: true,
               withPagination: true,
               withSorting: true,
-            });
+            } as any);
             if (viewResult.success) created.push(...viewResult.files);
           }
 
@@ -373,15 +405,81 @@ export const createCommand = new Command('create')
               test: false,
               story: false,
               feature,
+              iocTypesName,
             } as any);
             if (formResult.success) created.push(...formResult.files);
           }
 
+          if (wantFormModal) {
+            const modalResult = await new FormGenerator().generate(`${entity}FormModal`, {
+              fields: fieldsCsv,
+              validation: 'none',
+              template: 'modal',
+              output: path.join(base, 'views', feature),
+              typescript: true,
+              test: false,
+              story: false,
+              feature,
+              iocTypesName,
+            } as any);
+            if (modalResult.success) created.push(...modalResult.files);
+          }
+
           console.log(chalk.green(`\n✅ Module '${entity}' created with ${created.length} file(s):`));
           created.forEach((file) => console.log(chalk.gray(`  📄 ${file}`)));
-          console.log(chalk.yellow('\n💡 Next steps:'));
-          console.log(chalk.gray(`  • Register ${entity}Service in your IOC container (API_TYPE.${entity})`));
-          console.log(chalk.gray(`  • Add navigation entries: archbase generate navigation ${entity} --feature ${feature}`));
+
+          // Wire the feature into the existing project (idempotent; skips files not found).
+          if (options.wire !== false) {
+            const featureConstant = feature.toUpperCase();
+            const route = `/admin/${category}/${feature}`;
+            const wiring: WiringResult[] = [];
+
+            wiring.push(await writeBarrel(path.join(base, 'domain', 'index.ts'), [
+              `export * from './${entity}Dto';`,
+            ]));
+            if (wantList || wantForm || wantFormModal) {
+              const viewsBarrel = path.join(base, 'views', feature, 'index.ts');
+              const exports: string[] = [];
+              if (wantList) exports.push(`export { ${entity}View } from './${entity}View';`);
+              if (wantForm) exports.push(`export { ${entity}Form } from './${entity}Form';`);
+              if (wantFormModal) exports.push(`export { ${entity}FormModal } from './${entity}FormModal';`);
+              wiring.push(await writeBarrel(viewsBarrel, exports));
+            }
+            wiring.push(await patchIocTypes(base, entity));
+            wiring.push(await patchIocContainer(base, `${entity}Service`, entity));
+
+            // Navigation wires the routed page: the list view, or the page form
+            // when there's no list. A modal-only module has no routed page, and we
+            // never reference a form that wasn't generated.
+            const routedView = wantList ? `${entity}View` : wantForm ? `${entity}Form` : undefined;
+            const routedForm = wantList && wantForm ? `${entity}Form` : undefined;
+            let navData: (typeof wiring)[number] & { snippet?: string } | undefined;
+            if (routedView) {
+              wiring.push(await patchNavConstants(base, featureConstant, route));
+              navData = await patchNavData(base, {
+                entity,
+                feature,
+                featureConstant,
+                viewName: routedView,
+                formName: routedForm,
+              });
+              wiring.push(navData);
+            }
+
+            console.log(chalk.cyan('\n🔌 Wiring:'));
+            for (const w of wiring) {
+              const icon = w.action === 'skipped' ? '➖' : '🔗';
+              const detail = w.reason ? chalk.gray(` (${w.reason})`) : '';
+              console.log(chalk.gray(`  ${icon} ${w.action}: ${w.target}`) + detail);
+            }
+
+            console.log(chalk.yellow('\n💡 Next steps:'));
+            if (navData && navData.action !== 'patched') {
+              console.log(chalk.gray('  • Add to navigationData (paste below; or add a `// @archbase-cli:navitems` marker to auto-wire next time):'));
+              console.log(navData.snippet!.split('\n').map((l) => chalk.gray(`      ${l}`)).join('\n'));
+            }
+            console.log(chalk.gray('  • Confirm the service endpoint and the IOC types/container wiring above'));
+          }
 
         } catch (error) {
           console.error(chalk.red(`❌ Error creating module: ${error.message}`));
